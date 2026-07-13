@@ -1,0 +1,11 @@
+const express = require("express");
+const {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler} = require("../controllers/jobController");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+const router = express.Router();
+router.get("/search", protect, searchJobsHandler);
+router.post("/", protect, authorizeRoles("recruiter"), postJob);
+router.get("/my-jobs", protect, authorizeRoles("recruiter"), getMyJobs);
+router.put("/:id", protect, authorizeRoles("recruiter"), editJob);
+router.delete("/:id", protect, authorizeRoles("recruiter"), removeJob);
+router.get("/:id", protect, getJob);
+module.exports = router;
