@@ -206,3 +206,14 @@ EXECUTE FUNCTION set_updated_at();
 INSERT INTO admin_settings (application_name, support_email, theme)
 SELECT 'Shnoor Job Portal', 'support@shnoor.com', 'light'
 WHERE NOT EXISTS (SELECT 1 FROM admin_settings);
+CREATE TABLE applications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    job_id INTEGER,
+    resume_path VARCHAR(500),
+    resume_filename VARCHAR(255),
+    status VARCHAR(30),
+    recruiter_note TEXT,
+    applied_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
