@@ -8,10 +8,8 @@ import {
   fetchAdminApplicationById,
   deleteAdminApplication
 } from "../../services/adminApplicationService";
-
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
-
 const AdminApplications = () => {
   const [data, setData] = useState({ applications: [], page: 1, totalPages: 1 });
   const [search, setSearch] = useState("");
@@ -20,7 +18,6 @@ const AdminApplications = () => {
   const [error, setError] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [viewApplication, setViewApplication] = useState(null);
-
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -32,17 +29,13 @@ const AdminApplications = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load(1);
-  
   }, [status]);
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     load(1);
   };
-
   const handleView = async (id) => {
     try {
       const result = await fetchAdminApplicationById(id);
@@ -51,7 +44,6 @@ const AdminApplications = () => {
       setError(err.response?.data?.message || "Unable to load application details.");
     }
   };
-
   const runConfirmed = async () => {
     if (!confirmAction) return;
     try {
@@ -63,7 +55,6 @@ const AdminApplications = () => {
       setConfirmAction(null);
     }
   };
-
   return (
     <AdminLayout title="Applications" subtitle="View and manage all job applications submitted on the platform.">
       {error && (
@@ -161,7 +152,6 @@ const AdminApplications = () => {
 
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
-
       {viewApplication && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
@@ -189,7 +179,6 @@ const AdminApplications = () => {
           </div>
         </div>
       )}
-
       <ConfirmDialog
         open={Boolean(confirmAction)}
         title="Delete Application"
@@ -202,5 +191,4 @@ const AdminApplications = () => {
     </AdminLayout>
   );
 };
-
 export default AdminApplications;

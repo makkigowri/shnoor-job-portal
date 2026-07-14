@@ -26,14 +26,6 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password, role } = req.body;
-
-    // ---- Admin branch ----
-    // Admin accounts live in their own "admins" table (separate from
-    // jobseeker/recruiter accounts in "users"), so when the "Login As"
-    // selector on the shared Login page is set to Admin, we authenticate
-    // against that table instead. This is still the SAME /api/auth/login
-    // endpoint, and reuses the same bcrypt + JWT logic below — nothing is
-    // duplicated, it's just a different lookup source.
     if (role === "admin") {
       const admin = await findAdminByEmail(email.toLowerCase());
       if (!admin) {
@@ -43,10 +35,6 @@ const login = async (req, res, next) => {
       if (!isAdminMatch) {
         return res.status(401).json({ success: false, message: "Invalid email or password" });
       }
-      // `type: "admin"` keeps this token compatible with the existing
-      // protectAdmin middleware (and therefore every already-built admin
-      // API route); `role: "admin"` is included so the token/user object
-      // looks exactly like a Job Seeker/Recruiter login for the frontend.
       const token = generateToken({ id: admin.id, role: "admin", type: "admin" });
       const { password: _adminPassword, ...adminWithoutPassword } = admin;
       return res.status(200).json({
@@ -56,8 +44,6 @@ const login = async (req, res, next) => {
         user: { ...adminWithoutPassword, role: "admin" }
       });
     }
-
-    // ---- Job Seeker / Recruiter branch (unchanged) ----
     const user = await findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });

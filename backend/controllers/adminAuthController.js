@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const { findAdminByEmail, findAdminByIdWithPassword, updateAdminPassword } = require("../models/adminModel");
 const generateToken = require("../utils/generateToken");
 const SALT_ROUNDS = 10;
-
 const adminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -29,7 +28,6 @@ const adminLogin = async (req, res, next) => {
     next(error);
   }
 };
-
 const getAdminProfile = async (req, res, next) => {
   try {
     res.status(200).json({ success: true, admin: req.admin });
@@ -37,7 +35,6 @@ const getAdminProfile = async (req, res, next) => {
     next(error);
   }
 };
-
 const changeAdminPassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -59,5 +56,4 @@ const changeAdminPassword = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { adminLogin, getAdminProfile, changeAdminPassword };

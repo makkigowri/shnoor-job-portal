@@ -1,7 +1,4 @@
 const pool = require("../config/db");
-
-/* ---------------------------- Dashboard ---------------------------- */
-
 const getDashboardStats = async () => {
   const query = `
     SELECT
@@ -18,7 +15,6 @@ const getDashboardStats = async () => {
   const result = await pool.query(query);
   return result.rows[0];
 };
-
 const getLatestUsers = async (limit = 5) => {
   const query = `
     SELECT id, fullname, email, phone, is_blocked, created_at
@@ -27,7 +23,6 @@ const getLatestUsers = async (limit = 5) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getLatestRecruiters = async (limit = 5) => {
   const query = `
     SELECT u.id, u.fullname, u.email, u.phone, u.is_blocked, u.created_at, c.company_name
@@ -37,7 +32,6 @@ const getLatestRecruiters = async (limit = 5) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getRecentJobPosts = async (limit = 5) => {
   const query = `
     SELECT j.id, j.title, j.location, j.status, j.created_at, u.fullname AS recruiter_name, c.company_name,
@@ -47,7 +41,6 @@ const getRecentJobPosts = async (limit = 5) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getRecentApplicationsAdmin = async (limit = 5) => {
   const query = `
     SELECT ap.id, ap.status, ap.applied_at, ap.ats_score, cand.fullname AS candidate_name,
@@ -60,9 +53,6 @@ const getRecentApplicationsAdmin = async (limit = 5) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
-/* ------------------------------ Users ------------------------------ */
-
 const listUsersAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const conditions = ["role = 'jobseeker'"];
   const values = [];
@@ -100,9 +90,6 @@ const getUserByIdAdmin = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
-/* --------------------------- Recruiters ----------------------------- */
-
 const listRecruitersAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const conditions = ["u.role = 'recruiter'"];
   const values = [];
@@ -135,7 +122,6 @@ const listRecruitersAdmin = async ({ search, status, page = 1, limit = 10 }) => 
   const dataResult = await pool.query(dataQuery, [...values, limit, offset]);
   return { recruiters: dataResult.rows, total, page: Number(page), limit: Number(limit), totalPages: Math.max(Math.ceil(total / limit), 1) };
 };
-
 const getRecruiterByIdAdmin = async (id) => {
   const query = `
     SELECT u.id, u.fullname, u.email, u.phone, u.is_blocked, u.created_at,
@@ -147,23 +133,16 @@ const getRecruiterByIdAdmin = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
-/* -------------------------- Shared user actions ---------------------- */
-
 const setUserBlockedStatus = async (id, isBlocked) => {
   const query = `UPDATE users SET is_blocked = $1 WHERE id = $2 RETURNING id, fullname, email, role, is_blocked`;
   const result = await pool.query(query, [isBlocked, id]);
   return result.rows[0];
 };
-
 const deleteUserAdminById = async (id) => {
   const query = `DELETE FROM users WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
-/* -------------------------------- Jobs -------------------------------- */
-
 const listJobsAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const conditions = [];
   const values = [];
@@ -205,21 +184,16 @@ const getJobByIdAdmin = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
 const setJobStatusAdmin = async (id, status) => {
   const query = `UPDATE jobs SET status = $1 WHERE id = $2 RETURNING *`;
   const result = await pool.query(query, [status, id]);
   return result.rows[0];
 };
-
 const deleteJobAdminById = async (id) => {
   const query = `DELETE FROM jobs WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
-/* --------------------------- Applications ------------------------------ */
-
 const listApplicationsAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const conditions = ["ap.status != 'Withdrawn'"];
   const values = [];
@@ -255,7 +229,6 @@ const listApplicationsAdmin = async ({ search, status, page = 1, limit = 10 }) =
   const dataResult = await pool.query(dataQuery, [...values, limit, offset]);
   return { applications: dataResult.rows, total, page: Number(page), limit: Number(limit), totalPages: Math.max(Math.ceil(total / limit), 1) };
 };
-
 const getApplicationByIdAdmin = async (id) => {
   const query = `
     SELECT ap.*, cand.fullname AS candidate_name, cand.email AS candidate_email, cand.phone AS candidate_phone,
@@ -268,15 +241,11 @@ const getApplicationByIdAdmin = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
 const deleteApplicationAdminById = async (id) => {
   const query = `DELETE FROM applications WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
-/* ------------------------------ Analytics ------------------------------ */
-
 const getTopRecruiters = async (limit = 10) => {
   const query = `
     SELECT u.id, u.fullname, c.company_name,
@@ -289,7 +258,6 @@ const getTopRecruiters = async (limit = 10) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getTopAppliedJobs = async (limit = 10) => {
   const query = `
     SELECT j.id, j.title, j.location, u.fullname AS recruiter_name, c.company_name,
@@ -304,7 +272,6 @@ const getTopAppliedJobs = async (limit = 10) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getMostActiveUsers = async (limit = 10) => {
   const query = `
     SELECT u.id, u.fullname, u.email,
@@ -318,7 +285,6 @@ const getMostActiveUsers = async (limit = 10) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getRecentRegistrations = async (limit = 10) => {
   const query = `
     SELECT id, fullname, email, role, created_at
@@ -328,7 +294,6 @@ const getRecentRegistrations = async (limit = 10) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getRecentActivities = async (limit = 15) => {
   const query = `
     (SELECT 'Registration' AS activity_type, fullname AS actor, role AS detail, created_at AS occurred_at FROM users)
@@ -341,7 +306,6 @@ const getRecentActivities = async (limit = 15) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const getSystemStatistics = async () => {
   const query = `
     SELECT
@@ -357,7 +321,83 @@ const getSystemStatistics = async () => {
   const result = await pool.query(query);
   return result.rows[0];
 };
-
+const listAssessmentsAdmin = async ({ search, status, page = 1, limit = 10 }) => {
+  const conditions = [];
+  const values = [];
+  let idx = 1;
+  if (search) {
+    conditions.push(`(a.title ILIKE $${idx} OR u.fullname ILIKE $${idx})`);
+    values.push(`%${search}%`);
+    idx += 1;
+  }
+  if (status) {
+    conditions.push(`a.status = $${idx}`);
+    values.push(status);
+    idx += 1;
+  }
+  const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const countResult = await pool.query(
+    `SELECT COUNT(*)::int AS total FROM assessments a JOIN users u ON u.id = a.recruiter_id ${whereClause}`,
+    values
+  );
+  const total = countResult.rows[0].total;
+  const offset = (Math.max(page, 1) - 1) * limit;
+  const dataQuery = `
+    SELECT a.id, a.title, a.status, a.total_marks, a.passing_marks, a.duration_minutes, a.created_at,
+      u.fullname AS recruiter_name, u.id AS recruiter_id, j.title AS job_title,
+      (SELECT COUNT(*)::int FROM assessment_questions q WHERE q.assessment_id = a.id) AS question_count,
+      (SELECT COUNT(*)::int FROM assessment_assignments aa WHERE aa.assessment_id = a.id) AS assigned_count,
+      (SELECT COUNT(*)::int FROM assessment_submissions s WHERE s.assessment_id = a.id AND s.status != 'In Progress') AS submitted_count
+    FROM assessments a JOIN users u ON u.id = a.recruiter_id LEFT JOIN jobs j ON j.id = a.job_id
+    ${whereClause}
+    ORDER BY a.created_at DESC
+    LIMIT $${idx} OFFSET $${idx + 1}`;
+  const dataResult = await pool.query(dataQuery, [...values, limit, offset]);
+  return { assessments: dataResult.rows, total, page: Number(page), limit: Number(limit), totalPages: Math.max(Math.ceil(total / limit), 1) };
+};
+const getAssessmentByIdAdmin = async (id) => {
+  const query = `
+    SELECT a.*, u.fullname AS recruiter_name, u.email AS recruiter_email, j.title AS job_title,
+      (SELECT COUNT(*)::int FROM assessment_assignments aa WHERE aa.assessment_id = a.id) AS assigned_count,
+      (SELECT COUNT(*)::int FROM assessment_submissions s WHERE s.assessment_id = a.id AND s.status != 'In Progress') AS submitted_count
+    FROM assessments a JOIN users u ON u.id = a.recruiter_id LEFT JOIN jobs j ON j.id = a.job_id
+    WHERE a.id = $1`;
+  const result = await pool.query(query, [id]);
+  const assessment = result.rows[0];
+  if (!assessment) {
+    return null;
+  }
+  const questionsResult = await pool.query(
+    `SELECT * FROM assessment_questions WHERE assessment_id = $1 ORDER BY order_index ASC, id ASC`,
+    [id]
+  );
+  assessment.questions = questionsResult.rows;
+  return assessment;
+};
+const deleteAssessmentAdminById = async (id) => {
+  const query = `DELETE FROM assessments WHERE id = $1 RETURNING id`;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
+};
+const getAssessmentStatisticsAdmin = async () => {
+  const query = `
+    SELECT
+      (SELECT COUNT(*)::int FROM assessments) AS total_assessments,
+      (SELECT COUNT(*)::int FROM assessments WHERE status = 'Draft') AS draft_assessments,
+      (SELECT COUNT(*)::int FROM assessments WHERE status = 'Published') AS published_assessments,
+      (SELECT COUNT(*)::int FROM assessments WHERE status = 'Closed') AS closed_assessments,
+      (SELECT COUNT(*)::int FROM assessment_questions) AS total_questions,
+      (SELECT COUNT(*)::int FROM assessment_assignments) AS total_assignments,
+      (SELECT COUNT(*)::int FROM assessment_assignments WHERE status = 'Completed') AS completed_assignments,
+      (SELECT COUNT(*)::int FROM assessment_assignments WHERE status = 'Expired') AS expired_assignments,
+      (SELECT COUNT(*)::int FROM assessment_submissions WHERE status != 'In Progress') AS total_submissions,
+      (SELECT COUNT(*)::int FROM assessment_submissions WHERE result = 'Pass') AS total_passed,
+      (SELECT COUNT(*)::int FROM assessment_submissions WHERE result = 'Fail') AS total_failed,
+      (SELECT COALESCE(ROUND(AVG(percentage), 2), 0) FROM assessment_submissions WHERE status != 'In Progress') AS avg_percentage
+  `;
+  const result = await pool.query(query);
+  return result.rows[0];
+};
 module.exports = {
   getDashboardStats,
   getLatestUsers,
@@ -382,5 +422,9 @@ module.exports = {
   getMostActiveUsers,
   getRecentRegistrations,
   getRecentActivities,
-  getSystemStatistics
+  getSystemStatistics,
+  listAssessmentsAdmin,
+  getAssessmentByIdAdmin,
+  deleteAssessmentAdminById,
+  getAssessmentStatisticsAdmin
 };

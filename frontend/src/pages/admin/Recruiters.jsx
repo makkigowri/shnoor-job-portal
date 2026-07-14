@@ -33,10 +33,8 @@ const AdminRecruiters = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const handleSearchSubmit = (e) => {
@@ -52,7 +50,6 @@ const AdminRecruiters = () => {
       setError(err.response?.data?.message || "Unable to load recruiter details.");
     }
   };
-
   const runConfirmed = async () => {
     if (!confirmAction) return;
     try {
@@ -66,7 +63,6 @@ const AdminRecruiters = () => {
       setConfirmAction(null);
     }
   };
-
   return (
     <AdminLayout title="Recruiters" subtitle="Manage all recruiter accounts and their companies.">
       {error && (
@@ -209,5 +205,4 @@ const AdminRecruiters = () => {
     </AdminLayout>
   );
 };
-
 export default AdminRecruiters;

@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const { getSettings, updateSettings, updateSettingsLogo } = require("../models/adminSettingsModel");
 const { findAdminByIdWithPassword, updateAdminPassword } = require("../models/adminModel");
 const SALT_ROUNDS = 10;
-
 const getAppSettings = async (req, res, next) => {
   try {
     const settings = await getSettings();
@@ -11,7 +10,6 @@ const getAppSettings = async (req, res, next) => {
     next(error);
   }
 };
-
 const saveAppSettings = async (req, res, next) => {
   try {
     const { applicationName, supportEmail, theme } = req.body;
@@ -24,7 +22,6 @@ const saveAppSettings = async (req, res, next) => {
     next(error);
   }
 };
-
 const uploadAppLogo = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -37,7 +34,6 @@ const uploadAppLogo = async (req, res, next) => {
     next(error);
   }
 };
-
 const changeAdminSettingsPassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -59,5 +55,4 @@ const changeAdminSettingsPassword = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { getAppSettings, saveAppSettings, uploadAppLogo, changeAdminSettingsPassword };

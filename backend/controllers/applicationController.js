@@ -3,6 +3,8 @@ const {
 const { findJobById } = require("../models/jobModel");
 const { getResumeByUserId } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
+const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../models/assessmentAssignmentModel");
+const { getCompanyByRecruiterId } = require("../models/companyModel");
 const ALLOWED_STATUSES = ["Under Review", "Shortlisted", "Rejected"];
 const applyToJobHandler = async (req, res, next) => {
   try {
@@ -134,6 +136,30 @@ const updateApplicationStatusHandler = async (req, res, next) => {
         ...notificationCopy,
         relatedJobId: application.job_id
       }).catch((err) => console.error("Failed to create notification:", err.message));
+    }
+    if (status === "Shortlisted") {
+      try {
+        const newlyAssigned = await assignPublishedAssessmentsToNewlyShortlistedCandidate(
+          application.job_id,
+          application.user_id,
+          application.id
+        );
+        if (newlyAssigned.length > 0) {
+          const company = await getCompanyByRecruiterId(req.user.id).catch(() => null);
+          const companyName = (company && company.company_name) || "The recruiter";
+          const jobTitle = job ? job.title : "the role you applied for";
+          newlyAssigned.forEach((assignment) => {
+            createNotification(application.user_id, {
+              title: "New Assessment Assigned",
+              message: `${companyName} has assigned a new assessment for ${jobTitle}. Check "My Assessments" to get started.`,
+              type: "info",
+              relatedJobId: application.job_id
+            }).catch((err) => console.error("Failed to create assessment notification:", err.message));
+          });
+        }
+      } catch (assignError) {
+        console.error("Auto-assignment on shortlist failed:", assignError.message);
+      }
     }
     res.status(200).json({
       success: true,

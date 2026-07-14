@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getRecruiterDashboardSummary } from "../../services/recruiterService";
+import { getAssessments } from "../../services/assessmentService";
+import StatusBadge from "../../components/recruiter/StatusBadge";
 const statCards = (stats) => [
   { title: "Active Jobs", value: stats.activeJobs, color: "text-[#3E3A74]" },
   { title: "Applications", value: stats.applications, color: "text-green-600" },
@@ -23,6 +25,8 @@ export default function Dashboard() {
   const [jobPerformance, setJobPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [assessments, setAssessments] = useState([]);
+  const [assessmentsLoading, setAssessmentsLoading] = useState(true);
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -40,6 +44,25 @@ export default function Dashboard() {
     };
     load();
   }, []);
+  useEffect(() => {
+    const loadAssessments = async () => {
+      setAssessmentsLoading(true);
+      try {
+        const data = await getAssessments();
+        setAssessments(data.assessments || []);
+      } catch {
+        // Non-blocking: dashboard still works if assessments fail to load
+      } finally {
+        setAssessmentsLoading(false);
+      }
+    };
+    loadAssessments();
+  }, []);
+  const assessmentSummary = {
+    total: assessments.length,
+    published: assessments.filter((a) => a.status === "Published").length,
+    draft: assessments.filter((a) => a.status === "Draft").length
+  };
   return (
     <RecruiterDashboardLayout>
       <h1 className="text-4xl font-bold text-[#3E3A74]">Recruiter Dashboard</h1>
@@ -92,11 +115,57 @@ export default function Dashboard() {
             <button onClick={() => navigate("/recruiter/applicants")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
               Applicants
             </button>
-            <button onClick={() => navigate("/recruiter/analytics")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
-              Analytics
+            <button onClick={() => navigate("/recruiter/assessments")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
+              Assessments
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-[#3E3A74]">Assessments</h2>
+          <button onClick={() => navigate("/recruiter/assessments")} className="text-[#7393D3] font-semibold">
+            View All →
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-4 mt-5">
+          <div className="bg-gray-50 rounded-xl py-4 text-center">
+            <p className="text-2xl font-bold text-[#3E3A74]">{assessmentsLoading ? "..." : assessmentSummary.total}</p>
+            <p className="text-sm text-gray-500">Total</p>
+          </div>
+          <div className="bg-gray-50 rounded-xl py-4 text-center">
+            <p className="text-2xl font-bold text-green-600">{assessmentsLoading ? "..." : assessmentSummary.published}</p>
+            <p className="text-sm text-gray-500">Published</p>
+          </div>
+          <div className="bg-gray-50 rounded-xl py-4 text-center">
+            <p className="text-2xl font-bold text-gray-600">{assessmentsLoading ? "..." : assessmentSummary.draft}</p>
+            <p className="text-sm text-gray-500">Draft</p>
+          </div>
+        </div>
+        {!assessmentsLoading && assessments.length === 0 && (
+          <p className="mt-5 text-gray-500">
+            No assessments yet.{" "}
+            <button onClick={() => navigate("/recruiter/assessments/create")} className="text-[#7393D3] font-semibold underline">
+              Create your first assessment
+            </button>
+          </p>
+        )}
+        {!assessmentsLoading && assessments.length > 0 && (
+          <div className="mt-5 divide-y divide-gray-100">
+            {assessments.slice(0, 5).map((a) => (
+              <div key={a.id} className="flex items-center justify-between py-3">
+                <button
+                  onClick={() => navigate(`/recruiter/assessments/${a.id}`)}
+                  className="font-semibold text-gray-900 hover:text-[#7393D3] text-left"
+                >
+                  {a.title}
+                </button>
+                <StatusBadge status={a.status} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between">

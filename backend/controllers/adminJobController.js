@@ -4,7 +4,6 @@ const {
   setJobStatusAdmin,
   deleteJobAdminById
 } = require("../models/adminStatsModel");
-
 const listJobs = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
@@ -14,7 +13,6 @@ const listJobs = async (req, res, next) => {
     next(error);
   }
 };
-
 const viewJob = async (req, res, next) => {
   try {
     const job = await getJobByIdAdmin(req.params.id);
@@ -26,7 +24,6 @@ const viewJob = async (req, res, next) => {
     next(error);
   }
 };
-
 const updateJobStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
@@ -42,7 +39,6 @@ const updateJobStatus = async (req, res, next) => {
     next(error);
   }
 };
-
 const deleteJob = async (req, res, next) => {
   try {
     const deleted = await deleteJobAdminById(req.params.id);
@@ -54,5 +50,4 @@ const deleteJob = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { listJobs, viewJob, updateJobStatus, deleteJob };

@@ -4,7 +4,6 @@ const {
   setUserBlockedStatus,
   deleteUserAdminById
 } = require("../models/adminStatsModel");
-
 const listRecruiters = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
@@ -14,7 +13,6 @@ const listRecruiters = async (req, res, next) => {
     next(error);
   }
 };
-
 const viewRecruiter = async (req, res, next) => {
   try {
     const recruiter = await getRecruiterByIdAdmin(req.params.id);
@@ -26,7 +24,6 @@ const viewRecruiter = async (req, res, next) => {
     next(error);
   }
 };
-
 const blockRecruiter = async (req, res, next) => {
   try {
     const recruiter = await setUserBlockedStatus(req.params.id, true);
@@ -38,7 +35,6 @@ const blockRecruiter = async (req, res, next) => {
     next(error);
   }
 };
-
 const unblockRecruiter = async (req, res, next) => {
   try {
     const recruiter = await setUserBlockedStatus(req.params.id, false);
@@ -50,7 +46,6 @@ const unblockRecruiter = async (req, res, next) => {
     next(error);
   }
 };
-
 const deleteRecruiter = async (req, res, next) => {
   try {
     const deleted = await deleteUserAdminById(req.params.id);
@@ -62,5 +57,4 @@ const deleteRecruiter = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { listRecruiters, viewRecruiter, blockRecruiter, unblockRecruiter, deleteRecruiter };

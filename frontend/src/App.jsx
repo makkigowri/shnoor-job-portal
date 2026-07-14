@@ -11,6 +11,10 @@ import SavedJobs from "./pages/user/SavedJobs";
 import AppliedJobs from "./pages/user/AppliedJobs";
 import Notifications from "./pages/user/Notifications";
 import Settings from "./pages/user/Settings";
+import MyAssessments from "./pages/user/assessments/MyAssessments";
+import CandidateAssessmentDetails from "./pages/user/assessments/AssessmentDetails";
+import TakeAssessment from "./pages/user/assessments/TakeAssessment";
+import AssessmentResult from "./pages/user/assessments/AssessmentResult";
 import RecruiterDashboard from "./pages/recruiter/Dashboard";
 import CompanyProfile from "./pages/recruiter/CompanyProfile";
 import PostJob from "./pages/recruiter/PostJob";
@@ -22,6 +26,13 @@ import Interviews from "./pages/recruiter/Interviews";
 import Analytics from "./pages/recruiter/Analytics";
 import RecruiterNotifications from "./pages/recruiter/Notifications";
 import RecruiterSettings from "./pages/recruiter/Settings";
+import AssessmentDashboard from "./pages/recruiter/assessments/AssessmentDashboard";
+import CreateAssessment from "./pages/recruiter/assessments/CreateAssessment";
+import EditAssessment from "./pages/recruiter/assessments/EditAssessment";
+import QuestionManager from "./pages/recruiter/assessments/QuestionManager";
+import AssignCandidates from "./pages/recruiter/assessments/AssignCandidates";
+import AssessmentDetails from "./pages/recruiter/assessments/AssessmentDetails";
+import AssessmentResults from "./pages/recruiter/assessments/AssessmentResults";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import TermsAndConditions from "./pages/legal/TermsAndConditions";
 import CookiesPolicy from "./pages/legal/CookiesPolicy";
@@ -99,6 +110,38 @@ const App = () => {
         element={
           <ProtectedRoute allowedRoles={["jobseeker"]}>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/assessments"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker"]}>
+            <MyAssessments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/assessments/:assignmentId"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker"]}>
+            <CandidateAssessmentDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/assessments/:assignmentId/take"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker"]}>
+            <TakeAssessment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/assessments/result/:submissionId"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker"]}>
+            <AssessmentResult />
           </ProtectedRoute>
         }
       />
@@ -187,6 +230,62 @@ const App = () => {
         element={
           <ProtectedRoute allowedRoles={["recruiter"]}>
             <RecruiterSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <AssessmentDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/create"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <CreateAssessment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/:id"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <AssessmentDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/:id/edit"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <EditAssessment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/:id/questions"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <QuestionManager />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/:id/assign"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <AssignCandidates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/assessments/:id/results"
+        element={
+          <ProtectedRoute allowedRoles={["recruiter"]}>
+            <AssessmentResults />
           </ProtectedRoute>
         }
       />

@@ -11,7 +11,6 @@ const {
   getRecentActivities,
   getSystemStatistics
 } = require("../models/adminStatsModel");
-
 const getAdminDashboard = async (req, res, next) => {
   try {
     const [stats, latestUsers, latestRecruiters, recentJobPosts, recentApplications] = await Promise.all([
@@ -43,7 +42,6 @@ const getAdminDashboard = async (req, res, next) => {
     next(error);
   }
 };
-
 const getAdminAnalytics = async (req, res, next) => {
   try {
     const [topRecruiters, topAppliedJobs, recentActivities, mostActiveUsers, recentRegistrations, systemStatistics] =
@@ -68,5 +66,4 @@ const getAdminAnalytics = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { getAdminDashboard, getAdminAnalytics };

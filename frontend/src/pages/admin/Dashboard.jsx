@@ -4,9 +4,7 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatCard from "../../components/admin/StatCard";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { fetchAdminDashboard, fetchAdminAnalytics } from "../../services/adminDashboardService";
-
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
-
 const AdminDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState(null);
@@ -27,14 +25,12 @@ const AdminDashboard = () => {
     };
     load();
   }, []);
-
   return (
     <AdminLayout title="Admin Dashboard" subtitle="Overview of the entire Shnoor Job Portal application.">
       {loading && <p className="text-gray-500">Loading dashboard...</p>}
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       {dashboard && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -48,7 +44,6 @@ const AdminDashboard = () => {
             <StatCard label="Interviews Scheduled" value={dashboard.stats.interviewsScheduled} />
             <StatCard label="Pending Reviews" value={dashboard.stats.pendingReviews} />
           </div>
-
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -77,7 +72,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-[#3E3A74]">Latest Recruiters</h3>
@@ -105,7 +99,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-[#3E3A74]">Recent Job Posts</h3>
@@ -133,7 +126,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-[#3E3A74]">Recent Applications</h3>
@@ -325,5 +317,4 @@ const AdminDashboard = () => {
     </AdminLayout>
   );
 };
-
 export default AdminDashboard;

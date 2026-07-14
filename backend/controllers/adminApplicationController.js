@@ -3,7 +3,6 @@ const {
   getApplicationByIdAdmin,
   deleteApplicationAdminById
 } = require("../models/adminStatsModel");
-
 const listApplications = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
@@ -13,7 +12,6 @@ const listApplications = async (req, res, next) => {
     next(error);
   }
 };
-
 const viewApplication = async (req, res, next) => {
   try {
     const application = await getApplicationByIdAdmin(req.params.id);
@@ -25,7 +23,6 @@ const viewApplication = async (req, res, next) => {
     next(error);
   }
 };
-
 const deleteApplication = async (req, res, next) => {
   try {
     const deleted = await deleteApplicationAdminById(req.params.id);
@@ -37,5 +34,4 @@ const deleteApplication = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { listApplications, viewApplication, deleteApplication };

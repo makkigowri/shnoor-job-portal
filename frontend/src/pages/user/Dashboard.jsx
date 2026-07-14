@@ -163,6 +163,12 @@ const Dashboard = () => {
             >
               Search Jobs
             </button>
+            <button
+              onClick={() => navigate("/user/assessments")}
+              className="w-full rounded-xl border border-[#7393D3] py-3 font-semibold text-[#3E3A74] hover:bg-[#EEF2FF] transition"
+            >
+              My Assessments
+            </button>
           </div>
         </div>
         <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-md border border-gray-200">

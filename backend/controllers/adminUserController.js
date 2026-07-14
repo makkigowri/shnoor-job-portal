@@ -4,7 +4,6 @@ const {
   setUserBlockedStatus,
   deleteUserAdminById
 } = require("../models/adminStatsModel");
-
 const listUsers = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
@@ -14,7 +13,6 @@ const listUsers = async (req, res, next) => {
     next(error);
   }
 };
-
 const viewUser = async (req, res, next) => {
   try {
     const user = await getUserByIdAdmin(req.params.id);
@@ -26,7 +24,6 @@ const viewUser = async (req, res, next) => {
     next(error);
   }
 };
-
 const blockUser = async (req, res, next) => {
   try {
     const user = await setUserBlockedStatus(req.params.id, true);
@@ -38,7 +35,6 @@ const blockUser = async (req, res, next) => {
     next(error);
   }
 };
-
 const unblockUser = async (req, res, next) => {
   try {
     const user = await setUserBlockedStatus(req.params.id, false);
@@ -50,7 +46,6 @@ const unblockUser = async (req, res, next) => {
     next(error);
   }
 };
-
 const deleteUser = async (req, res, next) => {
   try {
     const deleted = await deleteUserAdminById(req.params.id);
@@ -62,5 +57,4 @@ const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { listUsers, viewUser, blockUser, unblockUser, deleteUser };

@@ -101,5 +101,4 @@ const getRecruiterDashboardSummary = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { getDashboardSummary, getRecruiterDashboardSummary };

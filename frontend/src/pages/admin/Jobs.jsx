@@ -9,9 +9,7 @@ import {
   updateAdminJobStatus,
   deleteAdminJob
 } from "../../services/adminJobService";
-
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
-
 const AdminJobs = () => {
   const [data, setData] = useState({ jobs: [], page: 1, totalPages: 1 });
   const [search, setSearch] = useState("");
@@ -35,14 +33,12 @@ const AdminJobs = () => {
 
   useEffect(() => {
     load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     load(1);
   };
-
   const handleView = async (id) => {
     try {
       const result = await fetchAdminJobById(id);
@@ -51,7 +47,6 @@ const AdminJobs = () => {
       setError(err.response?.data?.message || "Unable to load job details.");
     }
   };
-
   const runConfirmed = async () => {
     if (!confirmAction) return;
     try {
@@ -65,7 +60,6 @@ const AdminJobs = () => {
       setConfirmAction(null);
     }
   };
-
   return (
     <AdminLayout title="Jobs" subtitle="Manage every job posting across the platform.">
       {error && (
@@ -214,5 +208,4 @@ const AdminJobs = () => {
     </AdminLayout>
   );
 };
-
 export default AdminJobs;

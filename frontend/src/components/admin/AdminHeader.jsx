@@ -8,5 +8,4 @@ const AdminHeader = ({ title, subtitle }) => {
     </header>
   );
 };
-
 export default AdminHeader;

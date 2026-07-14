@@ -1,6 +1,5 @@
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
-
 const AdminLayout = ({ title, subtitle, children }) => {
   return (
     <div className="min-h-screen flex bg-[#F8FAFC]">
@@ -14,5 +13,4 @@ const AdminLayout = ({ title, subtitle, children }) => {
     </div>
   );
 };
-
 export default AdminLayout;

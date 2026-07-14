@@ -7,6 +7,7 @@ const adminJobRoutes = require("./adminJobRoutes");
 const adminApplicationRoutes = require("./adminApplicationRoutes");
 const adminNotificationRoutes = require("./adminNotificationRoutes");
 const adminSettingsRoutes = require("./adminSettingsRoutes");
+const adminAssessmentRoutes = require("./adminAssessmentRoutes");
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/jobs", adminJobRoutes);
 router.use("/applications", adminApplicationRoutes);
 router.use("/notifications", adminNotificationRoutes);
 router.use("/settings", adminSettingsRoutes);
+router.use("/assessments", adminAssessmentRoutes);
 
 module.exports = router;

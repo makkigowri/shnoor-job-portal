@@ -6,9 +6,9 @@ const menu = [
   { title: "Post New Job", path: "/recruiter/post-job" },
   { title: "My Jobs", path: "/recruiter/my-jobs" },
   { title: "Applicants", path: "/recruiter/applicants" },
+  { title: "Assessments", path: "/recruiter/assessments" },
   { title: "ATS Checker", path: "/recruiter/ats-checker" },
   { title: "Interviews", path: "/recruiter/interviews" },
-  { title: "Analytics", path: "/recruiter/analytics" },
   { title: "Notifications", path: "/recruiter/notifications" },
   { title: "Settings", path: "/recruiter/settings" }];
 export default function RecruiterSidebar() {

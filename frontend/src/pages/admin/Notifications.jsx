@@ -8,7 +8,6 @@ import {
 } from "../../services/adminNotificationService";
 
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
-
 const AdminNotifications = () => {
   const [form, setForm] = useState({ title: "", message: "", type: "info", audience: "all" });
   const [history, setHistory] = useState([]);
@@ -29,7 +28,6 @@ const AdminNotifications = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadHistory();
   }, []);
@@ -67,7 +65,6 @@ const AdminNotifications = () => {
       setConfirmDelete(null);
     }
   };
-
   return (
     <AdminLayout title="Notifications" subtitle="Send announcements to users and recruiters, and review what has been sent.">
       {error && (
@@ -187,7 +184,6 @@ const AdminNotifications = () => {
           </tbody>
         </table>
       </div>
-
       <ConfirmDialog
         open={Boolean(confirmDelete)}
         title="Delete Notification"
@@ -200,5 +196,4 @@ const AdminNotifications = () => {
     </AdminLayout>
   );
 };
-
 export default AdminNotifications;

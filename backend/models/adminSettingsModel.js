@@ -1,10 +1,8 @@
 const pool = require("../config/db");
-
 const getSettings = async () => {
   const result = await pool.query("SELECT * FROM admin_settings ORDER BY id ASC LIMIT 1");
   return result.rows[0];
 };
-
 const updateSettings = async ({ applicationName, supportEmail, theme }) => {
   const existing = await getSettings();
   if (!existing) {
@@ -24,7 +22,6 @@ const updateSettings = async ({ applicationName, supportEmail, theme }) => {
   const result = await pool.query(query, [applicationName || null, supportEmail || null, theme || null, existing.id]);
   return result.rows[0];
 };
-
 const updateSettingsLogo = async (logoPath) => {
   const existing = await getSettings();
   if (!existing) {
@@ -40,5 +37,4 @@ const updateSettingsLogo = async (logoPath) => {
   );
   return result.rows[0];
 };
-
 module.exports = { getSettings, updateSettings, updateSettingsLogo };

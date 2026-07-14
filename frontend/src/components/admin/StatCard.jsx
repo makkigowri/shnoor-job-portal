@@ -6,5 +6,4 @@ const StatCard = ({ label, value }) => {
     </div>
   );
 };
-
 export default StatCard;

@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-
 const getRecipientIds = async (audience) => {
   if (audience === "jobseeker" || audience === "recruiter") {
     const result = await pool.query("SELECT id FROM users WHERE role = $1", [audience]);
@@ -8,7 +7,6 @@ const getRecipientIds = async (audience) => {
   const result = await pool.query("SELECT id FROM users");
   return result.rows.map((row) => row.id);
 };
-
 const sendBroadcastNotification = async (adminId, { title, message, type = "info", audience = "all" }) => {
   const recipientIds = await getRecipientIds(audience);
   if (recipientIds.length > 0) {
@@ -32,7 +30,6 @@ const sendBroadcastNotification = async (adminId, { title, message, type = "info
   const logResult = await pool.query(logQuery, [adminId, title, message, type, audience, recipientIds.length]);
   return logResult.rows[0];
 };
-
 const getNotificationHistory = async (limit = 50) => {
   const query = `
     SELECT an.*, a.fullname AS sent_by
@@ -43,11 +40,9 @@ const getNotificationHistory = async (limit = 50) => {
   const result = await pool.query(query, [limit]);
   return result.rows;
 };
-
 const deleteNotificationHistoryEntry = async (id) => {
   const query = `DELETE FROM admin_notifications WHERE id = $1 RETURNING id`;
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
 module.exports = { sendBroadcastNotification, getNotificationHistory, deleteNotificationHistoryEntry };

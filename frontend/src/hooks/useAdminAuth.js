@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { AdminAuthContext } from "../context/AdminAuthContext";
-
 const useAdminAuth = () => {
   const context = useContext(AdminAuthContext);
   if (!context) {

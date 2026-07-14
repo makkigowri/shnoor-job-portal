@@ -206,14 +206,119 @@ EXECUTE FUNCTION set_updated_at();
 INSERT INTO admin_settings (application_name, support_email, theme)
 SELECT 'Shnoor Job Portal', 'support@shnoor.com', 'light'
 WHERE NOT EXISTS (SELECT 1 FROM admin_settings);
-CREATE TABLE applications (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER,
-    job_id INTEGER,
-    resume_path VARCHAR(500),
-    resume_filename VARCHAR(255),
-    status VARCHAR(30),
-    recruiter_note TEXT,
-    applied_at TIMESTAMP,
-    updated_at TIMESTAMP
+/* ==========================================================================
+   PHASE 7 (PART 1) — ASSESSMENT MODULE
+   Tables: assessments, assessment_questions, assessment_assignments,
+           assessment_submissions, assessment_answers
+   ========================================================================== */
+
+CREATE TABLE IF NOT EXISTS assessments (
+  id SERIAL PRIMARY KEY,
+  recruiter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  job_id INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  instructions TEXT,
+  duration_minutes INTEGER NOT NULL DEFAULT 30 CHECK (duration_minutes > 0),
+  total_marks INTEGER NOT NULL DEFAULT 0,
+  passing_marks INTEGER NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Published', 'Closed')),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_assessments_recruiter_id ON assessments(recruiter_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_job_id ON assessments(job_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_status ON assessments(status);
+CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at DESC);
+DROP TRIGGER IF EXISTS trg_assessments_updated_at ON assessments;
+CREATE TRIGGER trg_assessments_updated_at
+BEFORE UPDATE ON assessments
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS assessment_questions (
+  id SERIAL PRIMARY KEY,
+  assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  question_type VARCHAR(20) NOT NULL DEFAULT 'mcq' CHECK (question_type IN ('mcq', 'true_false', 'short_answer')),
+  options JSONB,
+  correct_answer TEXT,
+  marks INTEGER NOT NULL DEFAULT 1 CHECK (marks > 0),
+  order_index INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_assessment_id ON assessment_questions(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_order ON assessment_questions(assessment_id, order_index);
+DROP TRIGGER IF EXISTS trg_assessment_questions_updated_at ON assessment_questions;
+CREATE TRIGGER trg_assessment_questions_updated_at
+BEFORE UPDATE ON assessment_questions
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS assessment_assignments (
+  id SERIAL PRIMARY KEY,
+  assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  candidate_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id INTEGER REFERENCES applications(id) ON DELETE SET NULL,
+  recruiter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  scheduled_start TIMESTAMP,
+  scheduled_end TIMESTAMP,
+  status VARCHAR(20) NOT NULL DEFAULT 'Assigned' CHECK (status IN ('Assigned', 'Started', 'Completed', 'Expired')),
+  assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (assessment_id, candidate_id)
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_assignments_assessment_id ON assessment_assignments(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_assignments_candidate_id ON assessment_assignments(candidate_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_assignments_recruiter_id ON assessment_assignments(recruiter_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_assignments_status ON assessment_assignments(status);
+DROP TRIGGER IF EXISTS trg_assessment_assignments_updated_at ON assessment_assignments;
+CREATE TRIGGER trg_assessment_assignments_updated_at
+BEFORE UPDATE ON assessment_assignments
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS assessment_submissions (
+  id SERIAL PRIMARY KEY,
+  assignment_id INTEGER NOT NULL UNIQUE REFERENCES assessment_assignments(id) ON DELETE CASCADE,
+  assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  candidate_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  started_at TIMESTAMP,
+  submitted_at TIMESTAMP,
+  time_taken_seconds INTEGER,
+  total_score INTEGER NOT NULL DEFAULT 0,
+  max_score INTEGER NOT NULL DEFAULT 0,
+  percentage NUMERIC(5,2) NOT NULL DEFAULT 0,
+  result VARCHAR(10) CHECK (result IN ('Pass', 'Fail')),
+  status VARCHAR(20) NOT NULL DEFAULT 'In Progress' CHECK (status IN ('In Progress', 'Submitted', 'Auto Submitted')),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_submissions_assessment_id ON assessment_submissions(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_submissions_candidate_id ON assessment_submissions(candidate_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_submissions_status ON assessment_submissions(status);
+DROP TRIGGER IF EXISTS trg_assessment_submissions_updated_at ON assessment_submissions;
+CREATE TRIGGER trg_assessment_submissions_updated_at
+BEFORE UPDATE ON assessment_submissions
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS assessment_answers (
+  id SERIAL PRIMARY KEY,
+  submission_id INTEGER NOT NULL REFERENCES assessment_submissions(id) ON DELETE CASCADE,
+  question_id INTEGER NOT NULL REFERENCES assessment_questions(id) ON DELETE CASCADE,
+  answer_text TEXT,
+  is_correct BOOLEAN,
+  marks_obtained INTEGER NOT NULL DEFAULT 0,
+  answered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (submission_id, question_id)
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_answers_submission_id ON assessment_answers(submission_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_answers_question_id ON assessment_answers(question_id);
+DROP TRIGGER IF EXISTS trg_assessment_answers_updated_at ON assessment_answers;
+CREATE TRIGGER trg_assessment_answers_updated_at
+BEFORE UPDATE ON assessment_answers
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();

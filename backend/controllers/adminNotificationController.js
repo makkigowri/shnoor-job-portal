@@ -3,7 +3,6 @@ const {
   getNotificationHistory,
   deleteNotificationHistoryEntry
 } = require("../models/adminNotificationModel");
-
 const sendNotification = async (req, res, next) => {
   try {
     const { title, message, type, audience } = req.body;
@@ -19,7 +18,6 @@ const sendNotification = async (req, res, next) => {
     next(error);
   }
 };
-
 const listNotificationHistory = async (req, res, next) => {
   try {
     const history = await getNotificationHistory(50);
@@ -28,7 +26,6 @@ const listNotificationHistory = async (req, res, next) => {
     next(error);
   }
 };
-
 const deleteNotification = async (req, res, next) => {
   try {
     const deleted = await deleteNotificationHistoryEntry(req.params.id);
@@ -40,5 +37,4 @@ const deleteNotification = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { sendNotification, listNotificationHistory, deleteNotification };

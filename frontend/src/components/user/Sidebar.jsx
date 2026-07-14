@@ -6,6 +6,7 @@ const menuItems = [
   { name: "Search Jobs", path: "/user/jobs" },
   { name: "Saved Jobs", path: "/user/saved" },
   { name: "Applied Jobs", path: "/user/applied" },
+  { name: "My Assessments", path: "/user/assessments" },
   { name: "Notifications", path: "/user/notifications" },
   { name: "Settings", path: "/user/settings" }];
 const Sidebar = () => {

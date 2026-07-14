@@ -9,7 +9,6 @@ const STYLES = {
   "interview scheduled": "bg-purple-50 text-purple-700 border-purple-200",
   default: "bg-gray-100 text-gray-600 border-gray-200"
 };
-
 const StatusBadge = ({ status }) => {
   const key = (status || "").toLowerCase();
   const style = STYLES[key] || STYLES.default;

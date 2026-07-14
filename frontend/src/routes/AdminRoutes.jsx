@@ -8,6 +8,9 @@ import AdminJobs from "../pages/admin/Jobs";
 import AdminApplications from "../pages/admin/Applications";
 import AdminNotifications from "../pages/admin/Notifications";
 import AdminSettings from "../pages/admin/Settings";
+import AdminAssessmentManagement from "../pages/admin/AssessmentManagement";
+import AdminAssessmentAnalytics from "../pages/admin/AssessmentAnalytics";
+import AdminAssessmentReports from "../pages/admin/AssessmentReports";
 
 // Everything under /admin/* is handled here, wrapped in its own
 // AdminAuthProvider so it never touches the user-facing AuthContext.
@@ -65,6 +68,30 @@ const AdminRoutes = () => {
           element={
             <AdminProtectedRoute>
               <AdminNotifications />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="assessments"
+          element={
+            <AdminProtectedRoute>
+              <AdminAssessmentManagement />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="assessments/analytics"
+          element={
+            <AdminProtectedRoute>
+              <AdminAssessmentAnalytics />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="assessments/reports"
+          element={
+            <AdminProtectedRoute>
+              <AdminAssessmentReports />
             </AdminProtectedRoute>
           }
         />

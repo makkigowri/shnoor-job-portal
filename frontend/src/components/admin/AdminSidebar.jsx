@@ -1,29 +1,26 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import useAdminAuth from "../../hooks/useAdminAuth";
-
 const menu = [
   { title: "Dashboard", path: "/admin/dashboard" },
   { title: "Users", path: "/admin/users" },
   { title: "Recruiters", path: "/admin/recruiters" },
   { title: "Jobs", path: "/admin/jobs" },
   { title: "Applications", path: "/admin/applications" },
+  { title: "Assessments", path: "/admin/assessments" },
   { title: "Notifications", path: "/admin/notifications" },
   { title: "Settings", path: "/admin/settings" }
 ];
-
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const { admin, logout } = useAdminAuth();
   const handleLogout = () => {
     logout();
-   
     localStorage.removeItem("shnoor_token");
     localStorage.removeItem("shnoor_user");
     navigate("/login");
   };
   const initial = admin?.fullname ? admin.fullname.charAt(0).toUpperCase() : "A";
   const firstName = admin?.fullname ? admin.fullname.split(" ")[0] : "Admin";
-
   return (
     <aside className="w-72 min-h-screen bg-[#3E3A74] flex flex-col shadow-2xl">
       <div className="px-8 py-8 border-b border-white/10">
