@@ -16,8 +16,7 @@ export default function AdminSidebar() {
   const { admin, logout } = useAdminAuth();
   const handleLogout = () => {
     logout();
-    // Also clear the shared session so the Job Seeker/Recruiter side
-    // (AuthContext) doesn't think an admin is still signed in.
+   
     localStorage.removeItem("shnoor_token");
     localStorage.removeItem("shnoor_user");
     navigate("/login");
