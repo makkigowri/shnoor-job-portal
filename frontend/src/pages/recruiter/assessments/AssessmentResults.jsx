@@ -4,7 +4,6 @@ import RecruiterDashboardLayout from "../../../layouts/RecruiterDashboardLayout"
 import StatusBadge from "../../../components/recruiter/StatusBadge";
 import ResultTable from "../../../components/recruiter/ResultTable";
 import { getAssessmentById, getAssessmentResults, getSubmissionDetail } from "../../../services/assessmentService";
-
 const SubmissionDetailModal = ({ submission, onClose }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
     <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
@@ -54,7 +53,6 @@ const SubmissionDetailModal = ({ submission, onClose }) => (
     </div>
   </div>
 );
-
 export default function AssessmentResults() {
   const { id } = useParams();
   const [assessment, setAssessment] = useState(null);
@@ -63,7 +61,6 @@ export default function AssessmentResults() {
   const [error, setError] = useState("");
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
-
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -83,7 +80,6 @@ export default function AssessmentResults() {
     };
     load();
   }, [id]);
-
   const handleViewDetail = async (submissionId) => {
     setDetailLoading(true);
     try {
@@ -95,14 +91,12 @@ export default function AssessmentResults() {
       setDetailLoading(false);
     }
   };
-
   const passCount = results.filter((r) => r.result === "Pass").length;
   const failCount = results.filter((r) => r.result === "Fail").length;
   const avgScore =
     results.length > 0
       ? (results.reduce((sum, r) => sum + Number(r.total_score || 0), 0) / results.length).toFixed(1)
       : 0;
-
   if (loading) {
     return (
       <RecruiterDashboardLayout>
@@ -110,7 +104,6 @@ export default function AssessmentResults() {
       </RecruiterDashboardLayout>
     );
   }
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -132,7 +125,6 @@ export default function AssessmentResults() {
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Submissions</p>
@@ -151,7 +143,6 @@ export default function AssessmentResults() {
           <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{avgScore}</h2>
         </div>
       </div>
-
       <div className="mt-8">
         {results.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">

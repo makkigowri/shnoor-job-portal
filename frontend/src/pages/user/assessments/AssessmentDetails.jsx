@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import UserDashboardLayout from "../../../layouts/UserDashboardLayout";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
-import { getCandidateAssignmentById, startCandidateAssessment } from "../../../services/assessmentService";
-
+import { getCandidateAssignmentById } from "../../../services/assessmentService";
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
-
 export default function AssessmentDetails() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
@@ -14,7 +12,6 @@ export default function AssessmentDetails() {
   const [loading, setLoading] = useState(!location.state?.assignment);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
-
   useEffect(() => {
     if (assignment) return;
     const load = async () => {
@@ -34,21 +31,11 @@ export default function AssessmentDetails() {
       }
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignmentId]);
-
-  const handleStart = async () => {
+  const handleStart = () => {
     setStarting(true);
-    setError("");
-    try {
-      await startCandidateAssessment(assignmentId);
-      navigate(`/user/assessments/${assignmentId}/take`, { state: { assignment } });
-    } catch (err) {
-      setError(err?.response?.data?.message || "Unable to start this assessment right now");
-      setStarting(false);
-    }
+    navigate(`/user/assessments/${assignmentId}/take`, { state: { assignment } });
   };
-
   if (loading) {
     return (
       <UserDashboardLayout>
@@ -56,7 +43,6 @@ export default function AssessmentDetails() {
       </UserDashboardLayout>
     );
   }
-
   if (!assignment) {
     return (
       <UserDashboardLayout>
@@ -67,10 +53,8 @@ export default function AssessmentDetails() {
       </UserDashboardLayout>
     );
   }
-
   const alreadyInProgress = assignment.submission_status === "In Progress";
   const isCompleted = assignment.status === "Completed";
-
   return (
     <UserDashboardLayout>
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -90,11 +74,9 @@ export default function AssessmentDetails() {
           All Assessments
         </Link>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Duration</p>
@@ -113,14 +95,12 @@ export default function AssessmentDetails() {
           <h2 className="text-lg font-bold mt-2 text-[#3E3A74]">{formatDateTime(assignment.scheduled_end)}</h2>
         </div>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-8">
         <h2 className="text-xl font-semibold text-[#3E3A74]">Description</h2>
         <p className="mt-3 text-gray-700 whitespace-pre-line">
           {assignment.assessment_description || "No description provided."}
         </p>
       </div>
-
       <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-6 mt-8">
         <h3 className="font-semibold">Before you begin</h3>
         <ul className="mt-2 text-sm space-y-1 list-disc list-inside">
@@ -130,7 +110,6 @@ export default function AssessmentDetails() {
           <li>You can navigate between questions freely using the question palette.</li>
         </ul>
       </div>
-
       <div className="mt-8 flex justify-end">
         {isCompleted ? (
           <span className="px-6 py-3 rounded-xl bg-gray-100 text-gray-500 font-medium">

@@ -9,7 +9,9 @@ const ASSIGNMENT_WITH_ASSESSMENT_SELECT = `
   SELECT aa.*, a.title AS assessment_title, a.description AS assessment_description, a.duration_minutes,
     a.total_marks, a.passing_marks, a.status AS assessment_status, j.title AS job_title,
     co.company_name AS company_name, co.logo_path AS company_logo,
-    s.id AS submission_id, s.status AS submission_status
+    s.id AS submission_id, s.status AS submission_status,
+    (aa.scheduled_start AT TIME ZONE 'UTC') AS scheduled_start,
+    (aa.scheduled_end AT TIME ZONE 'UTC') AS scheduled_end
   FROM assessment_assignments aa
   JOIN assessments a ON a.id = aa.assessment_id
   LEFT JOIN jobs j ON j.id = a.job_id
@@ -32,7 +34,6 @@ const getEligibleShortlistedCandidateIds = async (recruiterId, jobId, candidateI
   const result = await pool.query(query, values);
   return result.rows;
 };
-
 const assignAssessmentToCandidates = async (assessmentId, recruiterId, candidateIds, { scheduledStart, scheduledEnd } = {}) => {
   const assessmentResult = await pool.query(
     `SELECT id, job_id, status FROM assessments WHERE id = $1 AND recruiter_id = $2`,
@@ -89,7 +90,6 @@ const autoAssignShortlistedCandidates = async (
   if (!assessment.job_id) {
     return { assessment, assigned: [] };
   }
-
   const query = `
     INSERT INTO assessment_assignments
       (assessment_id, candidate_id, application_id, recruiter_id, scheduled_start, scheduled_end, status)
@@ -185,13 +185,12 @@ const getUpcomingAssessmentsForCandidate = async (candidateId) => {
   const result = await pool.query(query, [candidateId]);
   return result.rows;
 };
-
 const getCompletedAssessmentsForCandidate = async (candidateId) => {
   const query = `
     SELECT aa.*, a.title AS assessment_title, a.total_marks, a.passing_marks, j.title AS job_title,
       co.company_name AS company_name,
       s.id AS submission_id, s.total_score, s.max_score, s.percentage, s.result, s.status AS submission_status,
-      s.submitted_at
+      (s.submitted_at AT TIME ZONE 'UTC') AS submitted_at
     FROM assessment_assignments aa
     JOIN assessments a ON a.id = aa.assessment_id
     LEFT JOIN jobs j ON j.id = a.job_id

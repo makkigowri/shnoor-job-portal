@@ -5,7 +5,6 @@ import QuestionCard from "../../../components/recruiter/QuestionCard";
 import QuestionEditor from "../../../components/recruiter/QuestionEditor";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
 import { getAssessmentById, updateAssessment } from "../../../services/assessmentService";
-
 export default function QuestionManager() {
   const { id } = useParams();
   const [assessment, setAssessment] = useState(null);
@@ -16,7 +15,6 @@ export default function QuestionManager() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [dirty, setDirty] = useState(false);
-
   const load = async () => {
     setLoading(true);
     setError("");
@@ -31,30 +29,23 @@ export default function QuestionManager() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
   const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
-
   const handleAddQuestion = () => {
     setEditingIndex(null);
     setShowEditor(true);
   };
-
   const handleEditQuestion = (index) => {
     setEditingIndex(index);
     setShowEditor(true);
   };
-
   const handleDeleteQuestion = (index) => {
     if (!window.confirm("Remove this question from the assessment?")) return;
     setQuestions((prev) => prev.filter((_, i) => i !== index));
     setDirty(true);
   };
-
   const handleSaveQuestion = (question) => {
     if (editingIndex !== null) {
       setQuestions((prev) => prev.map((q, i) => (i === editingIndex ? question : q)));
@@ -65,7 +56,6 @@ export default function QuestionManager() {
     setEditingIndex(null);
     setDirty(true);
   };
-
   const moveQuestion = (index, direction) => {
     const target = index + direction;
     if (target < 0 || target >= questions.length) return;
@@ -74,7 +64,6 @@ export default function QuestionManager() {
     setQuestions(updated);
     setDirty(true);
   };
-
   const handleSaveAll = async () => {
     setSaving(true);
     setError("");
@@ -95,7 +84,6 @@ export default function QuestionManager() {
       setSaving(false);
     }
   };
-
   if (loading) {
     return (
       <RecruiterDashboardLayout>
@@ -103,7 +91,6 @@ export default function QuestionManager() {
       </RecruiterDashboardLayout>
     );
   }
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -129,7 +116,6 @@ export default function QuestionManager() {
           </button>
         </div>
       </div>
-
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Total Questions</p>
@@ -144,11 +130,9 @@ export default function QuestionManager() {
           <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{assessment?.duration_minutes}m</h2>
         </div>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       {dirty && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl px-4 py-3 flex items-center justify-between flex-wrap gap-3">
           <span>You have unsaved changes to the question list.</span>
@@ -166,7 +150,6 @@ export default function QuestionManager() {
           </div>
         </div>
       )}
-
       <div className="mt-8 space-y-4">
         {questions.length === 0 && (
           <div className="border border-dashed border-gray-300 rounded-2xl p-10 text-center text-gray-500">
@@ -199,7 +182,6 @@ export default function QuestionManager() {
           </div>
         ))}
       </div>
-
       {showEditor && (
         <QuestionEditor
           initialQuestion={editingIndex !== null ? questions[editingIndex] : null}

@@ -124,7 +124,6 @@ const Notifications = () => {
                 item.is_read ? "border-border" : "border-primary/40 bg-primary/5"
               }`}
             >
-
               <div className="flex justify-between items-start">
 
                 <div>

@@ -6,7 +6,6 @@ import QuestionCard from "../../../components/recruiter/QuestionCard";
 import QuestionEditor from "../../../components/recruiter/QuestionEditor";
 import { createAssessment } from "../../../services/assessmentService";
 import { getMyJobs } from "../../../services/jobService";
-
 const initialState = {
   title: "",
   description: "",
@@ -15,7 +14,6 @@ const initialState = {
   durationMinutes: 30,
   passingMarks: 0
 };
-
 export default function CreateAssessment() {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialState);
@@ -25,31 +23,25 @@ export default function CreateAssessment() {
   const [showEditor, setShowEditor] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
       .catch(() => {});
   }, []);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
   const handleAddQuestion = () => {
     setEditingIndex(null);
     setShowEditor(true);
   };
-
   const handleEditQuestion = (index) => {
     setEditingIndex(index);
     setShowEditor(true);
   };
-
   const handleDeleteQuestion = (index) => {
     setQuestions((prev) => prev.filter((_, i) => i !== index));
   };
-
   const handleSaveQuestion = (question) => {
     if (editingIndex !== null) {
       setQuestions((prev) => prev.map((q, i) => (i === editingIndex ? question : q)));
@@ -59,7 +51,6 @@ export default function CreateAssessment() {
     setShowEditor(false);
     setEditingIndex(null);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,7 +77,6 @@ export default function CreateAssessment() {
       setSubmitting(false);
     }
   };
-
   return (
     <RecruiterDashboardLayout>
       <h1 className="text-4xl font-bold text-[#3E3A74]">Create Assessment</h1>
@@ -95,7 +85,6 @@ export default function CreateAssessment() {
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <form onSubmit={handleSubmit} className="bg-white mt-8 rounded-2xl border border-gray-200 shadow-sm p-8">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
@@ -129,7 +118,6 @@ export default function CreateAssessment() {
             </p>
           </div>
         </div>
-
         <div className="mt-6">
           <label className="font-medium text-gray-900">Description</label>
           <textarea
@@ -152,7 +140,6 @@ export default function CreateAssessment() {
             placeholder="e.g. Do not refresh the page. Answer all questions before the timer ends."
           />
         </div>
-
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-[#3E3A74]">Timer & Scoring</h2>
           <div className="mt-4">
@@ -163,7 +150,6 @@ export default function CreateAssessment() {
             />
           </div>
         </div>
-
         <div className="mt-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <h2 className="text-xl font-semibold text-[#3E3A74]">
@@ -197,7 +183,6 @@ export default function CreateAssessment() {
             ))}
           </div>
         </div>
-
         <div className="mt-8 flex gap-4">
           <button
             type="submit"
@@ -215,7 +200,6 @@ export default function CreateAssessment() {
           </button>
         </div>
       </form>
-
       {showEditor && (
         <QuestionEditor
           initialQuestion={editingIndex !== null ? questions[editingIndex] : null}

@@ -9,7 +9,6 @@ import {
   closeAssessment,
   deleteAssessment
 } from "../../../services/assessmentService";
-
 export default function AssessmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ export default function AssessmentDetails() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
-
   const load = async () => {
     setLoading(true);
     setError("");
@@ -33,7 +31,6 @@ export default function AssessmentDetails() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handlePublish = async () => {
@@ -48,7 +45,6 @@ export default function AssessmentDetails() {
       setActionLoading(false);
     }
   };
-
   const handleClose = async () => {
     if (!window.confirm("Close this assessment? Candidates will no longer be able to attempt it.")) return;
     setActionLoading(true);
@@ -62,7 +58,6 @@ export default function AssessmentDetails() {
       setActionLoading(false);
     }
   };
-
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this assessment? This cannot be undone.")) return;
     setActionLoading(true);
@@ -75,7 +70,6 @@ export default function AssessmentDetails() {
       setActionLoading(false);
     }
   };
-
   if (loading) {
     return (
       <RecruiterDashboardLayout>
@@ -83,7 +77,6 @@ export default function AssessmentDetails() {
       </RecruiterDashboardLayout>
     );
   }
-
   if (!assessment) {
     return (
       <RecruiterDashboardLayout>
@@ -91,9 +84,7 @@ export default function AssessmentDetails() {
       </RecruiterDashboardLayout>
     );
   }
-
   const questions = assessment.questions || [];
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -162,7 +153,6 @@ export default function AssessmentDetails() {
           <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{assessment.assigned_count ?? 0}</h2>
         </div>
       </div>
-
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-xl font-semibold text-[#3E3A74]">Description</h2>
@@ -173,7 +163,6 @@ export default function AssessmentDetails() {
           <p className="mt-3 text-gray-700 whitespace-pre-line">{assessment.instructions || "No instructions provided."}</p>
         </div>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-8">
         <h2 className="text-xl font-semibold text-[#3E3A74]">Passing Criteria</h2>
         <p className="mt-3 text-gray-700">
@@ -200,7 +189,6 @@ export default function AssessmentDetails() {
           ))}
         </div>
       </div>
-
       <div className="mt-10 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-wrap gap-4">
         {assessment.status === "Draft" && (
           <button

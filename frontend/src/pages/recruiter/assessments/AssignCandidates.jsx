@@ -5,7 +5,6 @@ import CandidateSelector from "../../../components/recruiter/CandidateSelector";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
 import { getAssessmentById, assignAssessment, getAssignedCandidates } from "../../../services/assessmentService";
 import { getApplicants } from "../../../services/recruiterService";
-
 export default function AssignCandidates() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,7 +18,6 @@ export default function AssignCandidates() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -27,7 +25,6 @@ export default function AssignCandidates() {
       const assessmentData = await getAssessmentById(id);
       const a = assessmentData.assessment;
       setAssessment(a);
-
       const [applicantsData, assignedData] = await Promise.all([
         getApplicants({ status: "Shortlisted", jobId: a.job_id || undefined }),
         getAssignedCandidates(id)
@@ -40,23 +37,18 @@ export default function AssignCandidates() {
       setLoading(false);
     }
   }, [id]);
-
   useEffect(() => {
     load();
   }, [load]);
-
   const toggleCandidate = (candidateId) => {
     setSelectedIds((prev) =>
       prev.includes(candidateId) ? prev.filter((cid) => cid !== candidateId) : [...prev, candidateId]
     );
   };
-
   const toggleAll = (allIds) => {
     setSelectedIds((prev) => (prev.length === allIds.length ? [] : allIds));
   };
-
   const alreadyAssignedIds = assignedCandidates.map((a) => a.candidate_id);
-
   const handleAssign = async () => {
     setError("");
     setSuccess("");
@@ -88,7 +80,6 @@ export default function AssignCandidates() {
       </RecruiterDashboardLayout>
     );
   }
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -106,20 +97,17 @@ export default function AssignCandidates() {
           Back to Details
         </Link>
       </div>
-
       {assessment?.status !== "Published" && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl px-4 py-3">
           This assessment is not published yet. Candidates cannot attempt it until you publish it, but you can still assign them now.
         </div>
       )}
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
       {success && (
         <div className="mt-6 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3">{success}</div>
       )}
-
       <div className="bg-white mt-8 rounded-2xl border border-gray-200 shadow-sm p-8">
         <h2 className="text-xl font-semibold text-[#3E3A74]">Scheduling Window (optional)</h2>
         <p className="mt-1 text-sm text-gray-500">
@@ -146,7 +134,6 @@ export default function AssignCandidates() {
           </div>
         </div>
       </div>
-
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-[#3E3A74] mb-4">
           Shortlisted Candidates {assessment?.job_title ? `for ${assessment.job_title}` : ""}
@@ -159,7 +146,6 @@ export default function AssignCandidates() {
           alreadyAssignedIds={alreadyAssignedIds}
         />
       </div>
-
       <div className="mt-6 flex gap-4">
         <button
           onClick={handleAssign}
@@ -175,7 +161,6 @@ export default function AssignCandidates() {
           Done
         </button>
       </div>
-
       {assignedCandidates.length > 0 && (
         <div className="mt-10">
           <h2 className="text-xl font-semibold text-[#3E3A74] mb-4">Already Assigned ({assignedCandidates.length})</h2>

@@ -1,12 +1,13 @@
 const pool = require("../config/db");
 const { markAssignmentStatus } = require("./assessmentAssignmentModel");
-
 const startAssessment = async (assignmentId, candidateId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const assignmentResult = await client.query(
-      `SELECT aa.*, a.status AS assessment_status, a.total_marks
+      `SELECT aa.*, a.status AS assessment_status, a.total_marks,
+         (aa.scheduled_start AT TIME ZONE 'UTC') AS scheduled_start,
+         (aa.scheduled_end AT TIME ZONE 'UTC') AS scheduled_end
        FROM assessment_assignments aa JOIN assessments a ON a.id = aa.assessment_id
        WHERE aa.id = $1 AND aa.candidate_id = $2 FOR UPDATE`,
       [assignmentId, candidateId]
@@ -33,7 +34,10 @@ const startAssessment = async (assignmentId, candidateId) => {
       return { error: "already_completed" };
     }
     const existing = await client.query(
-      `SELECT * FROM assessment_submissions WHERE assignment_id = $1`,
+      `SELECT *,
+         (started_at AT TIME ZONE 'UTC') AS started_at,
+         (submitted_at AT TIME ZONE 'UTC') AS submitted_at
+       FROM assessment_submissions WHERE assignment_id = $1`,
       [assignmentId]
     );
     let submission = existing.rows[0];
@@ -42,7 +46,7 @@ const startAssessment = async (assignmentId, candidateId) => {
         `INSERT INTO assessment_submissions
            (assignment_id, assessment_id, candidate_id, started_at, max_score, status)
          VALUES ($1, $2, $3, NOW(), $4, 'In Progress')
-         RETURNING * `,
+         RETURNING *, (started_at AT TIME ZONE 'UTC') AS started_at `,
         [assignmentId, assignment.assessment_id, candidateId, assignment.total_marks]
       );
       submission = insertResult.rows[0];
@@ -57,15 +61,16 @@ const startAssessment = async (assignmentId, candidateId) => {
     client.release();
   }
 };
-
 const getSubmissionForCandidate = async (submissionId, candidateId) => {
   const result = await pool.query(
-    `SELECT * FROM assessment_submissions WHERE id = $1 AND candidate_id = $2`,
+    `SELECT *,
+       (started_at AT TIME ZONE 'UTC') AS started_at,
+       (submitted_at AT TIME ZONE 'UTC') AS submitted_at
+     FROM assessment_submissions WHERE id = $1 AND candidate_id = $2`,
     [submissionId, candidateId]
   );
   return result.rows[0];
 };
-
 const getQuestionsForSubmission = async (assessmentId) => {
   const result = await pool.query(
     `SELECT id, question_text, question_type, options, marks, order_index
@@ -74,7 +79,6 @@ const getQuestionsForSubmission = async (assessmentId) => {
   );
   return result.rows;
 };
-
 const saveAnswers = async (submissionId, candidateId, answers) => {
   const submission = await getSubmissionForCandidate(submissionId, candidateId);
   if (!submission) {
@@ -105,13 +109,14 @@ const saveAnswers = async (submissionId, candidateId, answers) => {
   const result = await pool.query(`SELECT * FROM assessment_answers WHERE submission_id = $1`, [submissionId]);
   return { locked: false, answers: result.rows };
 };
-
 const scoreAndFinalizeSubmission = async (submissionId, candidateId, { answers, autoSubmit = false }) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const subResult = await client.query(
-      `SELECT s.*, a.passing_marks FROM assessment_submissions s
+      `SELECT s.*, a.passing_marks,
+         (s.started_at AT TIME ZONE 'UTC') AS started_at
+       FROM assessment_submissions s
        JOIN assessments a ON a.id = s.assessment_id
        WHERE s.id = $1 AND s.candidate_id = $2 FOR UPDATE`,
       [submissionId, candidateId]
@@ -182,7 +187,9 @@ const scoreAndFinalizeSubmission = async (submissionId, candidateId, { answers, 
          submitted_at = NOW(), time_taken_seconds = $1, total_score = $2, max_score = $3,
          percentage = $4, result = $5, status = $6, updated_at = NOW()
        WHERE id = $7
-       RETURNING * `,
+       RETURNING *,
+         (started_at AT TIME ZONE 'UTC') AS started_at,
+         (submitted_at AT TIME ZONE 'UTC') AS submitted_at `,
       [timeTakenSeconds, totalScore, maxScore, percentage, result, status, submissionId]
     );
     await markAssignmentStatus(submission.assignment_id, "Completed", client);
@@ -216,7 +223,9 @@ const getResultsForAssessment = async (assessmentId, recruiterId) => {
 const getSubmissionDetailForRecruiter = async (submissionId, recruiterId) => {
   const query = `
     SELECT s.*, u.fullname AS candidate_name, u.email AS candidate_email, u.phone AS candidate_phone,
-      a.title AS assessment_title, a.recruiter_id
+      a.title AS assessment_title, a.recruiter_id,
+      (s.started_at AT TIME ZONE 'UTC') AS started_at,
+      (s.submitted_at AT TIME ZONE 'UTC') AS submitted_at
     FROM assessment_submissions s
     JOIN users u ON u.id = s.candidate_id
     JOIN assessments a ON a.id = s.assessment_id

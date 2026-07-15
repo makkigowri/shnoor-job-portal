@@ -11,14 +11,6 @@ import AdminSettings from "../pages/admin/Settings";
 import AdminAssessmentManagement from "../pages/admin/AssessmentManagement";
 import AdminAssessmentAnalytics from "../pages/admin/AssessmentAnalytics";
 import AdminAssessmentReports from "../pages/admin/AssessmentReports";
-
-// Everything under /admin/* is handled here, wrapped in its own
-// AdminAuthProvider so it never touches the user-facing AuthContext.
-// NOTE: There is no "login" route here on purpose — Admin, Job Seeker, and
-// Recruiter all authenticate from the single shared /login page. On
-// successful admin login, the shared Login page mirrors the session into
-// the localStorage keys this AdminAuthProvider reads, so everything below
-// still works exactly as before.
 const AdminRoutes = () => {
   return (
     <AdminAuthProvider>
@@ -108,5 +100,4 @@ const AdminRoutes = () => {
     </AdminAuthProvider>
   );
 };
-
 export default AdminRoutes;

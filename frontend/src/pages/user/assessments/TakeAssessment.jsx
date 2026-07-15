@@ -12,29 +12,25 @@ import {
   submitCandidateAssessment,
   autoSubmitCandidateAssessment
 } from "../../../services/assessmentService";
-
 const AUTO_SAVE_INTERVAL_MS = 20000;
-
 export default function TakeAssessment() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [assignment, setAssignment] = useState(location.state?.assignment || null);
   const [submission, setSubmission] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({}); // { [questionId]: answerText }
+  const [answers, setAnswers] = useState({}); 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [saveStatus, setSaveStatus] = useState(""); // "", "saving", "saved"
+  const [saveStatus, setSaveStatus] = useState(""); 
   const [submitting, setSubmitting] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
-
-  const finalizedRef = useRef(false); // guards against double submit/auto-submit
+  const finalizedRef = useRef(false);
+  const loadStartedRef = useRef(false);
   const answersRef = useRef(answers);
   answersRef.current = answers;
-
   const buildAnswersPayload = useCallback(
     () => Object.entries(answersRef.current).map(([questionId, answerText]) => ({
       questionId: Number(questionId),
@@ -42,9 +38,9 @@ export default function TakeAssessment() {
     })),
     []
   );
-
-  // ---- Load / resume the assessment ----
   useEffect(() => {
+    if (loadStartedRef.current) return;
+    loadStartedRef.current = true;
     const load = async () => {
       setLoading(true);
       setError("");
@@ -59,7 +55,6 @@ export default function TakeAssessment() {
         setQuestions(data.questions || []);
 
         if (data.submission.status !== "In Progress") {
-          // Already submitted previously (e.g. page revisited) — go to result.
           navigate(`/user/assessments/result/${data.submission.id}`, { replace: true });
           return;
         }
@@ -70,10 +65,7 @@ export default function TakeAssessment() {
       }
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignmentId]);
-
-  // ---- Deadline for the timer ----
   const deadline = useMemo(() => {
     if (!submission?.started_at) return null;
     const durationMinutes = assignment?.duration_minutes;
@@ -83,8 +75,6 @@ export default function TakeAssessment() {
     const finalTime = scheduledEnd ? Math.min(durationDeadline, scheduledEnd) : durationDeadline;
     return new Date(finalTime);
   }, [submission, assignment]);
-
-  // ---- Auto save ----
   useEffect(() => {
     if (!submission) return;
     const interval = setInterval(async () => {
@@ -101,12 +91,9 @@ export default function TakeAssessment() {
     }, AUTO_SAVE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [submission, buildAnswersPayload]);
-
-  // ---- Handlers ----
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
-
   const handleAutoSubmit = useCallback(async () => {
     if (finalizedRef.current || !submission) return;
     finalizedRef.current = true;
@@ -118,7 +105,6 @@ export default function TakeAssessment() {
       finalizedRef.current = false;
     }
   }, [submission, buildAnswersPayload, navigate]);
-
   const handleManualSubmit = async () => {
     if (finalizedRef.current || !submission) return;
     finalizedRef.current = true;
@@ -133,7 +119,6 @@ export default function TakeAssessment() {
       finalizedRef.current = false;
     }
   };
-
   if (loading) {
     return (
       <UserDashboardLayout>
@@ -141,7 +126,6 @@ export default function TakeAssessment() {
       </UserDashboardLayout>
     );
   }
-
   if (error && !submission) {
     return (
       <UserDashboardLayout>
@@ -149,7 +133,6 @@ export default function TakeAssessment() {
       </UserDashboardLayout>
     );
   }
-
   if (!submission || questions.length === 0) {
     return (
       <UserDashboardLayout>
@@ -159,10 +142,8 @@ export default function TakeAssessment() {
       </UserDashboardLayout>
     );
   }
-
   const answeredCount = Object.values(answers).filter((v) => v !== undefined && v !== "").length;
   const currentQuestion = questions[currentIndex];
-
   return (
     <UserDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -176,15 +157,12 @@ export default function TakeAssessment() {
         </div>
         {deadline && <AssessmentTimer deadline={deadline} onExpire={handleAutoSubmit} />}
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <div className="mt-6">
         <ProgressBar answered={answeredCount} total={questions.length} />
       </div>
-
       <div className="grid lg:grid-cols-[1fr_280px] gap-6 mt-6">
         <div className="space-y-6">
           <QuestionCard
@@ -194,7 +172,6 @@ export default function TakeAssessment() {
             value={answers[currentQuestion.id]}
             onChange={(val) => handleAnswerChange(currentQuestion.id, val)}
           />
-
           <div className="flex items-center justify-between">
             <button
               onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
@@ -203,7 +180,6 @@ export default function TakeAssessment() {
             >
               ← Previous
             </button>
-
             {currentIndex < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
@@ -222,7 +198,6 @@ export default function TakeAssessment() {
             )}
           </div>
         </div>
-
         <div className="space-y-4">
           <QuestionNavigator
             questions={questions}
@@ -239,7 +214,6 @@ export default function TakeAssessment() {
           </button>
         </div>
       </div>
-
       {confirmSubmit && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">

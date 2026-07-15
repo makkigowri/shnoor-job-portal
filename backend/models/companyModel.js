@@ -6,7 +6,6 @@ const getCompanyByRecruiterId = async (recruiterId) => {
 };
 const upsertCompany = async (recruiterId, company) => {
   const {companyName,website,email,phone,industry,companySize,headquarters,description} = company;
-
   const query = `
     INSERT INTO companies
       (recruiter_id, company_name, website, email, phone, industry, company_size, headquarters, description)

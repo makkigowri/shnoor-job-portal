@@ -8,7 +8,6 @@ import {
   closeAssessment,
   deleteAssessment
 } from "../../../services/assessmentService";
-
 export default function AssessmentDashboard() {
   const [assessments, setAssessments] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
@@ -16,7 +15,6 @@ export default function AssessmentDashboard() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [actioningId, setActioningId] = useState(null);
-
   const loadAssessments = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -29,18 +27,15 @@ export default function AssessmentDashboard() {
       setLoading(false);
     }
   }, [statusFilter]);
-
   useEffect(() => {
     loadAssessments();
   }, [loadAssessments]);
-
   const summary = {
     total: assessments.length,
     draft: assessments.filter((a) => a.status === "Draft").length,
     published: assessments.filter((a) => a.status === "Published").length,
     closed: assessments.filter((a) => a.status === "Closed").length
   };
-
   const handlePublish = async (id) => {
     setActionError("");
     setActioningId(id);
@@ -53,7 +48,6 @@ export default function AssessmentDashboard() {
       setActioningId(null);
     }
   };
-
   const handleClose = async (id) => {
     if (!window.confirm("Close this assessment? Candidates will no longer be able to attempt it.")) return;
     setActionError("");
@@ -67,7 +61,6 @@ export default function AssessmentDashboard() {
       setActioningId(null);
     }
   };
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this assessment? This cannot be undone.")) return;
     setActionError("");
@@ -81,7 +74,6 @@ export default function AssessmentDashboard() {
       setActioningId(null);
     }
   };
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -115,7 +107,6 @@ export default function AssessmentDashboard() {
           <h2 className="text-3xl font-bold mt-2 text-red-500">{summary.closed}</h2>
         </div>
       </div>
-
       <div className="flex items-center justify-between flex-wrap gap-4 mt-8">
         <h2 className="text-2xl font-semibold text-[#3E3A74]">All Assessments</h2>
         <select
@@ -129,7 +120,6 @@ export default function AssessmentDashboard() {
           <option value="Closed">Closed</option>
         </select>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
@@ -138,13 +128,11 @@ export default function AssessmentDashboard() {
       )}
 
       {loading && <p className="mt-8 text-gray-500">Loading assessments...</p>}
-
       {!loading && assessments.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
           No assessments yet. Create your first assessment to start screening candidates.
         </div>
       )}
-
       {!loading && assessments.length > 0 && (
         <div className="mt-8">
           <AssessmentTable

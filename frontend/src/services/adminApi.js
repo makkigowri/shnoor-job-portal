@@ -1,7 +1,4 @@
 import axios from "axios";
-
-// Deliberately separate from src/services/api.js so admin sessions never
-// collide with a jobseeker/recruiter session in the same browser.
 const adminApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api"
 });
@@ -13,7 +10,6 @@ adminApi.interceptors.request.use((config) => {
   }
   return config;
 });
-
 adminApi.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -24,5 +20,4 @@ adminApi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 export default adminApi;

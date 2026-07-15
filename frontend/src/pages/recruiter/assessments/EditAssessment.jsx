@@ -5,7 +5,6 @@ import TimerSettings from "../../../components/recruiter/TimerSettings";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
 import { getAssessmentById, updateAssessment } from "../../../services/assessmentService";
 import { getMyJobs } from "../../../services/jobService";
-
 const initialState = {
   title: "",
   description: "",
@@ -14,7 +13,6 @@ const initialState = {
   durationMinutes: 30,
   passingMarks: 0
 };
-
 export default function EditAssessment() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -25,7 +23,6 @@ export default function EditAssessment() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -57,11 +54,9 @@ export default function EditAssessment() {
     };
     load();
   }, [id]);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,7 +81,6 @@ export default function EditAssessment() {
       setSubmitting(false);
     }
   };
-
   if (loading) {
     return (
       <RecruiterDashboardLayout>
@@ -94,7 +88,6 @@ export default function EditAssessment() {
       </RecruiterDashboardLayout>
     );
   }
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -116,7 +109,6 @@ export default function EditAssessment() {
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <form onSubmit={handleSubmit} className="bg-white mt-8 rounded-2xl border border-gray-200 shadow-sm p-8">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
@@ -146,7 +138,6 @@ export default function EditAssessment() {
             </select>
           </div>
         </div>
-
         <div className="mt-6">
           <label className="font-medium text-gray-900">Description</label>
           <textarea
@@ -167,7 +158,6 @@ export default function EditAssessment() {
             className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
           />
         </div>
-
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-[#3E3A74]">Timer & Scoring</h2>
           <div className="mt-4">
@@ -178,7 +168,6 @@ export default function EditAssessment() {
             />
           </div>
         </div>
-
         <div className="mt-8 flex gap-4">
           <button
             type="submit"
