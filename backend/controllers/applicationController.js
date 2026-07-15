@@ -5,6 +5,7 @@ const { getResumeByUserId } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
 const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../models/assessmentAssignmentModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
+const { runAtsForNewApplication } = require("../services/atsAutomationService");
 const ALLOWED_STATUSES = ["Under Review", "Shortlisted", "Rejected"];
 const applyToJobHandler = async (req, res, next) => {
   try {
@@ -46,10 +47,23 @@ const applyToJobHandler = async (req, res, next) => {
         relatedJobId: job.id
       }).catch((err) => console.error("Failed to create notification:", err.message));
     }
+    let finalApplication = application;
+    let atsOutcome = null;
+    try {
+      atsOutcome = await runAtsForNewApplication(application, job, resume);
+      if (atsOutcome && !atsOutcome.skipped) {
+        finalApplication = atsOutcome.application;
+      }
+    } catch (atsError) {
+      console.error("Automatic ATS scoring on apply failed:", atsError.message);
+    }
     res.status(201).json({
       success: true,
       message: "Application submitted successfully",
-      application
+      application: finalApplication,
+      atsResult: atsOutcome && !atsOutcome.skipped
+        ? { status: atsOutcome.status, score: atsOutcome.score }
+        : null
     });
   } catch (error) {
     next(error);

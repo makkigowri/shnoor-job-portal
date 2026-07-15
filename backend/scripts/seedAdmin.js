@@ -1,13 +1,11 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const pool = require("../config/db");
-
 const run = async () => {
   const [, , fullnameArg, emailArg, passwordArg] = process.argv;
   const fullname = fullnameArg || "Super Admin";
   const email = (emailArg || "admin@shnoor.com").toLowerCase();
   const password = passwordArg || "Admin@123";
-
   try {
     const existing = await pool.query("SELECT id FROM admins WHERE email = $1", [email]);
     if (existing.rows[0]) {
@@ -28,5 +26,4 @@ const run = async () => {
     process.exit(1);
   }
 };
-
 run();

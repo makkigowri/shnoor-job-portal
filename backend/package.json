@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "migrate:assessments": "node scripts/runAssessmentMigration.js",
     "migrate:assessments-legacy": "node scripts/runLegacyColumnsMigration.js",
-    "migrate:assessments-checkfix": "node scripts/runDropLegacyCheckConstraint.js"
+    "migrate:assessments-checkfix": "node scripts/runDropLegacyCheckConstraint.js",
+    "migrate:ats-automation": "node scripts/runAtsAutomationMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

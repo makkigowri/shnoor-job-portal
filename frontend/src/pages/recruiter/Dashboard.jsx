@@ -51,7 +51,6 @@ export default function Dashboard() {
         const data = await getAssessments();
         setAssessments(data.assessments || []);
       } catch {
-        // Non-blocking: dashboard still works if assessments fail to load
       } finally {
         setAssessmentsLoading(false);
       }
@@ -109,8 +108,8 @@ export default function Dashboard() {
             <button onClick={() => navigate("/recruiter/post-job")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
               Post Job
             </button>
-            <button onClick={() => navigate("/recruiter/ats-checker")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
-              ATS Checker
+            <button onClick={() => navigate("/recruiter/interviews")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
+              Interviews
             </button>
             <button onClick={() => navigate("/recruiter/applicants")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
               Applicants
@@ -121,7 +120,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
       <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-[#3E3A74]">Assessments</h2>

@@ -19,12 +19,16 @@ const formatDate = (value) => {
   const date = new Date(value);
   return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 };
-const recruiterMessageFor = (status) => {
-  switch (status) {
+const recruiterMessageFor = (item) => {
+  switch (item.status) {
     case "Shortlisted":
-      return "Your profile has been shortlisted";
+      return item.ats_score != null
+        ? `Auto-shortlisted by ATS (score: ${item.ats_score}%)`
+        : "Your profile has been shortlisted";
     case "Rejected":
-      return "Profile does not match current requirements";
+      return item.ats_score != null
+        ? `ATS score was ${item.ats_score}% - below the required threshold`
+        : "Profile does not match current requirements";
     case "Interview Scheduled":
       return "An interview has been scheduled for you";
     case "Withdrawn":
@@ -116,6 +120,9 @@ const AppliedJobs = () => {
                     Status
                   </th>
                   <th className="px-6 py-4 text-left">
+                    ATS Score
+                  </th>
+                  <th className="px-6 py-4 text-left">
                     Recruiter Message
                   </th>
                   <th className="px-6 py-4 text-left">
@@ -145,8 +152,21 @@ const AppliedJobs = () => {
                         {item.status}
                       </span>
                     </td>
+                    <td className="px-6 py-5">
+                      {item.ats_score != null ? (
+                        <span
+                          className={`font-semibold ${
+                            item.ats_score >= 80 ? "text-green-600" : "text-red-500"
+                          }`}
+                        >
+                          {item.ats_score}%
+                        </span>
+                      ) : (
+                        <span className="text-body text-sm">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-5 text-body">
-                      {item.recruiter_note || recruiterMessageFor(item.status)}
+                      {item.recruiter_note || recruiterMessageFor(item)}
                     </td>
                     <td className="px-6 py-5">
                       {item.status !== "Withdrawn" && item.status !== "Rejected" ? (

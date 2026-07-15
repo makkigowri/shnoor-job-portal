@@ -38,7 +38,8 @@ const getApplicationsByJob = async (jobId) => {
   return result.rows;
 };
 const CANDIDATE_APPLICATION_SELECT = `
-  SELECT ap.id, ap.user_id, ap.job_id, ap.status,ap.recruiter_note, ap.resume_path,ap.resume_filename,ap.applied_at,ap.updated_at,j.title AS job_title,j.location AS job_location,
+  SELECT ap.id, ap.user_id, ap.job_id, ap.status,ap.recruiter_note, ap.resume_path,ap.resume_filename,ap.applied_at,ap.updated_at,
+    ap.ats_score,ap.ats_matched_skills,ap.ats_missing_skills,ap.ats_evaluated_at,j.title AS job_title,j.location AS job_location,
     j.employment_type,u.fullname AS candidate_name,u.email AS candidate_email,u.phone AS candidate_phone,jp.location AS candidate_location,jp.qualification AS candidate_qualification,
     jp.specialization AS candidate_specialization,jp.skills AS candidate_skills,iv.id AS interview_id,iv.scheduled_date AS interview_date,iv.scheduled_time AS interview_time,iv.status AS interview_status
   FROM applications ap JOIN jobs j ON j.id = ap.job_id JOIN users u ON u.id = ap.user_id LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id LEFT JOIN interviews iv ON iv.application_id = ap.id `;
@@ -83,6 +84,40 @@ const updateApplicationStatus = async (applicationId, recruiterId, status, recru
   const result = await pool.query(query, [status, recruiterNote || null, applicationId, recruiterId]);
   return result.rows[0];
 };
+const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, missingSkills }) => {
+  const query = `
+    UPDATE applications
+    SET status = $1,
+        ats_score = $2,
+        ats_matched_skills = $3,
+        ats_missing_skills = $4,
+        ats_evaluated_at = NOW(),
+        updated_at = NOW()
+    WHERE id = $5
+    RETURNING * `;
+  const values = [
+    status,
+    atsScore,
+    (matchedSkills || []).join(", ") || null,
+    (missingSkills || []).join(", ") || null,
+    applicationId
+  ];
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};
+const getProcessableApplicationsForUser = async (userId) => {
+  const query = `
+    SELECT ap.id, ap.user_id, ap.job_id, ap.status,
+      j.title AS job_title, j.skills AS job_skills, j.recruiter_id, j.status AS job_status
+    FROM applications ap
+    JOIN jobs j ON j.id = ap.job_id
+    WHERE ap.user_id = $1
+      AND ap.status IN ('Applied', 'Under Review')
+      AND j.status = 'Active'
+    ORDER BY ap.applied_at ASC `;
+  const result = await pool.query(query, [userId]);
+  return result.rows;
+};
 const countApplicationsForRecruiter = async (recruiterId) => {
   const query = `
     SELECT
@@ -106,5 +141,5 @@ const getRecentApplicationsForRecruiter = async (recruiterId, limit = 5) => {
   return result.rows;
 };
 module.exports = {
-  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter
+  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter,applyAtsResult,getProcessableApplicationsForUser
 };

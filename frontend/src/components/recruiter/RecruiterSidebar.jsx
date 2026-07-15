@@ -7,7 +7,6 @@ const menu = [
   { title: "My Jobs", path: "/recruiter/my-jobs" },
   { title: "Applicants", path: "/recruiter/applicants" },
   { title: "Assessments", path: "/recruiter/assessments" },
-  { title: "ATS Checker", path: "/recruiter/ats-checker" },
   { title: "Interviews", path: "/recruiter/interviews" },
   { title: "Notifications", path: "/recruiter/notifications" },
   { title: "Settings", path: "/recruiter/settings" }];

@@ -244,6 +244,7 @@ export default function Applicants() {
                 <th className="text-left px-6 py-4">Job Role</th>
                 <th className="text-left px-6 py-4">Qualification</th>
                 <th className="text-left px-6 py-4">Skills</th>
+                <th className="text-left px-6 py-4">ATS Score</th>
                 <th className="text-left px-6 py-4">Status</th>
                 <th className="text-center px-6 py-4">Actions</th>
               </tr>
@@ -263,6 +264,23 @@ export default function Applicants() {
                     {candidate.candidate_skills || "—"}
                   </td>
                   <td className="px-6 py-5">
+                    {candidate.ats_score != null ? (
+                      <span
+                        className={`font-semibold ${
+                          candidate.ats_score >= 80 ? "text-green-600" : "text-red-500"
+                        }`}
+                        title={[
+                          candidate.ats_matched_skills ? `Matched: ${candidate.ats_matched_skills}` : "",
+                          candidate.ats_missing_skills ? `Missing: ${candidate.ats_missing_skills}` : ""
+                        ].filter(Boolean).join(" | ")}
+                      >
+                        {candidate.ats_score}%
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Pending</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-5">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge(candidate.status)}`}>
                       {candidate.status}
                     </span>
@@ -273,63 +291,54 @@ export default function Applicants() {
                     )}
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex justify-center gap-2 flex-wrap">
-                      {candidate.resume_path ? (
-                        <a
-                          href={`${API_ORIGIN}${candidate.resume_path}`}
-                          target="_blank"
-                          rel="noreferrer"
-                         className="inline-flex items-center justify-center w-36 h-11 rounded-xl bg-[#7393D3] text-white text-sm font-medium hover:bg-[#5E84D6] transition-all duration-200 shadow-sm">
-                          Resume
-                        </a>
-                      ) : (
-                        <span className="px-4 py-2 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">Resume</span>
-                      )}
-                      <div className="relative">
-  <select
-    defaultValue=""
-    onChange={(e) => {
-      const value = e.target.value;
+  <div className="flex justify-center gap-2 flex-wrap">
+    <div className="relative">
+      <select
+        defaultValue=""
+        onChange={(e) => {
+          const value = e.target.value;
 
-      if (value === "shortlist") {
-        handleStatusChange(candidate, "Shortlisted");
-      } else if (value === "reject") {
-        handleStatusChange(candidate, "Rejected");
-      } else if (value === "interview") {
-        setScheduleTarget(candidate);
-      }
+          if (value === "shortlist") {
+            handleStatusChange(candidate, "Shortlisted");
+          } else if (value === "reject") {
+            handleStatusChange(candidate, "Rejected");
+          } else if (value === "interview") {
+            setScheduleTarget(candidate);
+          }
 
-      e.target.value = "";
-    }}
-    disabled={actioningId === candidate.id}
-    className="w-36 h-18 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-medium px-3 focus:outline-none focus:border-[#7393D3] hover:border-[#7393D3]"
-  >
-    <option value="">Actions</option>
+          e.target.value = "";
+        }}
+        disabled={actioningId === candidate.id}
+        className="w-36 h-18 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-medium px-3 focus:outline-none focus:border-[#7393D3] hover:border-[#7393D3]"
+      >
+        <option value="">Actions</option>
 
-    <option
-      value="shortlist"
-      disabled={candidate.status === "Shortlisted"}
-    >
-      Shortlist
-    </option>
+        <option
+          value="shortlist"
+          disabled={candidate.status === "Shortlisted"}
+        >
+          Shortlist
+        </option>
 
-    <option
-      value="reject"
-      disabled={candidate.status === "Rejected"}
-    >
-      Reject
-    </option>
+        <option
+          value="reject"
+          disabled={candidate.status === "Rejected"}
+        >
+          Reject
+        </option>
 
-    <option
-      value="interview"
-      disabled={candidate.status === "Rejected"}
-    >
-      {candidate.interview_date ? "Reschedule Interview" : "Schedule Interview"}
-    </option>
-  </select>
-</div>
-                    </div>
-                  </td>
+        <option
+          value="interview"
+          disabled={candidate.status === "Rejected"}
+        >
+          {candidate.interview_date
+            ? "Reschedule Interview"
+            : "Schedule Interview"}
+        </option>
+      </select>
+    </div>
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>

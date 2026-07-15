@@ -15,9 +15,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 DROP TRIGGER IF EXISTS trg_users_updated_at ON users;
-
 CREATE TRIGGER trg_users_updated_at
 BEFORE UPDATE ON users
 FOR EACH ROW
@@ -111,6 +109,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_path VARCHAR(500);
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_filename VARCHAR(255);
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_uploaded_at TIMESTAMP;
+ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_text TEXT;
 CREATE TABLE IF NOT EXISTS applications (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -120,6 +119,10 @@ CREATE TABLE IF NOT EXISTS applications (
   status VARCHAR(30) NOT NULL DEFAULT 'Applied'
     CHECK (status IN ('Applied', 'Under Review', 'Shortlisted', 'Rejected', 'Interview Scheduled', 'Withdrawn')),
   recruiter_note TEXT,
+  ats_score INTEGER,
+  ats_matched_skills TEXT,
+  ats_missing_skills TEXT,
+  ats_evaluated_at TIMESTAMP,
   applied_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE (user_id, job_id)
@@ -127,6 +130,7 @@ CREATE TABLE IF NOT EXISTS applications (
 CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_applications_ats_score ON applications(ats_score);
 DROP TRIGGER IF EXISTS trg_applications_updated_at ON applications;
 CREATE TRIGGER trg_applications_updated_at
 BEFORE UPDATE ON applications
@@ -206,12 +210,6 @@ EXECUTE FUNCTION set_updated_at();
 INSERT INTO admin_settings (application_name, support_email, theme)
 SELECT 'Shnoor Job Portal', 'support@shnoor.com', 'light'
 WHERE NOT EXISTS (SELECT 1 FROM admin_settings);
-/* ==========================================================================
-   PHASE 7 (PART 1) — ASSESSMENT MODULE
-   Tables: assessments, assessment_questions, assessment_assignments,
-           assessment_submissions, assessment_answers
-   ========================================================================== */
-
 CREATE TABLE IF NOT EXISTS assessments (
   id SERIAL PRIMARY KEY,
   recruiter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -235,7 +233,6 @@ CREATE TRIGGER trg_assessments_updated_at
 BEFORE UPDATE ON assessments
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
-
 CREATE TABLE IF NOT EXISTS assessment_questions (
   id SERIAL PRIMARY KEY,
   assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
@@ -255,7 +252,6 @@ CREATE TRIGGER trg_assessment_questions_updated_at
 BEFORE UPDATE ON assessment_questions
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
-
 CREATE TABLE IF NOT EXISTS assessment_assignments (
   id SERIAL PRIMARY KEY,
   assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
@@ -278,7 +274,6 @@ CREATE TRIGGER trg_assessment_assignments_updated_at
 BEFORE UPDATE ON assessment_assignments
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
-
 CREATE TABLE IF NOT EXISTS assessment_submissions (
   id SERIAL PRIMARY KEY,
   assignment_id INTEGER NOT NULL UNIQUE REFERENCES assessment_assignments(id) ON DELETE CASCADE,

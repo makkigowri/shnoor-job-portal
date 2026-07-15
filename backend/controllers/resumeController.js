@@ -3,6 +3,8 @@ const path = require("path");
 const { getResumeByUserId, upsertResume, clearResume } = require("../models/resumeModel");
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
+const extractResumeText = require("../utils/extractResumeText");
+const { rerunAtsForPendingApplications } = require("../services/atsAutomationService");
 const removeFileIfExists = (resumePath) => {
   if (!resumePath) return;
   const filename = path.basename(resumePath);
@@ -16,9 +18,10 @@ const removeFileIfExists = (resumePath) => {
 const getMyResume = async (req, res, next) => {
   try {
     const resume = await getResumeByUserId(req.user.id);
+    const safeResume = resume && resume.resume_path ? { ...resume, resume_text: undefined } : null;
     res.status(200).json({
       success: true,
-      resume: resume && resume.resume_path ? resume : null
+      resume: safeResume
     });
   } catch (error) {
     next(error);
@@ -31,7 +34,15 @@ const uploadMyResume = async (req, res, next) => {
     }
     const existing = await getResumeByUserId(req.user.id);
     const resumePath = `/uploads/${req.file.filename}`;
-    const resume = await upsertResume(req.user.id, resumePath, req.file.originalname);
+    let extractionError = null;
+    try {
+      resumeText = await extractResumeText(req.file.path, req.file.mimetype);
+    } catch (err) {
+      extractionError = err.message;
+      console.error("Resume text extraction failed during upload:", err.message);
+    }
+
+    const resume = await upsertResume(req.user.id, resumePath, req.file.originalname, resumeText);
 
     if (existing && existing.resume_path && existing.resume_path !== resumePath) {
       removeFileIfExists(existing.resume_path);
@@ -41,11 +52,24 @@ const uploadMyResume = async (req, res, next) => {
       message: `Your resume "${req.file.originalname}" has been uploaded successfully.`,
       type: "info"
     }).catch((err) => console.error("Failed to create notification:", err.message));
-
+    let atsAutomation = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
+    if (resumeText && resumeText.trim()) {
+      try {
+        atsAutomation = await rerunAtsForPendingApplications(req.user.id, resumeText);
+      } catch (err) {
+        console.error("Automatic ATS re-scan after resume upload failed:", err.message);
+      }
+    }
+    const { resume_text, ...resumeForClient } = resume;
     res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
-      resume
+      resume: resumeForClient,
+      atsAutomation: {
+        ...atsAutomation,
+        textExtracted: Boolean(resumeText && resumeText.trim()),
+        extractionError
+      }
     });
   } catch (error) {
     next(error);
