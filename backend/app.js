@@ -17,6 +17,7 @@ const assessmentRoutes = require("./routes/assessmentRoutes");
 const assessmentAssignmentRoutes = require("./routes/assessmentAssignmentRoutes");
 const assessmentSubmissionRoutes = require("./routes/assessmentSubmissionRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
+const { sendEmail } = require("./services/emailService");
 const app = express();
 app.use(
   cors({

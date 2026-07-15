@@ -75,13 +75,29 @@ const getApplicationForRecruiter = async (applicationId, recruiterId) => {
 const updateApplicationStatus = async (applicationId, recruiterId, status, recruiterNote) => {
   const query = `
     UPDATE applications ap
-    SET status = $1,
-        recruiter_note = COALESCE($2, ap.recruiter_note),
-        updated_at = NOW()
-    FROM jobs j
-    WHERE ap.id = $3 AND ap.job_id = j.id AND j.recruiter_id = $4
-    RETURNING ap.* `;
-  const result = await pool.query(query, [status, recruiterNote || null, applicationId, recruiterId]);
+    SET
+      status = $1,
+      recruiter_note = COALESCE($2, ap.recruiter_note),
+      updated_at = NOW()
+    FROM jobs j, users u
+    WHERE
+      ap.id = $3
+      AND ap.job_id = j.id
+      AND j.recruiter_id = $4
+      AND u.id = ap.user_id
+    RETURNING
+      ap.*,
+      u.fullname AS candidate_name,
+      u.email AS candidate_email
+  `;
+
+  const result = await pool.query(query, [
+    status,
+    recruiterNote || null,
+    applicationId,
+    recruiterId,
+  ]);
+
   return result.rows[0];
 };
 const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, missingSkills }) => {

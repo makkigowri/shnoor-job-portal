@@ -5,6 +5,8 @@ const { scoreResumeAgainstJob } = require("../utils/atsScorer");
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
+const { sendEmail } = require("./emailService");
+const { findUserById } = require("../models/userModel");
 const {
   applyAtsResult,
   getProcessableApplicationsForUser
@@ -13,9 +15,6 @@ const {
   assignPublishedAssessmentsToNewlyShortlistedCandidate
 } = require("../models/assessmentAssignmentModel");
 
-// The minimum ATS match percentage a candidate needs to be auto-shortlisted.
-// Configurable via ATS_AUTO_SHORTLIST_THRESHOLD so recruiters/admins can tune it
-// without touching code. Defaults to the 80% called out in the requirements.
 const getAtsThreshold = () => {
   const configured = Number(process.env.ATS_AUTO_SHORTLIST_THRESHOLD);
   return Number.isFinite(configured) && configured > 0 ? configured : 80;
@@ -27,9 +26,6 @@ const MIME_BY_EXTENSION = {
   ".doc": "application/msword"
 };
 
-// Resumes uploaded before this feature shipped won't have cached resume_text yet.
-// Fall back to re-reading/re-parsing the file from disk so old candidates still
-// get auto-processed instead of silently being skipped.
 const resolveResumeText = async (resume) => {
   if (resume && resume.resume_text && resume.resume_text.trim()) {
     return resume.resume_text;
@@ -48,19 +44,13 @@ const resolveResumeText = async (resume) => {
   }
 };
 
-// Runs the ATS engine for one application against its job, applies the
-// Shortlist/Reject decision, assigns any published assessment mapped to that
-// job, and fires the candidate-facing notifications. This is the single
-// piece of logic shared by both automation triggers:
-//   1) a fresh resume upload (re-scans everything still pending), and
-//   2) a brand new job application (scores it the instant it's created).
+
 const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   if (!resumeText || !resumeText.trim()) {
     return { skipped: true, reason: "no_resume_text" };
   }
   const result = scoreResumeAgainstJob(resumeText, job.job_skills || job.skills);
   if (result.score === null) {
-    // Job has no listed skills to compare against - nothing to decide automatically.
     return { skipped: true, reason: "no_job_skills" };
   }
   const threshold = getAtsThreshold();
@@ -71,6 +61,7 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
     matchedSkills: result.matchedSkills,
     missingSkills: result.missingSkills
   });
+  const candidate = await findUserById(application.user_id);
   const jobTitle = job.job_title || job.title || "the role you applied for";
   let assignedAssessments = [];
   if (newStatus === "Shortlisted") {
@@ -104,6 +95,38 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
         }).catch((err) => console.error("Failed to create assessment notification:", err.message));
       });
     }
+    await sendEmail(
+  candidate.email,
+  "Congratulations! You have been shortlisted",
+  `
+  <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px">
+
+    <h2>Congratulations!</h2>
+
+    <p>Dear ${candidate.fullname},</p>
+
+    <p>
+      We are pleased to inform you that you have been shortlisted for
+      <strong>${jobTitle}</strong>.
+    </p>
+
+    <p>
+      Please log in to SHNOOR Job Portal and complete your technical assessment.
+    </p>
+
+    <a href="http://localhost:5173/user/my-assessments"
+      style="background:#4F46E5;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;">
+      Start Assessment
+    </a>
+
+    <br><br>
+
+    Regards,<br>
+    <strong>SHNOOR Recruitment Team</strong>
+
+  </div>
+  `
+);
   } else {
     createNotification(application.user_id, {
       title: "Application Update",
@@ -111,6 +134,37 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
       type: "warning",
       relatedJobId: job.id || job.job_id
     }).catch((err) => console.error("Failed to create rejection notification:", err.message));
+    await sendEmail(
+  candidate.email,
+  "Application Status Update",
+  `
+  <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px">
+
+    <h2>Application Update</h2>
+
+    <p>Dear ${candidate.fullname},</p>
+
+    <p>
+      Thank you for applying for
+      <strong>${jobTitle}</strong>.
+    </p>
+
+    <p>
+      After reviewing your application, we regret to inform you that you have not been selected for the next stage of the recruitment process.
+    </p>
+
+    <p>
+      We appreciate your interest and encourage you to apply for future opportunities.
+    </p>
+
+    <br>
+
+    Regards,<br>
+    <strong>SHNOOR Recruitment Team</strong>
+
+  </div>
+  `
+);
   }
   return {
     skipped: false,
@@ -123,17 +177,13 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   };
 };
 
-// Trigger #1: called right when a job seeker applies to a job. Scores the
-// brand-new application immediately instead of leaving it in a manual queue.
+
 const runAtsForNewApplication = async (application, job, resume) => {
   const resumeText = await resolveResumeText(resume);
   return evaluateApplicationAts({ application, job, resumeText });
 };
 
-// Trigger #2: called right after a resume upload/re-upload. Re-scans every
-// one of the candidate's still-pending applications (Applied / Under Review)
-// against each job's requirements, exactly like a fresh ATS scan of all
-// active jobs the candidate is in the running for.
+
 const rerunAtsForPendingApplications = async (userId, resumeText) => {
   const summary = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
   if (!resumeText || !resumeText.trim()) {
