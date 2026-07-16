@@ -88,6 +88,21 @@ export default function AssessmentResult() {
         <ResultCard submission={submission} />
       </div>
 
+      {submission.result === "Pass" && submission.assignment_id && (
+        <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="font-semibold text-emerald-700">You passed! Your AI Interview is now available.</p>
+            <p className="text-sm text-emerald-700/80 mt-1">Continue from your Assessment page to start it.</p>
+          </div>
+          <Link
+            to={`/user/assessments/${submission.assignment_id}`}
+            className="px-6 py-3 rounded-xl bg-[#3E3A74] text-white font-semibold hover:bg-[#2f2c5c] transition"
+          >
+            Continue to AI Interview →
+          </Link>
+        </div>
+      )}
+
       <div className="mt-8">
         <h2 className="text-2xl font-semibold text-[#3E3A74] mb-5">Answer Summary</h2>
         <SubmissionSummary answers={submission.answers} />

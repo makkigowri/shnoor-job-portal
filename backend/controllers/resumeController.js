@@ -4,7 +4,6 @@ const { getResumeByUserId, upsertResume, clearResume } = require("../models/resu
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
 const extractResumeText = require("../utils/extractResumeText");
-const { rerunAtsForPendingApplications } = require("../services/atsAutomationService");
 const removeFileIfExists = (resumePath) => {
   if (!resumePath) return;
   const filename = path.basename(resumePath);
@@ -41,7 +40,6 @@ const uploadMyResume = async (req, res, next) => {
       extractionError = err.message;
       console.error("Resume text extraction failed during upload:", err.message);
     }
-
     const resume = await upsertResume(req.user.id, resumePath, req.file.originalname, resumeText);
 
     if (existing && existing.resume_path && existing.resume_path !== resumePath) {
@@ -52,21 +50,16 @@ const uploadMyResume = async (req, res, next) => {
       message: `Your resume "${req.file.originalname}" has been uploaded successfully.`,
       type: "info"
     }).catch((err) => console.error("Failed to create notification:", err.message));
-    let atsAutomation = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
-    if (resumeText && resumeText.trim()) {
-      try {
-        atsAutomation = await rerunAtsForPendingApplications(req.user.id, resumeText);
-      } catch (err) {
-        console.error("Automatic ATS re-scan after resume upload failed:", err.message);
-      }
-    }
     const { resume_text, ...resumeForClient } = resume;
     res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
       resume: resumeForClient,
       atsAutomation: {
-        ...atsAutomation,
+        processed: 0,
+        shortlisted: 0,
+        rejected: 0,
+        skipped: 0,
         textExtracted: Boolean(resumeText && resumeText.trim()),
         extractionError
       }

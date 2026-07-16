@@ -10,7 +10,6 @@ const Resume = () => {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [atsAutomation, setAtsAutomation] = useState(null);
   const loadResume = async () => {
     setLoading(true);
     try {
@@ -44,15 +43,7 @@ const Resume = () => {
       const data = await uploadResume(resume);
       setExistingResume(data.resume);
       setResume(null);
-      setAtsAutomation(data.atsAutomation || null);
-      if (data.atsAutomation && data.atsAutomation.processed > 0) {
-        setSuccessMessage(
-          `Resume uploaded successfully. ATS automatically re-scanned ${data.atsAutomation.processed} pending application(s): ` +
-          `${data.atsAutomation.shortlisted} shortlisted, ${data.atsAutomation.rejected} rejected.`
-        );
-      } else {
-        setSuccessMessage("Resume uploaded successfully. It will be automatically scored by the ATS engine as soon as you apply to a job.");
-      }
+      setSuccessMessage("Resume uploaded successfully. The recruiter will run ATS scoring after reviewing applicants for a job.");
     } catch (err) {
       setError(err?.response?.data?.message || "Unable to upload resume");
     } finally {
@@ -191,30 +182,11 @@ const Resume = () => {
             </div>
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold text-lg">
-                Automatic ATS Scan
+                ATS Scan
               </h3>
-              {atsAutomation ? (
-                <div className="mt-4 space-y-2 text-sm">
-                  <p className="text-body">
-                    Re-scanned <span className="font-semibold">{atsAutomation.processed}</span> pending application(s) against this resume.
-                  </p>
-                  <p className="text-green-600 font-medium">
-                    {atsAutomation.shortlisted} shortlisted
-                  </p>
-                  <p className="text-red-500 font-medium">
-                    {atsAutomation.rejected} rejected
-                  </p>
-                  {atsAutomation.skipped > 0 && (
-                    <p className="text-gray-500">
-                      {atsAutomation.skipped} skipped (no listed job skills)
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="mt-4 text-body text-sm">
-                  Your ATS score is calculated automatically for each job you apply to, and re-checked automatically whenever you upload a new resume. Check the "Applied Jobs" page to see per-job scores.
-                </p>
-              )}
+              <p className="mt-4 text-body text-sm">
+                When you apply to a job, your application status starts as "Applied". The recruiter reviews applicants and runs ATS scoring, after which you'll see your score and updated status on the "Applied Jobs" page.
+              </p>
             </div>
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold text-lg">

@@ -18,7 +18,6 @@ const AdminJobs = () => {
   const [error, setError] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [viewJob, setViewJob] = useState(null);
-
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -30,11 +29,9 @@ const AdminJobs = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load(1);
   }, [status]);
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     load(1);
@@ -65,7 +62,6 @@ const AdminJobs = () => {
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <form onSubmit={handleSearchSubmit} className="flex gap-3 flex-1">
@@ -150,7 +146,6 @@ const AdminJobs = () => {
 
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
-
       {viewJob && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
@@ -183,7 +178,6 @@ const AdminJobs = () => {
           </div>
         </div>
       )}
-
       <ConfirmDialog
         open={Boolean(confirmAction)}
         title={

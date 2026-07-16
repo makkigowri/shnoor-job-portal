@@ -10,7 +10,8 @@
     "migrate:assessments": "node scripts/runAssessmentMigration.js",
     "migrate:assessments-legacy": "node scripts/runLegacyColumnsMigration.js",
     "migrate:assessments-checkfix": "node scripts/runDropLegacyCheckConstraint.js",
-    "migrate:ats-automation": "node scripts/runAtsAutomationMigration.js"
+    "migrate:ats-automation": "node scripts/runAtsAutomationMigration.js",
+    "migrate:ai-interview": "node scripts/runAiInterviewMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

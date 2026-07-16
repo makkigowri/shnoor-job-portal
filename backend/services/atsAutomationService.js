@@ -9,7 +9,8 @@ const { sendEmail } = require("./emailService");
 const { findUserById } = require("../models/userModel");
 const {
   applyAtsResult,
-  getProcessableApplicationsForUser
+  getProcessableApplicationsForUser,
+  getAppliedApplicantsForJob
 } = require("../models/applicationModel");
 const {
   assignPublishedAssessmentsToNewlyShortlistedCandidate
@@ -19,13 +20,11 @@ const getAtsThreshold = () => {
   const configured = Number(process.env.ATS_AUTO_SHORTLIST_THRESHOLD);
   return Number.isFinite(configured) && configured > 0 ? configured : 80;
 };
-
 const MIME_BY_EXTENSION = {
   ".pdf": "application/pdf",
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".doc": "application/msword"
 };
-
 const resolveResumeText = async (resume) => {
   if (resume && resume.resume_text && resume.resume_text.trim()) {
     return resume.resume_text;
@@ -43,8 +42,6 @@ const resolveResumeText = async (resume) => {
     return null;
   }
 };
-
-
 const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   if (!resumeText || !resumeText.trim()) {
     return { skipped: true, reason: "no_resume_text" };
@@ -100,16 +97,12 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   "Congratulations! You have been shortlisted",
   `
   <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px">
-
     <h2>Congratulations!</h2>
-
     <p>Dear ${candidate.fullname},</p>
-
     <p>
       We are pleased to inform you that you have been shortlisted for
       <strong>${jobTitle}</strong>.
     </p>
-
     <p>
       Please log in to SHNOOR Job Portal and complete your technical assessment.
     </p>
@@ -139,29 +132,21 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   "Application Status Update",
   `
   <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px">
-
     <h2>Application Update</h2>
-
     <p>Dear ${candidate.fullname},</p>
-
     <p>
       Thank you for applying for
       <strong>${jobTitle}</strong>.
     </p>
-
     <p>
       After reviewing your application, we regret to inform you that you have not been selected for the next stage of the recruitment process.
     </p>
-
     <p>
       We appreciate your interest and encourage you to apply for future opportunities.
     </p>
-
     <br>
-
     Regards,<br>
     <strong>SHNOOR Recruitment Team</strong>
-
   </div>
   `
 );
@@ -176,14 +161,10 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
     application: updatedApplication
   };
 };
-
-
 const runAtsForNewApplication = async (application, job, resume) => {
   const resumeText = await resolveResumeText(resume);
   return evaluateApplicationAts({ application, job, resumeText });
 };
-
-
 const rerunAtsForPendingApplications = async (userId, resumeText) => {
   const summary = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
   if (!resumeText || !resumeText.trim()) {
@@ -199,7 +180,6 @@ const rerunAtsForPendingApplications = async (userId, resumeText) => {
       job_skills: row.job_skills,
       recruiter_id: row.recruiter_id
     };
-    // eslint-disable-next-line no-await-in-loop
     const outcome = await evaluateApplicationAts({ application, job, resumeText });
     if (outcome.skipped) {
       summary.skipped += 1;
@@ -211,11 +191,35 @@ const rerunAtsForPendingApplications = async (userId, resumeText) => {
   }
   return summary;
 };
-
+const runAtsForJobApplicants = async (recruiterId, jobId) => {
+  const summary = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
+  const pending = await getAppliedApplicantsForJob(recruiterId, jobId);
+  for (const row of pending) {
+    const application = { id: row.id, user_id: row.user_id, job_id: row.job_id };
+    const job = {
+      id: row.job_id,
+      job_id: row.job_id,
+      job_title: row.job_title,
+      job_skills: row.job_skills,
+      recruiter_id: row.recruiter_id
+    };
+    const resumeText = await resolveResumeText({ resume_path: row.resume_path });
+    const outcome = await evaluateApplicationAts({ application, job, resumeText });
+    if (outcome.skipped) {
+      summary.skipped += 1;
+      continue;
+    }
+    summary.processed += 1;
+    if (outcome.status === "Shortlisted") summary.shortlisted += 1;
+    if (outcome.status === "Rejected") summary.rejected += 1;
+  }
+  return summary;
+};
 module.exports = {
   getAtsThreshold,
   resolveResumeText,
   evaluateApplicationAts,
   runAtsForNewApplication,
-  rerunAtsForPendingApplications
+  rerunAtsForPendingApplications,
+  runAtsForJobApplicants
 };

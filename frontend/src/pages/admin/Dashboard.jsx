@@ -4,12 +4,14 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatCard from "../../components/admin/StatCard";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { fetchAdminDashboard, fetchAdminAnalytics } from "../../services/adminDashboardService";
+import { getAiInterviewAdminStats } from "../../services/aiInterviewService";
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
 const AdminDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [aiInterviewStats, setAiInterviewStats] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -24,6 +26,12 @@ const AdminDashboard = () => {
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    getAiInterviewAdminStats()
+      .then((data) => setAiInterviewStats(data.stats))
+      .catch(() => setAiInterviewStats(null));
   }, []);
   return (
     <AdminLayout title="Admin Dashboard" subtitle="Overview of the entire Shnoor Job Portal application.">
@@ -157,10 +165,21 @@ const AdminDashboard = () => {
         </>
       )}
 
+      {aiInterviewStats && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold text-[#3E3A74] mb-5">AI Interview Statistics</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard label="Completed Interviews" value={aiInterviewStats.completedInterviews} />
+            <StatCard label="Pass Rate" value={`${aiInterviewStats.passRate}%`} />
+            <StatCard label="Job Offers" value={aiInterviewStats.jobOffers} />
+            <StatCard label="Technical Interviews" value={aiInterviewStats.technicalInterviews} />
+          </div>
+        </div>
+      )}
+
       {analytics && (
         <div className="mt-10">
           <h2 className="text-2xl font-bold text-[#3E3A74] mb-5">Analytics</h2>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
             <StatCard label="Total Accounts" value={analytics.systemStatistics.total_accounts} />
             <StatCard label="Total Companies" value={analytics.systemStatistics.total_companies} />
@@ -171,7 +190,6 @@ const AdminDashboard = () => {
             <StatCard label="Completed Interviews" value={analytics.systemStatistics.completed_interviews} />
             <StatCard label="Average ATS Score" value={analytics.systemStatistics.avg_ats_score} />
           </div>
-
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
@@ -201,7 +219,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="font-bold text-[#3E3A74]">Top Applied Jobs</h3>
@@ -228,7 +245,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="font-bold text-[#3E3A74]">Most Active Users</h3>
@@ -255,7 +271,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="font-bold text-[#3E3A74]">Recent Registrations</h3>
@@ -282,7 +297,6 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden xl:col-span-2">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="font-bold text-[#3E3A74]">Recent Activities</h3>

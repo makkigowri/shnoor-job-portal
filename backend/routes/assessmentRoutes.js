@@ -15,9 +15,7 @@ const {
   validateUpdateAssessment,
   validateIdParam
 } = require("../middleware/assessmentValidator");
-
 const router = express.Router();
-
 router.post("/", protect, authorizeRoles("recruiter"), validateCreateAssessment, handleValidation, createAssessmentHandler);
 router.get("/", protect, authorizeRoles("recruiter"), getAllAssessmentsHandler);
 router.get("/:id", protect, authorizeRoles("recruiter"), validateIdParam, handleValidation, getAssessmentHandler);
@@ -25,5 +23,4 @@ router.put("/:id", protect, authorizeRoles("recruiter"), validateIdParam, valida
 router.delete("/:id", protect, authorizeRoles("recruiter"), validateIdParam, handleValidation, deleteAssessmentHandler);
 router.patch("/:id/publish", protect, authorizeRoles("recruiter"), validateIdParam, handleValidation, publishAssessmentHandler);
 router.patch("/:id/close", protect, authorizeRoles("recruiter"), validateIdParam, handleValidation, closeAssessmentHandler);
-
 module.exports = router;

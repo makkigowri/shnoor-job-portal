@@ -15,6 +15,7 @@ import MyAssessments from "./pages/user/assessments/MyAssessments";
 import CandidateAssessmentDetails from "./pages/user/assessments/AssessmentDetails";
 import TakeAssessment from "./pages/user/assessments/TakeAssessment";
 import AssessmentResult from "./pages/user/assessments/AssessmentResult";
+import AIInterview from "./pages/user/interview/AIInterview";
 import RecruiterDashboard from "./pages/recruiter/Dashboard";
 import CompanyProfile from "./pages/recruiter/CompanyProfile";
 import PostJob from "./pages/recruiter/PostJob";
@@ -142,6 +143,14 @@ const App = () => {
         element={
           <ProtectedRoute allowedRoles={["jobseeker"]}>
             <AssessmentResult />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/ai-interview/:interviewId"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker"]}>
+            <AIInterview />
           </ProtectedRoute>
         }
       />

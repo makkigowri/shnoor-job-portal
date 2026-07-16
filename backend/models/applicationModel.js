@@ -121,6 +121,17 @@ const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, 
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
+  const query = `
+    SELECT ap.id, ap.user_id, ap.job_id, ap.resume_path, ap.resume_filename,
+      j.title AS job_title, j.skills AS job_skills, j.recruiter_id, j.status AS job_status
+    FROM applications ap
+    JOIN jobs j ON j.id = ap.job_id
+    WHERE j.recruiter_id = $1 AND ap.job_id = $2 AND ap.status = 'Applied'
+    ORDER BY ap.applied_at ASC `;
+  const result = await pool.query(query, [recruiterId, jobId]);
+  return result.rows;
+};
 const getProcessableApplicationsForUser = async (userId) => {
   const query = `
     SELECT ap.id, ap.user_id, ap.job_id, ap.status,
@@ -157,5 +168,5 @@ const getRecentApplicationsForRecruiter = async (recruiterId, limit = 5) => {
   return result.rows;
 };
 module.exports = {
-  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter,applyAtsResult,getProcessableApplicationsForUser
+  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter,applyAtsResult,getProcessableApplicationsForUser,getAppliedApplicantsForJob
 };

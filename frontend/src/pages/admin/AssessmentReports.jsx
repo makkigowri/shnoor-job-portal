@@ -13,7 +13,6 @@ const AdminAssessmentReports = () => {
   const [error, setError] = useState("");
   const [report, setReport] = useState(null);
   const [reportLoading, setReportLoading] = useState(false);
-
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -28,7 +27,6 @@ const AdminAssessmentReports = () => {
   useEffect(() => {
     load(1);
   }, [status]);
-
   const handleViewReport = async (id) => {
     setReportLoading(true);
     try {
@@ -72,7 +70,6 @@ const AdminAssessmentReports = () => {
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -125,9 +122,7 @@ const AdminAssessmentReports = () => {
 
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
-
       {reportLoading && <p className="mt-4 text-gray-500">Loading report...</p>}
-
       {report && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 max-h-[85vh] overflow-y-auto">
@@ -140,7 +135,6 @@ const AdminAssessmentReports = () => {
               </div>
               <StatusBadge status={report.status} />
             </div>
-
             <div className="grid grid-cols-3 gap-4 mt-6">
               <div className="bg-gray-50 rounded-xl p-4 text-center">
                 <p className="text-gray-500 text-xs">Assigned</p>
@@ -155,12 +149,10 @@ const AdminAssessmentReports = () => {
                 <p className="text-2xl font-bold text-[#3E3A74] mt-1">{completionRateOf(report)}%</p>
               </div>
             </div>
-
             <div className="mt-6 text-sm space-y-1">
               <p><span className="text-gray-500">Duration:</span> {report.duration_minutes} minutes</p>
               <p><span className="text-gray-500">Total / Passing Marks:</span> {report.total_marks} / {report.passing_marks}</p>
             </div>
-
             <h4 className="mt-6 font-semibold text-[#3E3A74]">Question Breakdown ({report.questions?.length || 0})</h4>
             <div className="mt-3 space-y-2">
               {(report.questions || []).map((q, i) => (
@@ -173,7 +165,6 @@ const AdminAssessmentReports = () => {
                 <p className="text-gray-500 text-sm">No questions added yet.</p>
               )}
             </div>
-
             <p className="mt-6 text-xs text-gray-400">
               Note: individual candidate results are managed by the recruiter who owns this assessment.
             </p>

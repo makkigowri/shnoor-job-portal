@@ -6,7 +6,6 @@ import {
   fetchNotificationHistory,
   deleteAdminNotification
 } from "../../services/adminNotificationService";
-
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
 const AdminNotifications = () => {
   const [form, setForm] = useState({ title: "", message: "", type: "info", audience: "all" });
@@ -16,7 +15,6 @@ const AdminNotifications = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
-
   const loadHistory = async () => {
     setLoading(true);
     try {
@@ -31,12 +29,10 @@ const AdminNotifications = () => {
   useEffect(() => {
     loadHistory();
   }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleSend = async (e) => {
     e.preventDefault();
     setError("");
@@ -53,7 +49,6 @@ const AdminNotifications = () => {
       setSending(false);
     }
   };
-
   const handleDelete = async () => {
     if (!confirmDelete) return;
     try {

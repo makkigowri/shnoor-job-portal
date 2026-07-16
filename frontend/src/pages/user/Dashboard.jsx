@@ -213,11 +213,13 @@ const Dashboard = () => {
                     disabled={applyingJobId === job.id || isApplied(job)}
                     className="flex-1 rounded-xl bg-[#7393D3] py-3 text-white font-semibold hover:bg-[#5E84D6] transition disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {isApplied(job)
-                      ? `Applied · ${job.application_status}`
-                      : applyingJobId === job.id
-                      ? "Applying..."
-                      : "Apply Now"}
+                  {isApplied(job)
+  ? job.application_status === "Applied"
+    ? "Applied"
+    : `Applied - ${job.application_status}`
+  : applyingJobId === job.id
+  ? "Applying..."
+  : "Apply Now"}
                   </button>
                   <button
                     onClick={() => handleToggleSave(job)}

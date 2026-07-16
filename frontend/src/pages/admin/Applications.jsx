@@ -89,7 +89,6 @@ const AdminApplications = () => {
             <option value="Selected">Selected</option>
           </select>
         </div>
-
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 bg-gray-50">

@@ -9,6 +9,7 @@ const {
   getSubmissionDetailForCandidate
 } = require("../models/assessmentSubmissionModel");
 const { createNotification } = require("../models/notificationModel");
+const { activateAfterAssessmentPass } = require("../services/aiInterviewService");
 const START_ERROR_MESSAGES = {
   not_found: "Assessment assignment not found",
   not_published: "This assessment is not currently available",
@@ -69,6 +70,11 @@ const submitAssessmentHandler = async (req, res, next) => {
       message: `You scored ${submission.total_score}/${submission.max_score} (${submission.result}).`,
       type: submission.result === "Pass" ? "success" : "warning"
     }).catch((err) => console.error("Failed to create notification:", err.message));
+    if (submission.result === "Pass") {
+      activateAfterAssessmentPass(submission).catch((err) =>
+        console.error("Failed to activate AI interview:", err.message)
+      );
+    }
     res.status(200).json({ success: true, message: "Assessment submitted successfully", submission });
   } catch (error) {
     next(error);
@@ -92,6 +98,11 @@ const autoSubmitAssessmentHandler = async (req, res, next) => {
       message: `Time expired. Your assessment was auto submitted with a score of ${submission.total_score}/${submission.max_score}.`,
       type: "warning"
     }).catch((err) => console.error("Failed to create notification:", err.message));
+    if (submission.result === "Pass") {
+      activateAfterAssessmentPass(submission).catch((err) =>
+        console.error("Failed to activate AI interview:", err.message)
+      );
+    }
     res.status(200).json({ success: true, message: "Assessment auto submitted", submission });
   } catch (error) {
     next(error);

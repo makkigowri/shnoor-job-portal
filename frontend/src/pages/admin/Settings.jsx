@@ -6,9 +6,7 @@ import {
   uploadAdminLogo,
   changeSettingsPassword
 } from "../../services/adminSettingsService";
-
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
-
 const AdminSettings = () => {
   const [settings, setSettings] = useState({ applicationName: "", supportEmail: "", theme: "light" });
   const [logoPath, setLogoPath] = useState("");
@@ -19,7 +17,6 @@ const AdminSettings = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
   useEffect(() => {
     const load = async () => {
       try {
@@ -40,7 +37,6 @@ const AdminSettings = () => {
     };
     load();
   }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSettings((prev) => ({ ...prev, [name]: value }));
@@ -60,7 +56,6 @@ const AdminSettings = () => {
       setSaving(false);
     }
   };
-
   const handleLogoUpload = async () => {
     if (!logoFile) return;
     setError("");
@@ -76,7 +71,6 @@ const AdminSettings = () => {
       setError(err.response?.data?.message || "Unable to upload logo.");
     }
   };
-
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setError("");
@@ -92,7 +86,6 @@ const AdminSettings = () => {
       setChangingPassword(false);
     }
   };
-
   if (loading) {
     return (
       <AdminLayout title="Settings" subtitle="Configure the application.">
@@ -100,7 +93,6 @@ const AdminSettings = () => {
       </AdminLayout>
     );
   }
-
   return (
     <AdminLayout title="Settings" subtitle="Configure application-wide preferences and your admin account.">
       {error && (
@@ -177,7 +169,6 @@ const AdminSettings = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <h3 className="font-bold text-[#3E3A74] mb-4">Change Password</h3>
           <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -215,5 +206,4 @@ const AdminSettings = () => {
     </AdminLayout>
   );
 };
-
 export default AdminSettings;

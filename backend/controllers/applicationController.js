@@ -5,7 +5,6 @@ const { getResumeByUserId } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
 const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../models/assessmentAssignmentModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
-const { runAtsForNewApplication } = require("../services/atsAutomationService");
 const ALLOWED_STATUSES = ["Under Review", "Shortlisted", "Rejected"];
 const { sendEmail } = require("../services/emailService");
 const applyToJobHandler = async (req, res, next) => {
@@ -45,15 +44,11 @@ const applyToJobHandler = async (req, res, next) => {
       "Application Received - SHNOOR Job Portal",
       `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px">
-
         <h2 style="color:#2c3e50;">Application Submitted Successfully</h2>
-
         <p>Dear <strong>${req.user.fullname}</strong>,</p>
-
         <p>
           Thank you for applying through <strong>SHNOOR Job Portal</strong>.
         </p>
-
         <p>Your application has been successfully received.</p>
 
         <table style="width:100%;border-collapse:collapse">
@@ -67,28 +62,21 @@ const applyToJobHandler = async (req, res, next) => {
             <td>${job.location}</td>
           </tr>
         </table>
-
         <br>
-
         <p>
           Our recruitment team will review your application.
           If you are shortlisted, you will receive another email with the next steps.
         </p>
-
         <br>
-
         <a href="http://localhost:5173/login"
           style="background:#4F46E5;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;">
           Login to SHNOOR
         </a>
-
         <br><br>
-
         <p>Regards,</p>
         <p><strong>SHNOOR Recruitment Team</strong></p>
-
       </div>
-      `
+    `
     );
     if (job.recruiter_id) {
       createNotification(job.recruiter_id, {
@@ -98,23 +86,11 @@ const applyToJobHandler = async (req, res, next) => {
         relatedJobId: job.id
       }).catch((err) => console.error("Failed to create notification:", err.message));
     }
-    let finalApplication = application;
-    let atsOutcome = null;
-    try {
-      atsOutcome = await runAtsForNewApplication(application, job, resume);
-      if (atsOutcome && !atsOutcome.skipped) {
-        finalApplication = atsOutcome.application;
-      }
-    } catch (atsError) {
-      console.error("Automatic ATS scoring on apply failed:", atsError.message);
-    }
     res.status(201).json({
       success: true,
       message: "Application submitted successfully",
-      application: finalApplication,
-      atsResult: atsOutcome && !atsOutcome.skipped
-        ? { status: atsOutcome.status, score: atsOutcome.score }
-        : null
+      application,
+      atsResult: null
     });
   } catch (error) {
     next(error);
@@ -227,24 +203,18 @@ const updateApplicationStatusHandler = async (req, res, next) => {
             "Congratulations! You have been shortlisted",
               `
             <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px;">
-
               <h2 style="color:#3E3A74;">Congratulations!</h2>
-
               <p>Dear <strong>${application.candidate_name}</strong>,</p>
-
               <p>
               We are pleased to inform you that you have been shortlisted for the position of
               <strong>${job.title}</strong>.
               </p>
-
               <p>
               The next stage of the recruitment process is an online technical assessment.
               </p>
-
               <p>
               Please log in to SHNOOR Job Portal and complete your assessment.
               </p>
-
               <a href="http://localhost:5173/user/my-assessments"
               style="
               display:inline-block;
@@ -255,16 +225,11 @@ const updateApplicationStatusHandler = async (req, res, next) => {
               border-radius:6px;">
               Start Assessment
               </a>
-
               <br><br>
-
               <p>
               We wish you all the best.
               </p>
-
-              Regards,<br>
-
-              <strong>SHNOOR Recruitment Team</strong>
+              Regards,<br>              <strong>SHNOOR Recruitment Team</strong>
 
             </div>
     `
@@ -273,45 +238,33 @@ const updateApplicationStatusHandler = async (req, res, next) => {
         console.error("Auto-assignment on shortlist failed:", assignError.message);
       }
     }
-    
     if(status==="Rejected"){
-
     await sendEmail(
     application.candidate_email,
     "Application Status Update",
     `
     <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:30px;border:1px solid #ddd;border-radius:8px;">
-
     <h2 style="color:#B91C1C;">
     Application Update
     </h2>
-
     <p>Dear <strong>${application.candidate_name}</strong>,</p>
-
     <p>
     Thank you for applying for the position of
     <strong>${job.title}</strong>.
     </p>
-
     <p>
     After careful consideration,
     we regret to inform you that you have not been selected for the next stage of the recruitment process.
     </p>
-
     <p>
     We sincerely appreciate your interest in joining our organization and encourage you to apply for future opportunities that match your profile.
     </p>
-
     <br>
-
     Regards,<br>
-
     <strong>SHNOOR Recruitment Team</strong>
-
     </div>
     `
     );
-
     }
     res.status(200).json({
       success: true,

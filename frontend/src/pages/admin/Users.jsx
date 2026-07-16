@@ -4,9 +4,7 @@ import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import { fetchUsers, blockUser, unblockUser, deleteUser, fetchUserById } from "../../services/adminUserService";
-
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
-
 const AdminUsers = () => {
   const [data, setData] = useState({ users: [], page: 1, totalPages: 1 });
   const [search, setSearch] = useState("");
@@ -15,7 +13,6 @@ const AdminUsers = () => {
   const [error, setError] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [viewUser, setViewUser] = useState(null);
-
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -27,17 +24,14 @@ const AdminUsers = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     load(1);
   };
-
   const handleView = async (id) => {
     try {
       const result = await fetchUserById(id);
@@ -46,7 +40,6 @@ const AdminUsers = () => {
       setError(err.response?.data?.message || "Unable to load user details.");
     }
   };
-
   const runConfirmed = async () => {
     if (!confirmAction) return;
     try {
@@ -60,13 +53,11 @@ const AdminUsers = () => {
       setConfirmAction(null);
     }
   };
-
   return (
     <AdminLayout title="Users" subtitle="Manage all registered job seekers.">
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <form onSubmit={handleSearchSubmit} className="flex gap-3 flex-1">
@@ -91,7 +82,6 @@ const AdminUsers = () => {
             <option value="blocked">Blocked</option>
           </select>
         </div>
-
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 bg-gray-50">
@@ -151,7 +141,6 @@ const AdminUsers = () => {
 
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
-
       {viewUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -177,7 +166,6 @@ const AdminUsers = () => {
           </div>
         </div>
       )}
-
       <ConfirmDialog
         open={Boolean(confirmAction)}
         title={
@@ -202,5 +190,4 @@ const AdminUsers = () => {
     </AdminLayout>
   );
 };
-
 export default AdminUsers;

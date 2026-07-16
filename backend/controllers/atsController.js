@@ -2,6 +2,7 @@ const fs = require("fs");
 const extractResumeText = require("../utils/extractResumeText");
 const { scoreResumeAgainstJob } = require("../utils/atsScorer");
 const { findJobById } = require("../models/jobModel");
+const { runAtsForJobApplicants } = require("../services/atsAutomationService");
 const analyzeResume = async (req, res, next) => {
   const filePath = req.file ? req.file.path : null;
   try {
@@ -44,4 +45,21 @@ const analyzeResume = async (req, res, next) => {
     }
   }
 };
-module.exports = { analyzeResume };
+const runAtsForJob = async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+    const job = await findJobById(jobId);
+    if (!job || job.recruiter_id !== req.user.id) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+    const summary = await runAtsForJobApplicants(req.user.id, jobId);
+    res.status(200).json({
+      success: true,
+      message: "ATS scoring completed",
+      summary
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { analyzeResume, runAtsForJob };

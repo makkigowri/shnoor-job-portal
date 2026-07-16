@@ -177,7 +177,6 @@ const AdminAssessmentManagement = () => {
                 </div>
               )}
             </div>
-
             <h4 className="mt-6 font-semibold text-[#3E3A74]">Questions ({viewAssessment.questions?.length || 0})</h4>
             <div className="mt-3 space-y-2">
               {(viewAssessment.questions || []).map((q, i) => (

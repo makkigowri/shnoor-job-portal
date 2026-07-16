@@ -239,7 +239,13 @@ const SearchJobs = () => {
                   disabled={applyingJobId === job.id || isApplied(job)}
                   className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isApplied(job) ? `Applied \u00b7 ${job.application_status}` : applyingJobId === job.id ? "Applying..." : "Apply Now"}
+                 {isApplied(job)
+  ? job.application_status === "Applied"
+    ? "Applied"
+    : `Applied - ${job.application_status}`
+  : applyingJobId === job.id
+  ? "Applying..."
+  : "Apply Now"}
                 </button>
 
                 <button

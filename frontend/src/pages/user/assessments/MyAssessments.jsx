@@ -7,15 +7,14 @@ import {
   getUpcomingAssessments,
   getCompletedAssessments
 } from "../../../services/assessmentService";
+import { getMyAiInterviews } from "../../../services/aiInterviewService";
 
 const TABS = [
   { key: "pending", label: "Pending" },
   { key: "upcoming", label: "Upcoming" },
   { key: "completed", label: "Completed" }
 ];
-
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
-
 export default function MyAssessments() {
   const [tab, setTab] = useState("pending");
   const [pending, setPending] = useState([]);
@@ -28,14 +27,25 @@ export default function MyAssessments() {
     setLoading(true);
     setError("");
     try {
-      const [pendingRes, upcomingRes, completedRes] = await Promise.all([
+      const [pendingRes, upcomingRes, completedRes, aiInterviewsRes] = await Promise.all([
         getPendingAssessments(),
         getUpcomingAssessments(),
-        getCompletedAssessments()
+        getCompletedAssessments(),
+        getMyAiInterviews().catch(() => ({ interviews: [] }))
       ]);
+      const aiInterviewBySubmission = new Map(
+        (aiInterviewsRes.interviews || [])
+          .filter((iv) => iv.assessment_submission_id)
+          .map((iv) => [iv.assessment_submission_id, iv])
+      );
       setPending(pendingRes.assessments || []);
       setUpcoming(upcomingRes.assessments || []);
-      setCompleted(completedRes.assessments || []);
+      setCompleted(
+        (completedRes.assessments || []).map((item) => ({
+          ...item,
+          aiInterview: aiInterviewBySubmission.get(item.submission_id) || null
+        }))
+      );
     } catch (err) {
       setError(err?.response?.data?.message || "Unable to load your assessments right now");
     } finally {
@@ -46,9 +56,7 @@ export default function MyAssessments() {
   useEffect(() => {
     loadAll();
   }, [loadAll]);
-
   const activeList = tab === "pending" ? pending : tab === "upcoming" ? upcoming : completed;
-
   return (
     <UserDashboardLayout>
       <div>
@@ -70,7 +78,6 @@ export default function MyAssessments() {
           <h2 className="text-3xl font-bold mt-2 text-green-600">{completed.length}</h2>
         </div>
       </div>
-
       <div className="mt-8 flex gap-2 border-b border-gray-200">
         {TABS.map((t) => (
           <button
@@ -90,9 +97,7 @@ export default function MyAssessments() {
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       {loading && <p className="mt-8 text-gray-500">Loading assessments...</p>}
-
       {!loading && activeList.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
           {tab === "pending" && "You have no assessments to attempt right now."}
@@ -100,7 +105,6 @@ export default function MyAssessments() {
           {tab === "completed" && "You haven't completed any assessments yet."}
         </div>
       )}
-
       {!loading && activeList.length > 0 && (
         <div className="mt-6 space-y-4">
           {activeList.map((item) => (
@@ -143,8 +147,33 @@ export default function MyAssessments() {
                     {formatDateTime(item.submitted_at)}
                   </p>
                 )}
+                {tab === "completed" && item.aiInterview && (
+                  <div className="mt-3 flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-medium text-gray-500">AI Interview:</span>
+                    <StatusBadge status={item.aiInterview.status} />
+                    {item.aiInterview.status === "Completed" && (
+                      <>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            item.aiInterview.result === "Pass"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {item.aiInterview.result === "Pass" ? "PASS" : "FAIL"}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          Score:{" "}
+                          <span className="font-semibold text-[#3E3A74]">
+                            {item.aiInterview.overall_score != null ? `${item.aiInterview.overall_score}%` : "—"}
+                          </span>
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-              <div>
+              <div className="flex flex-col items-end gap-2">
                 {tab === "pending" && (
                   <Link
                     to={`/user/assessments/${item.id}`}
@@ -164,7 +193,19 @@ export default function MyAssessments() {
                     to={`/user/assessments/result/${item.submission_id}`}
                     className="px-5 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-100 font-medium transition"
                   >
-                    View Result
+                    View Assessment Result
+                  </Link>
+                )}
+                {tab === "completed" && item.aiInterview && (
+                  <Link
+                    to={`/user/ai-interview/${item.aiInterview.id}`}
+                    className="px-5 py-2.5 rounded-xl bg-[#3E3A74] hover:bg-[#2f2c5c] text-white font-medium transition"
+                  >
+                    {item.aiInterview.status === "Completed"
+                      ? "View AI Interview Result"
+                      : item.aiInterview.status === "In Progress"
+                      ? "Resume AI Interview"
+                      : "Start AI Interview"}
                   </Link>
                 )}
               </div>

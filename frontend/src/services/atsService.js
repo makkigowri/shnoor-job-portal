@@ -8,3 +8,7 @@ export const analyzeResume = async (jobId, file) => {
   });
   return data;
 };
+export const runAtsForJob = async (jobId) => {
+  const { data } = await api.post(`/ats/run/${jobId}`);
+  return data;
+};

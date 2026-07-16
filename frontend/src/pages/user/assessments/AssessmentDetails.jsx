@@ -1,9 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import UserDashboardLayout from "../../../layouts/UserDashboardLayout";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
 import { getCandidateAssignmentById } from "../../../services/assessmentService";
+import { getAiInterviewByApplication } from "../../../services/aiInterviewService";
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
+const NEXT_STEP_COPY = {
+  Selected: {
+    heading: "Congratulations!",
+    tone: "emerald",
+    status: "Selected",
+    nextStep: "A job offer has been sent to your registered email."
+  },
+  "Technical Interview": {
+    heading: "Congratulations!",
+    tone: "blue",
+    status: "Shortlisted for Technical Interview",
+    nextStep: "Our recruitment team will contact you shortly to schedule your Technical Interview."
+  },
+  Rejected: {
+    heading: "Thank you for attending.",
+    tone: "red",
+    status: "Not Selected",
+    nextStep: "Keep an eye on your dashboard for other matching opportunities."
+  }
+};
 export default function AssessmentDetails() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
@@ -12,6 +33,8 @@ export default function AssessmentDetails() {
   const [loading, setLoading] = useState(!location.state?.assignment);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
+  const [aiInterview, setAiInterview] = useState(null);
+  const [aiInterviewLoading, setAiInterviewLoading] = useState(false);
   useEffect(() => {
     if (assignment) return;
     const load = async () => {
@@ -32,6 +55,23 @@ export default function AssessmentDetails() {
     };
     load();
   }, [assignmentId]);
+  const loadAiInterview = useCallback(async (applicationId) => {
+    if (!applicationId) return;
+    setAiInterviewLoading(true);
+    try {
+      const data = await getAiInterviewByApplication(applicationId);
+      setAiInterview(data.interview || null);
+    } catch (err) {
+      setAiInterview(null);
+    } finally {
+      setAiInterviewLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    if (assignment && assignment.status === "Completed" && assignment.result === "Pass" && assignment.application_id) {
+      loadAiInterview(assignment.application_id);
+    }
+  }, [assignment, loadAiInterview]);
   const handleStart = () => {
     setStarting(true);
     navigate(`/user/assessments/${assignmentId}/take`, { state: { assignment } });
@@ -110,6 +150,79 @@ export default function AssessmentDetails() {
           <li>You can navigate between questions freely using the question palette.</li>
         </ul>
       </div>
+      {isCompleted && assignment.result === "Pass" && (
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-[#3E3A74] mb-4">AI Interview</h2>
+          {aiInterviewLoading && !aiInterview && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-gray-500">
+              Preparing your AI Interview...
+            </div>
+          )}
+          {!aiInterviewLoading && !aiInterview && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-gray-500">
+              Your AI Interview will appear here shortly.
+            </div>
+          )}
+          {aiInterview && aiInterview.status !== "Completed" && (
+            <div className="bg-gradient-to-r from-[#7393D3]/10 to-[#3E3A74]/10 border border-[#7393D3]/30 rounded-2xl px-6 py-6 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="font-semibold text-[#3E3A74]">
+                  {aiInterview.status === "In Progress" ? "Resume your AI Interview" : "Your AI Interview is ready"}
+                </p>
+                <p className="text-gray-600 text-sm mt-1">
+                  Congratulations on passing the assessment. Continue to the next step whenever you're ready.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate(`/user/ai-interview/${aiInterview.id}`)}
+                className="px-6 py-3 rounded-xl bg-[#3E3A74] text-white font-semibold hover:bg-[#2f2c5c] transition"
+              >
+                {aiInterview.status === "In Progress" ? "Resume AI Interview" : "Start AI Interview"}
+              </button>
+            </div>
+          )}
+          {aiInterview && aiInterview.status === "Completed" && (() => {
+            const copy = NEXT_STEP_COPY[aiInterview.decision] || NEXT_STEP_COPY.Rejected;
+            const isPass = aiInterview.result === "Pass";
+            return (
+              <div
+                className={`rounded-2xl border p-6 ${
+                  isPass ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"
+                }`}
+              >
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <h3 className={`text-lg font-bold ${isPass ? "text-emerald-700" : "text-red-700"}`}>
+                    {isPass ? copy.heading : "Thank you for attending."}
+                  </h3>
+                  <span
+                    className={`px-4 py-2 rounded-full font-semibold ${
+                      isPass ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {isPass ? "PASS" : "FAIL"}
+                  </span>
+                </div>
+                <div className="grid sm:grid-cols-3 gap-4 mt-5">
+                  <div>
+                    <p className="text-sm text-gray-500">Overall Score</p>
+                    <p className="text-2xl font-bold text-[#3E3A74] mt-1">
+                      {aiInterview.overall_score != null ? `${aiInterview.overall_score}%` : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Current Status</p>
+                    <p className="text-lg font-semibold text-[#3E3A74] mt-1">{copy.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Next Step</p>
+                    <p className="text-sm text-gray-700 mt-1">{copy.nextStep}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
       <div className="mt-8 flex justify-end">
         {isCompleted ? (
           <span className="px-6 py-3 rounded-xl bg-gray-100 text-gray-500 font-medium">
