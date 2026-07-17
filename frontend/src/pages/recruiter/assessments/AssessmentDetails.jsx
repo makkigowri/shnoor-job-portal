@@ -111,18 +111,6 @@ export default function AssessmentDetails() {
             Edit
           </Link>
           <Link
-            to={`/recruiter/assessments/${id}/questions`}
-            className="px-5 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-          >
-            Questions
-          </Link>
-          <Link
-            to={`/recruiter/assessments/${id}/assign`}
-            className="px-5 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-          >
-            Assign
-          </Link>
-          <Link
             to={`/recruiter/assessments/${id}/results`}
             className="px-5 py-2.5 rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white transition"
           >
@@ -174,7 +162,7 @@ export default function AssessmentDetails() {
       <div className="mt-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h2 className="text-2xl font-semibold text-[#3E3A74]">Questions Preview</h2>
-          <Link to={`/recruiter/assessments/${id}/questions`} className="text-[#7393D3] font-semibold">
+          <Link to={`/recruiter/assessments/${id}/edit`} className="text-[#7393D3] font-semibold">
             Manage Questions →
           </Link>
         </div>

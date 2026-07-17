@@ -5,6 +5,8 @@ const {
   getInterviewHandler,
   startInterviewHandler,
   submitAnswerHandler,
+  reportViolationHandler,
+  autoSubmitHandler,
   getInterviewForRecruiterHandler,
   listRecruiterInterviewsHandler,
   getAdminStatsHandler
@@ -20,4 +22,6 @@ router.get("/admin/stats", protectAdmin, getAdminStatsHandler);
 router.get("/:interviewId", protect, authorizeRoles("jobseeker"), getInterviewHandler);
 router.post("/:interviewId/start", protect, authorizeRoles("jobseeker"), startInterviewHandler);
 router.post("/:interviewId/answer", protect, authorizeRoles("jobseeker"), submitAnswerHandler);
+router.post("/:interviewId/violation", protect, authorizeRoles("jobseeker"), reportViolationHandler);
+router.post("/:interviewId/auto-submit", protect, authorizeRoles("jobseeker"), autoSubmitHandler);
 module.exports = router;

@@ -91,12 +91,27 @@ const addQuestion = async (interviewId, questionOrder, questionText) => {
   );
   return result.rows[0];
 };
-const saveAnswer = async (questionId, interviewId, answerText) => {
+const saveAnswer = async (questionId, interviewId, answerText, scores = {}) => {
+  const { technicalScore = null, communicationScore = null, pronunciationScore = null, questionScore = 0, feedback = null } =
+    scores;
   const result = await pool.query(
-    `UPDATE ai_interview_questions SET candidate_answer = $1, answered_at = NOW()
-     WHERE id = $2 AND interview_id = $3
+    `UPDATE ai_interview_questions
+     SET candidate_answer = $1, answered_at = NOW(),
+       technical_score = $2, communication_score = $3, pronunciation_score = $4,
+       question_score = $5, question_feedback = $6
+     WHERE id = $7 AND interview_id = $8
      RETURNING * `,
-    [answerText, questionId, interviewId]
+    [answerText, technicalScore, communicationScore, pronunciationScore, questionScore, feedback, questionId, interviewId]
+  );
+  return result.rows[0];
+};
+const recordViolation = async (interviewId, candidateId, type) => {
+  const column = type === "fullscreen" ? "fullscreen_violations" : "tab_violations";
+  const result = await pool.query(
+    `UPDATE ai_interviews SET ${column} = ${column} + 1, updated_at = NOW()
+     WHERE id = $1 AND candidate_id = $2
+     RETURNING * `,
+    [interviewId, candidateId]
   );
   return result.rows[0];
 };
@@ -112,40 +127,7 @@ const finalizeInterview = async (
   {
     technicalScore,
     communicationScore,
-    confidenceScore,
-    problemSolvingScore,
-    overallScore,
-    result,
-    decision,
-    feedback,
-    strengths,
-    weaknesses,
-    suggestions
-  }
-) => {
-  const query = `
-    UPDATE ai_interviews SET
-      status = 'Completed',
-      technical_score = $1,
-      communication_score = $2,
-      confidence_score = $3,
-      problem_solving_score = $4,
-      overall_score = $5,
-      result = $6,
-      decision = $7,
-      ai_feedback = $8,
-      strengths = $9,
-      weaknesses = $10,
-      suggestions = $11,
-      completed_at = NOW(),
-      updated_at = NOW()
-    WHERE id = $12
-    RETURNING * `;
-  const values = [
-    technicalScore,
-    communicationScore,
-    confidenceScore,
-    problemSolvingScore,
+    pronunciationScore,
     overallScore,
     result,
     decision,
@@ -153,6 +135,42 @@ const finalizeInterview = async (
     strengths,
     weaknesses,
     suggestions,
+    autoSubmitted = false,
+    terminationReason = null
+  }
+) => {
+  const query = `
+    UPDATE ai_interviews SET
+      status = 'Completed',
+      technical_score = $1,
+      communication_score = $2,
+      pronunciation_score = $3,
+      overall_score = $4,
+      result = $5,
+      decision = $6,
+      ai_feedback = $7,
+      strengths = $8,
+      weaknesses = $9,
+      suggestions = $10,
+      auto_submitted = $11,
+      termination_reason = $12,
+      completed_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $13
+    RETURNING * `;
+  const values = [
+    technicalScore,
+    communicationScore,
+    pronunciationScore,
+    overallScore,
+    result,
+    decision,
+    feedback,
+    strengths,
+    weaknesses,
+    suggestions,
+    autoSubmitted,
+    terminationReason,
     interviewId
   ];
   const dbResult = await pool.query(query, values);
@@ -233,6 +251,7 @@ module.exports = {
   incrementQuestionsAsked,
   addQuestion,
   saveAnswer,
+  recordViolation,
   getQuestionsForInterview,
   finalizeInterview,
   updateApplicationStatusForInterview,

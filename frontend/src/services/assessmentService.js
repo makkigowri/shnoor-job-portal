@@ -27,18 +27,6 @@ export const closeAssessment = async (id) => {
   const { data } = await api.patch(`/assessments/${id}/close`);
   return data;
 };
-export const assignAssessment = async (assessmentId, payload) => {
-  const { data } = await api.post(`/assessment-assignments/${assessmentId}`, payload);
-  return data;
-};
-export const getAssignedCandidates = async (assessmentId) => {
-  const { data } = await api.get(`/assessment-assignments/${assessmentId}/candidates`);
-  return data;
-};
-export const removeAssignment = async (assignmentId) => {
-  const { data } = await api.delete(`/assessment-assignments/${assignmentId}`);
-  return data;
-};
 export const getAssessmentResults = async (assessmentId) => {
   const { data } = await api.get(`/assessment-submissions/assessment/${assessmentId}/results`);
   return data;

@@ -4,7 +4,6 @@ import RecruiterDashboardLayout from "../../../layouts/RecruiterDashboardLayout"
 import AssessmentTable from "../../../components/recruiter/AssessmentTable";
 import {
   getAssessments,
-  publishAssessment,
   closeAssessment,
   deleteAssessment
 } from "../../../services/assessmentService";
@@ -35,18 +34,6 @@ export default function AssessmentDashboard() {
     draft: assessments.filter((a) => a.status === "Draft").length,
     published: assessments.filter((a) => a.status === "Published").length,
     closed: assessments.filter((a) => a.status === "Closed").length
-  };
-  const handlePublish = async (id) => {
-    setActionError("");
-    setActioningId(id);
-    try {
-      await publishAssessment(id);
-      await loadAssessments();
-    } catch (err) {
-      setActionError(err?.response?.data?.message || "Unable to publish this assessment right now");
-    } finally {
-      setActioningId(null);
-    }
   };
   const handleClose = async (id) => {
     if (!window.confirm("Close this assessment? Candidates will no longer be able to attempt it.")) return;
@@ -137,7 +124,6 @@ export default function AssessmentDashboard() {
         <div className="mt-8">
           <AssessmentTable
             assessments={assessments}
-            onPublish={handlePublish}
             onClose={handleClose}
             onDelete={handleDelete}
             actioningId={actioningId}

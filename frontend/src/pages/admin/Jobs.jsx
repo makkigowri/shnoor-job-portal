@@ -3,6 +3,7 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
+import AdminFilterBar from "../../components/admin/AdminFilterBar";
 import {
   fetchAdminJobs,
   fetchAdminJobById,
@@ -63,29 +64,24 @@ const AdminJobs = () => {
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <form onSubmit={handleSearchSubmit} className="flex gap-3 flex-1">
-            <input
-              type="text"
-              placeholder="Search by job title, location or recruiter..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 max-w-sm rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-            />
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#7393D3] text-white font-medium hover:bg-[#5E84D6]">
-              Search
-            </button>
-          </form>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-          >
-            <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
+        <AdminFilterBar
+          searchValue={search}
+          onSearchChange={setSearch}
+          onSearchSubmit={handleSearchSubmit}
+          searchPlaceholder="Search by job title, location or recruiter..."
+          filters={[
+            {
+              name: "status",
+              value: status,
+              onChange: setStatus,
+              options: [
+                { value: "", label: "All Status" },
+                { value: "Active", label: "Active" },
+                { value: "Closed", label: "Closed" }
+              ]
+            }
+          ]}
+        />
 
         <table className="w-full text-sm">
           <thead>

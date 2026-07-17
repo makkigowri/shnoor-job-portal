@@ -16,6 +16,7 @@ import CandidateAssessmentDetails from "./pages/user/assessments/AssessmentDetai
 import TakeAssessment from "./pages/user/assessments/TakeAssessment";
 import AssessmentResult from "./pages/user/assessments/AssessmentResult";
 import AIInterview from "./pages/user/interview/AIInterview";
+import TechnicalInterviewRoom from "./pages/meeting/TechnicalInterviewRoom";
 import RecruiterDashboard from "./pages/recruiter/Dashboard";
 import CompanyProfile from "./pages/recruiter/CompanyProfile";
 import PostJob from "./pages/recruiter/PostJob";
@@ -30,8 +31,6 @@ import RecruiterSettings from "./pages/recruiter/Settings";
 import AssessmentDashboard from "./pages/recruiter/assessments/AssessmentDashboard";
 import CreateAssessment from "./pages/recruiter/assessments/CreateAssessment";
 import EditAssessment from "./pages/recruiter/assessments/EditAssessment";
-import QuestionManager from "./pages/recruiter/assessments/QuestionManager";
-import AssignCandidates from "./pages/recruiter/assessments/AssignCandidates";
 import AssessmentDetails from "./pages/recruiter/assessments/AssessmentDetails";
 import AssessmentResults from "./pages/recruiter/assessments/AssessmentResults";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
@@ -155,6 +154,14 @@ const App = () => {
         }
       />
       <Route
+        path="/technical-interview/room/:roomCode"
+        element={
+          <ProtectedRoute allowedRoles={["jobseeker", "recruiter"]}>
+            <TechnicalInterviewRoom />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/recruiter/dashboard"
         element={
           <ProtectedRoute allowedRoles={["recruiter"]}>
@@ -271,22 +278,6 @@ const App = () => {
         element={
           <ProtectedRoute allowedRoles={["recruiter"]}>
             <EditAssessment />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/recruiter/assessments/:id/questions"
-        element={
-          <ProtectedRoute allowedRoles={["recruiter"]}>
-            <QuestionManager />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/recruiter/assessments/:id/assign"
-        element={
-          <ProtectedRoute allowedRoles={["recruiter"]}>
-            <AssignCandidates />
           </ProtectedRoute>
         }
       />

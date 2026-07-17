@@ -3,6 +3,7 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
+import AdminFilterBar from "../../components/admin/AdminFilterBar";
 import {
   fetchAdminApplications,
   fetchAdminApplicationById,
@@ -62,33 +63,28 @@ const AdminApplications = () => {
       )}
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <form onSubmit={handleSearchSubmit} className="flex gap-3 flex-1">
-            <input
-              type="text"
-              placeholder="Search by candidate, job or recruiter..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 max-w-sm rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-            />
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#7393D3] text-white font-medium hover:bg-[#5E84D6]">
-              Search
-            </button>
-          </form>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-          >
-            <option value="">All Status</option>
-            <option value="Applied">Applied</option>
-            <option value="Under Review">Under Review</option>
-            <option value="Shortlisted">Shortlisted</option>
-            <option value="Interview Scheduled">Interview Scheduled</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Selected">Selected</option>
-          </select>
-        </div>
+        <AdminFilterBar
+          searchValue={search}
+          onSearchChange={setSearch}
+          onSearchSubmit={handleSearchSubmit}
+          searchPlaceholder="Search by candidate, job or recruiter..."
+          filters={[
+            {
+              name: "status",
+              value: status,
+              onChange: setStatus,
+              options: [
+                { value: "", label: "All Status" },
+                { value: "Applied", label: "Applied" },
+                { value: "Under Review", label: "Under Review" },
+                { value: "Shortlisted", label: "Shortlisted" },
+                { value: "Interview Scheduled", label: "Interview Scheduled" },
+                { value: "Rejected", label: "Rejected" },
+                { value: "Selected", label: "Selected" }
+              ]
+            }
+          ]}
+        />
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 bg-gray-50">

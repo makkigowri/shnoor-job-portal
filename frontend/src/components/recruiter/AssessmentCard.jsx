@@ -38,12 +38,6 @@ const AssessmentCard = ({ assessment }) => {
         >
           Edit
         </button>
-        <button
-          onClick={() => navigate(`/recruiter/assessments/${assessment.id}/questions`)}
-          className="flex-1 border border-gray-300 hover:bg-gray-100 py-2.5 rounded-xl text-sm font-medium transition"
-        >
-          Questions
-        </button>
       </div>
     </div>
   );

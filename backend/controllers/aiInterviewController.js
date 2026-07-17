@@ -168,12 +168,54 @@ const getAdminStatsHandler = async (req, res, next) => {
   }
 };
 
+const reportViolationHandler = async (req, res, next) => {
+  try {
+    const { type } = req.body;
+    if (!["tab", "fullscreen"].includes(type)) {
+      return res.status(400).json({ success: false, message: "type must be 'tab' or 'fullscreen'" });
+    }
+    const result = await aiInterviewService.recordViolation(req.params.interviewId, req.user.id, type);
+    if (result.error === "not_found") {
+      return res.status(404).json({ success: false, message: "AI interview not found" });
+    }
+    if (result.error === "not_in_progress") {
+      return res.status(400).json({ success: false, message: "AI interview is not in progress" });
+    }
+    res.status(200).json({
+      success: true,
+      count: result.count,
+      autoSubmitted: result.autoSubmitted,
+      interview: result.interview
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const autoSubmitHandler = async (req, res, next) => {
+  try {
+    const { reason } = req.body || {};
+    const result = await aiInterviewService.forceSubmitInterview(req.params.interviewId, req.user.id, reason);
+    if (result.error === "not_found") {
+      return res.status(404).json({ success: false, message: "AI interview not found" });
+    }
+    if (result.error === "not_in_progress") {
+      return res.status(400).json({ success: false, message: "AI interview is not in progress" });
+    }
+    res.status(200).json({ success: true, interview: result.interview });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listMyInterviewsHandler,
   getByApplicationHandler,
   getInterviewHandler,
   startInterviewHandler,
   submitAnswerHandler,
+  reportViolationHandler,
+  autoSubmitHandler,
   getInterviewForRecruiterHandler,
   listRecruiterInterviewsHandler,
   getAdminStatsHandler

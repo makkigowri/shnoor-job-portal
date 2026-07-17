@@ -1,32 +1,26 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
-import { getInterviews, scheduleInterview, rescheduleInterview, updateInterviewStatus } from "../../services/recruiterService";
-import { getRecruiterAiInterviews, getRecruiterAiInterviewDetail } from "../../services/aiInterviewService";
+import { getRecruiterAiInterviews } from "../../services/aiInterviewService";
+import {
+  getEligibleForScheduling,
+  scheduleTechnicalInterview,
+  getRecruiterTechnicalInterviews,
+  submitTechnicalInterviewResult
+} from "../../services/technicalInterviewService";
 
 const techStatusBadge = (status) => {
   switch (status) {
     case "Scheduled":
       return "bg-blue-100 text-blue-700";
+    case "In Progress":
+      return "bg-amber-100 text-amber-700";
+    case "Awaiting Result":
+      return "bg-purple-100 text-purple-700";
     case "Completed":
       return "bg-green-100 text-green-700";
-    case "Cancelled":
-      return "bg-red-100 text-red-600";
     default:
       return "bg-gray-100 text-gray-600";
-  }
-};
-
-const aiStatusBadge = (status) => {
-  switch (status) {
-    case "Completed":
-      return "bg-green-100 text-green-700";
-    case "In Progress":
-      return "bg-yellow-100 text-yellow-700";
-    case "Available":
-      return "bg-blue-100 text-blue-700";
-    default:
-      return "bg-gray-100 text-gray-700";
   }
 };
 
@@ -36,59 +30,275 @@ const resultBadge = (result) => {
   return "bg-gray-100 text-gray-500";
 };
 
-// Overall pipeline stage: Assessment -> AI Interview -> Technical Interview -> Job Offer
-const getCurrentStage = (row) => {
+const getRowInfo = (row) => {
   const iv = row.aiInterview;
   const tech = row.technicalInterview;
   if (!iv) {
-    return tech ? "Technical Interview" : "—";
+    return {
+      assessment: "—",
+      stage: "—",
+      interviewStatus: "Not Scheduled",
+      interviewStatusClass: "bg-gray-100 text-gray-600"
+    };
   }
-  if (iv.status !== "Completed") return "AI Interview";
-  if (iv.decision === "Selected") return "Job Offer Sent";
-  if (iv.decision === "Technical Interview") {
-    if (tech && tech.status === "Completed") return "Technical Interview Completed";
-    if (tech) return "Technical Interview Scheduled";
-    return "Technical Interview Pending";
+  const assessment = "Passed";
+  if (iv.status !== "Completed") {
+    return {
+      assessment,
+      stage: "AI Interview",
+      interviewStatus: "Not Scheduled",
+      interviewStatusClass: "bg-gray-100 text-gray-600"
+    };
   }
-  return "Rejected";
+  if (iv.decision === "Selected") {
+    return {
+      assessment,
+      stage: "Offer Released",
+      interviewStatus: "Not Required",
+      interviewStatusClass: "bg-emerald-100 text-emerald-700"
+    };
+  }
+  if (iv.decision === "Rejected") {
+    return {
+      assessment,
+      stage: "Rejected",
+      interviewStatus: "Not Scheduled",
+      interviewStatusClass: "bg-gray-100 text-gray-600"
+    };
+  }
+  if (!tech) {
+    return {
+      assessment,
+      stage: "Technical Interview Pending",
+      interviewStatus: "Not Scheduled",
+      interviewStatusClass: "bg-gray-100 text-gray-600"
+    };
+  }
+  if (tech.status === "Scheduled" || tech.status === "In Progress") {
+    return {
+      assessment,
+      stage: `Technical Interview ${tech.status}`,
+      interviewStatus: tech.status,
+      interviewStatusClass: techStatusBadge(tech.status)
+    };
+  }
+  if (tech.status === "Awaiting Result") {
+    return {
+      assessment,
+      stage: "Technical Interview Completed",
+      interviewStatus: "Awaiting Result",
+      interviewStatusClass: techStatusBadge("Awaiting Result")
+    };
+  }
+  if (tech.result === "Selected") {
+    return {
+      assessment,
+      stage: "Offer Released",
+      interviewStatus: "Completed",
+      interviewStatusClass: "bg-emerald-100 text-emerald-700"
+    };
+  }
+  return {
+    assessment,
+    stage: "Rejected",
+    interviewStatus: "Completed",
+    interviewStatusClass: "bg-red-100 text-red-600"
+  };
 };
 
 const STAGE_FILTERS = [
   { key: "", label: "All Stages" },
   { key: "AI Interview", label: "AI Interview" },
   { key: "Technical Interview Pending", label: "Awaiting Schedule" },
-  { key: "Technical Interview Scheduled", label: "Technical Interview" },
-  { key: "Job Offer Sent", label: "Job Offer Sent" },
+  { key: "Technical Interview Scheduled", label: "Technical Interview Scheduled" },
+  { key: "Technical Interview In Progress", label: "Technical Interview In Progress" },
+  { key: "Technical Interview Completed", label: "Awaiting Result" },
+  { key: "Offer Released", label: "Offer Released" },
   { key: "Rejected", label: "Rejected" }
 ];
 
-// Schedules or reschedules a Technical Interview. Reuses the existing
-// /interviews endpoints - no backend changes required.
-const ScheduleModal = ({ row, onClose, onSaved }) => {
-  const existing = row.technicalInterview;
+const ScheduleInterviewModal = ({ onClose, onSaved }) => {
+  const [eligible, setEligible] = useState([]);
+  const [loadingEligible, setLoadingEligible] = useState(true);
   const [form, setForm] = useState({
-    scheduledDate: existing?.scheduled_date ? String(existing.scheduled_date).slice(0, 10) : "",
-    scheduledTime: existing?.scheduled_time || "",
-    mode: existing?.mode || "Online",
-    locationOrLink: existing?.location_or_link || "",
-    notes: existing?.notes || ""
+    applicationId: "",
+    scheduledDate: "",
+    scheduledTime: "",
+    durationMinutes: 45,
+    notes: ""
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getEligibleForScheduling()
+      .then((data) => {
+        if (active) setEligible(data.applications || []);
+      })
+      .catch((err) => {
+        if (active) setError(err?.response?.data?.message || "Unable to load eligible candidates right now");
+      })
+      .finally(() => {
+        if (active) setLoadingEligible(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedCandidate = eligible.find((a) => String(a.application_id) === String(form.applicationId));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!form.applicationId) {
+      setError("Select a candidate to schedule");
+      return;
+    }
+    if (!form.scheduledDate || !form.scheduledTime) {
+      setError("Select a date and time");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await scheduleTechnicalInterview({
+        applicationId: Number(form.applicationId),
+        scheduledDate: form.scheduledDate,
+        scheduledTime: form.scheduledTime,
+        durationMinutes: Number(form.durationMinutes) || 45,
+        notes: form.notes || undefined
+      });
+      onSaved();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Unable to schedule this Technical Interview right now");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#3E3A74]">Schedule Technical Interview</h2>
+        <p className="mt-1 text-gray-500">
+          Candidates who passed the AI Interview with a score between 70% and 84% appear here.
+        </p>
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3">{error}</div>
+        )}
+        {loadingEligible ? (
+          <p className="mt-6 text-gray-500">Loading eligible candidates...</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            <div>
+              <label className="font-medium text-gray-900 text-sm">Candidate</label>
+              <select
+                value={form.applicationId}
+                onChange={(e) => setForm({ ...form, applicationId: e.target.value })}
+                className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+              >
+                <option value="">Select a candidate</option>
+                {eligible.map((app) => (
+                  <option key={app.application_id} value={app.application_id}>
+                    {app.candidate_name} · {app.job_title} · {app.overall_score}%
+                  </option>
+                ))}
+              </select>
+              {eligible.length === 0 && (
+                <p className="mt-2 text-xs text-gray-500">No candidates are currently awaiting scheduling.</p>
+              )}
+            </div>
+            {selectedCandidate && (
+              <p className="text-sm text-gray-500">{selectedCandidate.candidate_email}</p>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="font-medium text-gray-900 text-sm">Date</label>
+                <input
+                  type="date"
+                  required
+                  value={form.scheduledDate}
+                  onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
+                  className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-gray-900 text-sm">Time</label>
+                <input
+                  type="time"
+                  required
+                  value={form.scheduledTime}
+                  onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })}
+                  className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="font-medium text-gray-900 text-sm">Duration (minutes)</label>
+              <input
+                type="number"
+                min={15}
+                step={5}
+                value={form.durationMinutes}
+                onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })}
+                className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="font-medium text-gray-900 text-sm">Notes (optional)</label>
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                rows={3}
+                className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+              />
+            </div>
+            <p className="text-xs text-gray-500">
+              A private meeting room is generated automatically and the candidate is emailed the interview details on save.
+            </p>
+            <div className="flex gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={submitting || eligible.length === 0}
+                className="flex-1 bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 rounded-xl transition disabled:opacity-60"
+              >
+                {submitting ? "Saving..." : "Save Schedule"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
+  const [result, setResult] = useState("");
+  const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!result) {
+      setError("Choose Selected or Rejected");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
-      if (existing) {
-        await rescheduleInterview(existing.id, form);
-      } else {
-        await scheduleInterview({ applicationId: row.applicationId, ...form });
-      }
+      await submitTechnicalInterviewResult(interview.id, { result, feedback });
       onSaved();
     } catch (err) {
-      setError(err?.response?.data?.message || "Unable to save this interview right now");
+      setError(err?.response?.data?.message || "Unable to submit the result right now");
     } finally {
       setSubmitting(false);
     }
@@ -97,67 +307,57 @@ const ScheduleModal = ({ row, onClose, onSaved }) => {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
-        <h2 className="text-2xl font-bold text-[#3E3A74]">
-          {existing ? "Reschedule Interview" : "Schedule Technical Interview"}
-        </h2>
+        <h2 className="text-2xl font-bold text-[#3E3A74]">Release Technical Interview Result</h2>
         <p className="mt-1 text-gray-500">
-          {row.candidateName} · {row.jobTitle}
+          {interview.candidate_name} · {interview.job_title}
         </p>
         {error && (
           <div className="mt-4 bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="font-medium text-gray-900 text-sm">Date</label>
-              <input
-                type="date"
-                required
-                value={form.scheduledDate}
-                onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
-                className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="font-medium text-gray-900 text-sm">Time</label>
-              <input
-                type="time"
-                required
-                value={form.scheduledTime}
-                onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })}
-                className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="font-medium text-gray-900 text-sm">Mode</label>
-            <select
-              value={form.mode}
-              onChange={(e) => setForm({ ...form, mode: e.target.value })}
-              className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setResult("Selected")}
+              className={`flex-1 py-3 rounded-xl font-semibold border transition ${
+                result === "Selected"
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
             >
-              <option>Online</option>
-              <option>Offline</option>
-            </select>
+              Selected
+            </button>
+            <button
+              type="button"
+              onClick={() => setResult("Rejected")}
+              className={`flex-1 py-3 rounded-xl font-semibold border transition ${
+                result === "Rejected"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Rejected
+            </button>
           </div>
           <div>
-            <label className="font-medium text-gray-900 text-sm">
-              {form.mode === "Online" ? "Meeting Link" : "Location"}
-            </label>
-            <input
-              type="text"
-              value={form.locationOrLink}
-              onChange={(e) => setForm({ ...form, locationOrLink: e.target.value })}
+            <label className="font-medium text-gray-900 text-sm">Feedback (optional)</label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
               className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
             />
           </div>
+          <p className="text-xs text-gray-500">
+            Selecting the candidate releases the offer and emails them automatically.
+          </p>
           <div className="flex gap-4 pt-2">
             <button
               type="submit"
               disabled={submitting}
               className="flex-1 bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 rounded-xl transition disabled:opacity-60"
             >
-              {submitting ? "Saving..." : "Save"}
+              {submitting ? "Submitting..." : "Submit & Send Email"}
             </button>
             <button
               type="button"
@@ -173,121 +373,6 @@ const ScheduleModal = ({ row, onClose, onSaved }) => {
   );
 };
 
-// Full AI Interview evaluation - recruiter-only view (score breakdown, strengths,
-// weaknesses, suggestions and complete transcript).
-const AiEvaluationModal = ({ interviewId, onClose }) => {
-  const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError("");
-    getRecruiterAiInterviewDetail(interviewId)
-      .then((data) => {
-        if (active) setDetail(data.interview);
-      })
-      .catch((err) => {
-        if (active) setError(err?.response?.data?.message || "Unable to load this AI evaluation right now");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [interviewId]);
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 max-h-[85vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-[#3E3A74]">Complete AI Evaluation</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">
-            ×
-          </button>
-        </div>
-
-        {loading && <p className="mt-6 text-gray-500">Loading evaluation...</p>}
-        {error && (
-          <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
-        )}
-
-        {detail && (
-          <>
-            <p className="mt-1 text-gray-500">
-              {detail.candidate_name} · {detail.job_title}
-            </p>
-            <div className="mt-5 flex items-center gap-3">
-              <span className="text-3xl font-bold text-[#3E3A74]">
-                {detail.overall_score != null ? `${detail.overall_score}%` : "-"}
-              </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${resultBadge(detail.result)}`}>
-                {detail.result === "Pass" ? "PASS" : "FAIL"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
-              <ScoreCell label="Technical" value={detail.technical_score} />
-              <ScoreCell label="Communication" value={detail.communication_score} />
-              <ScoreCell label="Confidence" value={detail.confidence_score} />
-              <ScoreCell label="Problem Solving" value={detail.problem_solving_score} />
-            </div>
-
-            {detail.ai_feedback && (
-              <p className="mt-5 text-sm text-gray-700 bg-[#EEF2FF] rounded-xl px-4 py-3">{detail.ai_feedback}</p>
-            )}
-
-            <div className="grid gap-4 mt-5">
-              <div>
-                <p className="text-sm font-semibold text-[#3E3A74]">Strengths</p>
-                <p className="text-sm text-gray-600 mt-1">{detail.strengths || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#3E3A74]">Weaknesses</p>
-                <p className="text-sm text-gray-600 mt-1">{detail.weaknesses || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#3E3A74]">Suggestions</p>
-                <p className="text-sm text-gray-600 mt-1">{detail.suggestions || "—"}</p>
-              </div>
-            </div>
-
-            {Array.isArray(detail.questions) && detail.questions.length > 0 && (
-              <div className="mt-6">
-                <p className="text-sm font-semibold text-[#3E3A74] mb-3">Transcript</p>
-                <div className="space-y-3 border border-gray-200 rounded-xl p-4">
-                  {detail.questions.map((q) => (
-                    <div key={q.id} className="text-sm">
-                      <p className="font-medium text-[#3E3A74]">Q: {q.question_text}</p>
-                      <p className="text-gray-600 mt-1">A: {q.candidate_answer || "—"}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        <button
-          onClick={onClose}
-          className="mt-6 w-full px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const ScoreCell = ({ label, value }) => (
-  <div className="rounded-xl border border-gray-200 p-3 text-center">
-    <p className="text-xs text-gray-500">{label}</p>
-    <p className="text-lg font-bold text-[#3E3A74] mt-1">{value != null ? `${value}%` : "—"}</p>
-  </div>
-);
-
 export default function Interviews() {
   const navigate = useNavigate();
   const [aiInterviews, setAiInterviews] = useState([]);
@@ -295,16 +380,14 @@ export default function Interviews() {
   const [stageFilter, setStageFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [actioningId, setActioningId] = useState(null);
-  const [scheduleTarget, setScheduleTarget] = useState(null);
-  const [evaluationTarget, setEvaluationTarget] = useState(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [resultTarget, setResultTarget] = useState(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [aiRes, techRes] = await Promise.all([getRecruiterAiInterviews(), getInterviews()]);
+      const [aiRes, techRes] = await Promise.all([getRecruiterAiInterviews(), getRecruiterTechnicalInterviews()]);
       setAiInterviews(aiRes.interviews || []);
       setTechnicalInterviews(techRes.interviews || []);
     } catch (err) {
@@ -347,22 +430,59 @@ export default function Interviews() {
         });
       });
     if (!stageFilter) return merged;
-    return merged.filter((row) => getCurrentStage(row) === stageFilter);
+    return merged.filter((row) => getRowInfo(row).stage === stageFilter);
   }, [aiInterviews, technicalInterviews, stageFilter]);
 
-  const handleStatusChange = async (technicalInterview, status) => {
-    setActionError("");
-    setActioningId(technicalInterview.id);
-    try {
-      await updateInterviewStatus(technicalInterview.id, status);
-      setTechnicalInterviews((prev) =>
-        prev.map((item) => (item.id === technicalInterview.id ? { ...item, status } : item))
-      );
-    } catch (err) {
-      setActionError(err?.response?.data?.message || "Unable to update this interview right now");
-    } finally {
-      setActioningId(null);
+  const renderActions = (row) => {
+    const iv = row.aiInterview;
+    const tech = row.technicalInterview;
+    if (!iv || iv.status !== "Completed") {
+      return <span className="text-gray-300 text-sm">—</span>;
     }
+    if (iv.decision === "Selected") {
+      return (
+        <span className="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm inline-block">
+          Job Offer
+        </span>
+      );
+    }
+    if (iv.decision === "Rejected") {
+      return <span className="text-gray-300 text-sm">—</span>;
+    }
+    if (!tech) {
+      return <span className="text-gray-300 text-sm">—</span>;
+    }
+    if (tech.status === "Scheduled" || tech.status === "In Progress") {
+      return (
+        <button
+          onClick={() => navigate(`/technical-interview/room/${tech.room_code}`)}
+          className="px-5 py-2 rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium transition"
+        >
+          Join
+        </button>
+      );
+    }
+    if (tech.status === "Awaiting Result") {
+      return (
+        <button
+          onClick={() => setResultTarget(tech)}
+          className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#2f2c5c] text-white text-sm font-medium transition"
+        >
+          Release Result
+        </button>
+      );
+    }
+    if (tech.status === "Completed") {
+      if (tech.result === "Selected") {
+        return (
+          <span className="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm inline-block">
+            Job Offer
+          </span>
+        );
+      }
+      return <span className="text-gray-300 text-sm">—</span>;
+    }
+    return <span className="text-gray-300 text-sm">—</span>;
   };
 
   return (
@@ -371,7 +491,7 @@ export default function Interviews() {
         <div>
           <h1 className="text-4xl font-bold text-[#3E3A74]">Interviews</h1>
           <p className="mt-2 text-gray-500">
-            Assessment status, AI Interview results and Technical Interview scheduling in one place.
+            AI Interview results and Technical Interview scheduling in one place.
           </p>
         </div>
         <div className="flex gap-3">
@@ -387,7 +507,7 @@ export default function Interviews() {
             ))}
           </select>
           <button
-            onClick={() => navigate("/recruiter/applicants")}
+            onClick={() => setScheduleOpen(true)}
             className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 rounded-xl transition"
           >
             Schedule Interview
@@ -398,16 +518,12 @@ export default function Interviews() {
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-      {actionError && (
-        <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{actionError}</div>
-      )}
 
       {loading && <p className="mt-8 text-gray-500">Loading interviews...</p>}
 
       {!loading && rows.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
-          No interviews to show yet. Candidates appear here once they pass their assessment or have an interview
-          scheduled.
+          No interviews to show yet. Candidates appear here once they complete their AI Interview.
         </div>
       )}
 
@@ -429,8 +545,7 @@ export default function Interviews() {
             <tbody>
               {rows.map((row) => {
                 const iv = row.aiInterview;
-                const tech = row.technicalInterview;
-                const stage = getCurrentStage(row);
+                const info = getRowInfo(row);
                 return (
                   <tr key={row.key} className="border-t border-gray-200 hover:bg-gray-50 align-top">
                     <td className="px-6 py-5">
@@ -440,22 +555,14 @@ export default function Interviews() {
                     <td className="px-6 py-5 text-gray-900">{row.jobTitle}</td>
                     <td className="px-6 py-5">
                       <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
-                        {iv ? "Passed" : "—"}
+                        {info.assessment}
                       </span>
                     </td>
                     <td className="px-6 py-5">
                       {iv ? (
-                        <div className="flex flex-wrap gap-2">
-                         {iv && (
-  <span
-    className={`px-3 py-1 rounded-full text-sm font-medium ${
-      resultBadge(iv.result)
-    }`}
-  >
-    {iv.result === "Pass" ? "PASS" : "FAIL"}
-  </span>
-)}
-                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${resultBadge(iv.result)}`}>
+                          {iv.result === "Pass" ? "PASS" : iv.result === "Fail" ? "FAIL" : "—"}
+                        </span>
                       ) : (
                         <span className="text-gray-400 text-sm">—</span>
                       )}
@@ -463,77 +570,14 @@ export default function Interviews() {
                     <td className="px-6 py-5 text-gray-900 font-semibold">
                       {iv?.overall_score != null ? `${iv.overall_score}%` : "—"}
                     </td>
-                    <td className="px-6 py-5 text-gray-900">{stage}</td>
+                    <td className="px-6 py-5 text-gray-900">{info.stage}</td>
                     <td className="px-6 py-5">
-                      {tech ? (
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${techStatusBadge(tech.status)}`}>
-                          {tech.status}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">Not Scheduled</span>
-                      )}
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${info.interviewStatusClass}`}>
+                        {info.interviewStatus}
+                      </span>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="flex justify-center gap-2 flex-wrap max-w-xs">
-                        {iv && iv.status === "Completed" && (
-                          <button
-                            onClick={() => setEvaluationTarget(iv)}
-                            className="px-4 py-2 rounded-lg border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white transition"
-                          >
-                            View AI Evaluation
-                          </button>
-                        )}
-
-                        {iv?.decision === "Selected" && (
-                          <span className="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm">
-                            Job Offer Sent
-                          </span>
-                        )}
-
-                        {(!iv || iv.decision === "Technical Interview") && !tech && (
-                          <button
-                            onClick={() => setScheduleTarget(row)}
-                            className="px-4 py-2 rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white transition"
-                          >
-                            Schedule Technical Interview
-                          </button>
-                        )}
-
-                        {tech && tech.status === "Scheduled" && tech.mode === "Online" && tech.location_or_link && (
-                          <a
-                            href={tech.location_or_link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-4 py-2 rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white transition"
-                          >
-                            Join
-                          </a>
-                        )}
-                        {tech && tech.status === "Scheduled" && (
-                          <>
-                            <button
-                              onClick={() => setScheduleTarget(row)}
-                              className="px-4 py-2 rounded-lg border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white transition"
-                            >
-                              Reschedule
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(tech, "Completed")}
-                              disabled={actioningId === tech.id}
-                              className="px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition disabled:opacity-50"
-                            >
-                              Mark Completed
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(tech, "Cancelled")}
-                              disabled={actioningId === tech.id}
-                              className="px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition disabled:opacity-50"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
-                      </div>
+                      <div className="flex justify-center">{renderActions(row)}</div>
                     </td>
                   </tr>
                 );
@@ -543,19 +587,25 @@ export default function Interviews() {
         </div>
       )}
 
-      {scheduleTarget && (
-        <ScheduleModal
-          row={scheduleTarget}
-          onClose={() => setScheduleTarget(null)}
+      {scheduleOpen && (
+        <ScheduleInterviewModal
+          onClose={() => setScheduleOpen(false)}
           onSaved={() => {
-            setScheduleTarget(null);
+            setScheduleOpen(false);
             loadAll();
           }}
         />
       )}
 
-      {evaluationTarget && (
-        <AiEvaluationModal interviewId={evaluationTarget.id} onClose={() => setEvaluationTarget(null)} />
+      {resultTarget && (
+        <ReleaseResultModal
+          interview={resultTarget}
+          onClose={() => setResultTarget(null)}
+          onSaved={() => {
+            setResultTarget(null);
+            loadAll();
+          }}
+        />
       )}
     </RecruiterDashboardLayout>
   );
