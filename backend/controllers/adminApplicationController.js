@@ -1,7 +1,5 @@
 const {
-  listApplicationsAdmin,
-  getApplicationByIdAdmin,
-  deleteApplicationAdminById
+  listApplicationsAdmin,getApplicationByIdAdmin,deleteApplicationAdminById
 } = require("../models/adminStatsModel");
 const listApplications = async (req, res, next) => {
   try {

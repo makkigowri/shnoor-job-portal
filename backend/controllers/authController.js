@@ -18,29 +18,22 @@ const register = async (req, res, next) => {
   "Welcome to SHNOOR Job Portal",
   `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e5e5e5; border-radius: 8px;">
-    
     <h2 style="color:#2c3e50;">Welcome to SHNOOR Job Portal</h2>
-
     <p>Dear ${user.fullname},</p>
-
     <p>
       Thank you for registering with <strong>SHNOOR Job Portal</strong>.
       Your account has been created successfully.
     </p>
-
     <p>You can now:</p>
-
     <ul>
       <li>Complete your profile</li>
       <li>Upload your resume</li>
       <li>Search for suitable job opportunities</li>
       <li>Apply for jobs and track your applications</li>
     </ul>
-
     <p>
       Click the button below to log in to your account.
     </p>
-
     <a href="http://localhost:5173/login"
        style="
          display:inline-block;
@@ -53,16 +46,12 @@ const register = async (req, res, next) => {
        ">
        Login to SHNOOR
     </a>
-
     <br><br>
-
     <p>If you have any questions, feel free to contact our support team.</p>
-
     <p>
       Regards,<br>
       <strong>SHNOOR Recruitment Team</strong>
     </p>
-
   </div>
   `
 );

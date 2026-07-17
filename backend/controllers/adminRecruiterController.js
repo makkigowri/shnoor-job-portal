@@ -1,9 +1,5 @@
 const {
-  listRecruitersAdmin,
-  getRecruiterByIdAdmin,
-  setUserBlockedStatus,
-  deleteUserAdminById
-} = require("../models/adminStatsModel");
+  listRecruitersAdmin,getRecruiterByIdAdmin,setUserBlockedStatus,deleteUserAdminById} = require("../models/adminStatsModel");
 const listRecruiters = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;

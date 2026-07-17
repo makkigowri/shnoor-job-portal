@@ -1,12 +1,5 @@
 const {
-  createAssessment,
-  updateAssessment,
-  deleteAssessment,
-  getAssessmentById,
-  getAssessmentsByRecruiter,
-  setAssessmentStatus,
-  getQuestionCount
-} = require("../models/assessmentModel");
+  createAssessment,updateAssessment,deleteAssessment,getAssessmentById,getAssessmentsByRecruiter,setAssessmentStatus,getQuestionCount} = require("../models/assessmentModel");
 const { autoAssignShortlistedCandidates } = require("../models/assessmentAssignmentModel");
 const { createNotification } = require("../models/notificationModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
@@ -129,11 +122,5 @@ const closeAssessmentHandler = async (req, res, next) => {
   }
 };
 module.exports = {
-  createAssessmentHandler,
-  updateAssessmentHandler,
-  deleteAssessmentHandler,
-  getAssessmentHandler,
-  getAllAssessmentsHandler,
-  publishAssessmentHandler,
-  closeAssessmentHandler
+  createAssessmentHandler,updateAssessmentHandler,deleteAssessmentHandler,getAssessmentHandler,getAllAssessmentsHandler,publishAssessmentHandler,closeAssessmentHandler
 };

@@ -1,11 +1,5 @@
 const aiInterviewModel = require("../models/aiInterviewModel");
 const aiInterviewService = require("../services/aiInterviewService");
-
-/**
- * GET /api/ai-interview/my
- * Lists all AI interview sessions (Available / In Progress / Completed) for the
- * logged-in candidate. Used by the User Dashboard to show "Start AI Interview".
- */
 const listMyInterviewsHandler = async (req, res, next) => {
   try {
     const interviews = await aiInterviewModel.getInterviewsForCandidate(req.user.id);
@@ -14,12 +8,6 @@ const listMyInterviewsHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * GET /api/ai-interview/by-application/:applicationId
- * Convenience lookup so pages like "Assessment Result" can find the matching
- * AI interview session for a given job application.
- */
 const getByApplicationHandler = async (req, res, next) => {
   try {
     const interview = await aiInterviewModel.getInterviewByApplicationForCandidate(
@@ -34,11 +22,6 @@ const getByApplicationHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * GET /api/ai-interview/:interviewId
- * Full detail (including transcript) for the candidate.
- */
 const getInterviewHandler = async (req, res, next) => {
   try {
     const interview = await aiInterviewModel.getInterviewForCandidate(req.params.interviewId, req.user.id);
@@ -51,12 +34,6 @@ const getInterviewHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * POST /api/ai-interview/:interviewId/start
- * Begins the interview and returns the first (or next unanswered) question,
- * generated dynamically by Ollama.
- */
 const startInterviewHandler = async (req, res, next) => {
   try {
     const result = await aiInterviewService.startInterview(req.params.interviewId, req.user.id);
@@ -77,14 +54,6 @@ const startInterviewHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * POST /api/ai-interview/:interviewId/answer
- * Body: { questionId, answerText }
- * Saves the candidate's speech-to-text answer and returns either the next
- * dynamically generated question, or the final evaluation if the interview
- * is now complete.
- */
 const submitAnswerHandler = async (req, res, next) => {
   try {
     const { questionId, answerText } = req.body;
@@ -118,13 +87,6 @@ const submitAnswerHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * GET /api/ai-interview/recruiter/:interviewId
- * Read-only recruiter view of a completed (or in-progress) AI interview,
- * including the full transcript and AI evaluation. Additive endpoint only -
- * does not alter any existing recruiter workflow or files.
- */
 const getInterviewForRecruiterHandler = async (req, res, next) => {
   try {
     const interview = await aiInterviewModel.getInterviewDetailForRecruiter(req.params.interviewId, req.user.id);
@@ -136,14 +98,6 @@ const getInterviewForRecruiterHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * GET /api/ai-interview/recruiter
- * Lists ALL AI interview sessions (any status) across the logged-in recruiter's
- * jobs, for the Recruiter Panel "AI Interviews" screen (AI Score, AI Status,
- * Feedback, Current Stage). Additive, read-only - does not touch ATS/Applicants
- * or Assessment endpoints.
- */
 const listRecruiterInterviewsHandler = async (req, res, next) => {
   try {
     const { status } = req.query;
@@ -153,12 +107,6 @@ const listRecruiterInterviewsHandler = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * GET /api/ai-interview/admin/stats
- * Aggregate AI Interview statistics for the Admin Panel monitoring widget.
- * Protected by protectAdmin (separate admin auth), additive and read-only.
- */
 const getAdminStatsHandler = async (req, res, next) => {
   try {
     const stats = await aiInterviewModel.getAiInterviewAdminStats();
@@ -167,7 +115,6 @@ const getAdminStatsHandler = async (req, res, next) => {
     next(error);
   }
 };
-
 const reportViolationHandler = async (req, res, next) => {
   try {
     const { type } = req.body;
@@ -191,7 +138,6 @@ const reportViolationHandler = async (req, res, next) => {
     next(error);
   }
 };
-
 const autoSubmitHandler = async (req, res, next) => {
   try {
     const { reason } = req.body || {};
@@ -207,16 +153,6 @@ const autoSubmitHandler = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = {
-  listMyInterviewsHandler,
-  getByApplicationHandler,
-  getInterviewHandler,
-  startInterviewHandler,
-  submitAnswerHandler,
-  reportViolationHandler,
-  autoSubmitHandler,
-  getInterviewForRecruiterHandler,
-  listRecruiterInterviewsHandler,
-  getAdminStatsHandler
+  listMyInterviewsHandler,getByApplicationHandler,getInterviewHandler,startInterviewHandler,submitAnswerHandler,reportViolationHandler,autoSubmitHandler,getInterviewForRecruiterHandler,listRecruiterInterviewsHandler,getAdminStatsHandler
 };

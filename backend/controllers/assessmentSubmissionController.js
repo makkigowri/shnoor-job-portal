@@ -1,13 +1,5 @@
 const {
-  startAssessment,
-  getSubmissionForCandidate,
-  getQuestionsForSubmission,
-  saveAnswers,
-  scoreAndFinalizeSubmission,
-  getResultsForAssessment,
-  getSubmissionDetailForRecruiter,
-  getSubmissionDetailForCandidate
-} = require("../models/assessmentSubmissionModel");
+  startAssessment,getSubmissionForCandidate,getQuestionsForSubmission,saveAnswers,scoreAndFinalizeSubmission,getResultsForAssessment,getSubmissionDetailForRecruiter,getSubmissionDetailForCandidate} = require("../models/assessmentSubmissionModel");
 const { createNotification } = require("../models/notificationModel");
 const { activateAfterAssessmentPass } = require("../services/aiInterviewService");
 const START_ERROR_MESSAGES = {
@@ -142,11 +134,5 @@ const getSubmissionDetailHandler = async (req, res, next) => {
   }
 };
 module.exports = {
-  startAssessmentHandler,
-  saveAnswersHandler,
-  submitAssessmentHandler,
-  autoSubmitAssessmentHandler,
-  getMySubmissionHandler,
-  getResultsHandler,
-  getSubmissionDetailHandler
+  startAssessmentHandler,saveAnswersHandler,submitAssessmentHandler,autoSubmitAssessmentHandler,getMySubmissionHandler,getResultsHandler,getSubmissionDetailHandler
 };

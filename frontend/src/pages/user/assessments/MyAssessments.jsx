@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import UserDashboardLayout from "../../../layouts/UserDashboardLayout";
 import useAuth from "../../../hooks/useAuth";
 import { getMyApplications } from "../../../services/applicationService";
@@ -198,10 +199,10 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       label: "Assessment",
       tone: isPending ? "blue" : "gray",
       state: isPending ? "current" : "upcoming",
-      subLabel: isPending ? "In Progress" : "Scheduled",
+      subLabel: isPending ? "Assigned" : "Scheduled",
       popover: (
         <div>
-          <p className="text-sm text-gray-600">{isPending ? "Assessment available now" : "Assessment scheduled"}</p>
+          <p className="text-sm text-gray-600">{isPending ? "Assessment Assigned" : "Assessment scheduled"}</p>
           {isPending && assessmentRow.item.scheduled_end && (
             <p className="text-xs text-gray-400 mt-1">
               Available until {formatDateTime(assessmentRow.item.scheduled_end)}
@@ -209,6 +210,15 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
           )}
           {!isPending && (
             <p className="text-xs text-gray-400 mt-1">Opens {formatDateTime(assessmentRow.item.scheduled_start)}</p>
+          )}
+          {isPending && (
+            <Link
+              to={`/user/assessments/${assessmentRow.item.id}/take`}
+              onClick={(event) => event.stopPropagation()}
+              className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2 transition"
+            >
+              Start Assessment
+            </Link>
           )}
         </div>
       )
@@ -228,6 +238,7 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       dateLabel: formatDate(item.submitted_at),
       popover: (
         <div>
+          <p className="text-sm text-gray-600 mb-2">Assessment Completed</p>
           <p className="text-2xl font-bold text-[#3E3A74]">{score != null ? score : "—"}</p>
           <div className="mt-2">
             <StatusPill label={pass ? "PASS" : "FAIL"} tone={pass ? "green" : "red"} />
@@ -268,8 +279,21 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
         label: "AI Interview",
         tone: "blue",
         state: "current",
-        subLabel: "Not Started",
-        popover: <p className="text-sm text-gray-500">Ready to begin</p>
+        subLabel: "Ready",
+        popover: aiInterview ? (
+          <div>
+            <p className="text-sm text-gray-600">AI Interview Ready</p>
+            <Link
+              to={`/user/ai-interview/${aiInterview.id}`}
+              onClick={(event) => event.stopPropagation()}
+              className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2 transition"
+            >
+              Start AI Interview
+            </Link>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">Unlocking after assessment result is processed</p>
+        )
       });
       overallStatus = { label: "AI Interview Pending", tone: "amber" };
       stages.push({
@@ -326,6 +350,7 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       dateLabel: formatDate(aiInterview.completed_at),
       popover: (
         <div>
+          <p className="text-sm text-gray-600 mb-2">AI Interview Completed</p>
           <p className="text-2xl font-bold text-[#3E3A74]">{aiScore != null ? `${aiScore}%` : "—"}</p>
           <div className="mt-2">
             <StatusPill label={aiPass ? "PASS" : "FAIL"} tone={aiPass ? "green" : "red"} />

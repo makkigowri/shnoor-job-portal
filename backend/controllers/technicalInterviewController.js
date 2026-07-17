@@ -1,6 +1,5 @@
 const technicalInterviewModel = require("../models/technicalInterviewModel");
 const technicalInterviewService = require("../services/technicalInterviewService");
-
 const listEligibleHandler = async (req, res, next) => {
   try {
     const applications = await technicalInterviewModel.getEligibleApplicationsForRecruiter(req.user.id);
@@ -9,7 +8,6 @@ const listEligibleHandler = async (req, res, next) => {
     next(error);
   }
 };
-
 const scheduleHandler = async (req, res, next) => {
   try {
     const { applicationId, scheduledDate, scheduledTime, durationMinutes, notes } = req.body;
@@ -37,7 +35,6 @@ const scheduleHandler = async (req, res, next) => {
     next(error);
   }
 };
-
 const listRecruiterHandler = async (req, res, next) => {
   try {
     const { status } = req.query;

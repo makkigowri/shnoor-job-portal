@@ -1,12 +1,5 @@
 const {
-  assignAssessmentToCandidates,
-  removeAssignment,
-  getAssignedCandidates,
-  getPendingAssessmentsForCandidate,
-  getUpcomingAssessmentsForCandidate,
-  getCompletedAssessmentsForCandidate,
-  expireOverdueAssignments
-} = require("../models/assessmentAssignmentModel");
+  assignAssessmentToCandidates,removeAssignment,getAssignedCandidates,getPendingAssessmentsForCandidate,getUpcomingAssessmentsForCandidate,getCompletedAssessmentsForCandidate,expireOverdueAssignments} = require("../models/assessmentAssignmentModel");
 const { createNotification } = require("../models/notificationModel");
 const assignAssessmentHandler = async (req, res, next) => {
   try {
@@ -82,10 +75,5 @@ const getCompletedAssessmentsHandler = async (req, res, next) => {
   }
 };
 module.exports = {
-  assignAssessmentHandler,
-  removeAssignmentHandler,
-  getAssignedCandidatesHandler,
-  getPendingAssessmentsHandler,
-  getUpcomingAssessmentsHandler,
-  getCompletedAssessmentsHandler
+  assignAssessmentHandler,removeAssignmentHandler,getAssignedCandidatesHandler,getPendingAssessmentsHandler,getUpcomingAssessmentsHandler,getCompletedAssessmentsHandler
 };

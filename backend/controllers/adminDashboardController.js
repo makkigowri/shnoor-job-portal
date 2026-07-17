@@ -1,24 +1,9 @@
 const {
-  getDashboardStats,
-  getLatestUsers,
-  getLatestRecruiters,
-  getRecentJobPosts,
-  getRecentApplicationsAdmin,
-  getTopRecruiters,
-  getTopAppliedJobs,
-  getMostActiveUsers,
-  getRecentRegistrations,
-  getRecentActivities,
-  getSystemStatistics
-} = require("../models/adminStatsModel");
+  getDashboardStats,getLatestUsers,getLatestRecruiters,getRecentJobPosts,getRecentApplicationsAdmin,getTopRecruiters,getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics} = require("../models/adminStatsModel");
 const getAdminDashboard = async (req, res, next) => {
   try {
     const [stats, latestUsers, latestRecruiters, recentJobPosts, recentApplications] = await Promise.all([
-      getDashboardStats(),
-      getLatestUsers(5),
-      getLatestRecruiters(5),
-      getRecentJobPosts(5),
-      getRecentApplicationsAdmin(5)
+      getDashboardStats(),getLatestUsers(5),getLatestRecruiters(5),getRecentJobPosts(5),getRecentApplicationsAdmin(5)
     ]);
     res.status(200).json({
       success: true,
@@ -46,12 +31,7 @@ const getAdminAnalytics = async (req, res, next) => {
   try {
     const [topRecruiters, topAppliedJobs, recentActivities, mostActiveUsers, recentRegistrations, systemStatistics] =
       await Promise.all([
-        getTopRecruiters(10),
-        getTopAppliedJobs(10),
-        getRecentActivities(15),
-        getMostActiveUsers(10),
-        getRecentRegistrations(10),
-        getSystemStatistics()
+        getTopRecruiters(10),getTopAppliedJobs(10),getRecentActivities(15),getMostActiveUsers(10),getRecentRegistrations(10),getSystemStatistics()
       ]);
     res.status(200).json({
       success: true,

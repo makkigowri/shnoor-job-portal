@@ -6,16 +6,7 @@ const INTERVIEW_SELECT = `
   JOIN jobs j ON j.id = iv.job_id
   JOIN users u ON u.id = iv.candidate_id `;
 const activateInterviewForApplication = async ({
-  applicationId,
-  jobId,
-  candidateId,
-  recruiterId,
-  assessmentSubmissionId,
-  jobRole,
-  candidateSkills,
-  candidateExperience,
-  assessmentPercentage,
-  totalQuestions = 6
+  applicationId,jobId,candidateId,recruiterId,assessmentSubmissionId,jobRole,candidateSkills,candidateExperience,assessmentPercentage,totalQuestions = 6
 }) => {
   const query = `
     INSERT INTO ai_interviews

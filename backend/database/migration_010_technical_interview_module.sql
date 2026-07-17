@@ -18,22 +18,8 @@ END $$;
 ALTER TABLE applications
   ADD CONSTRAINT applications_status_check
   CHECK (status IN (
-    'Applied',
-    'Under Review',
-    'Shortlisted',
-    'Rejected',
-    'Interview Scheduled',
-    'Withdrawn',
-    'AI Interview Available',
-    'AI Interview In Progress',
-    'AI Interview Passed',
-    'AI Interview Failed',
-    'Technical Interview',
-    'Technical Interview Scheduled',
-    'Technical Interview Completed',
-    'Selected'
+    'Applied', 'Under Review','Shortlisted','Rejected','Interview Scheduled','Withdrawn','AI Interview Available','AI Interview In Progress','AI Interview Passed','AI Interview Failed','Technical Interview', 'Technical Interview Scheduled', 'Technical Interview Completed','Selected'
   ));
-
 CREATE TABLE IF NOT EXISTS technical_interviews (
   id SERIAL PRIMARY KEY,
   application_id INTEGER NOT NULL UNIQUE REFERENCES applications(id) ON DELETE CASCADE,
@@ -58,13 +44,11 @@ CREATE TABLE IF NOT EXISTS technical_interviews (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS idx_technical_interviews_candidate_id ON technical_interviews(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_technical_interviews_recruiter_id ON technical_interviews(recruiter_id);
 CREATE INDEX IF NOT EXISTS idx_technical_interviews_job_id ON technical_interviews(job_id);
 CREATE INDEX IF NOT EXISTS idx_technical_interviews_status ON technical_interviews(status);
 CREATE INDEX IF NOT EXISTS idx_technical_interviews_room_code ON technical_interviews(room_code);
-
 DROP TRIGGER IF EXISTS trg_technical_interviews_updated_at ON technical_interviews;
 CREATE TRIGGER trg_technical_interviews_updated_at
 BEFORE UPDATE ON technical_interviews

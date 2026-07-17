@@ -1,9 +1,5 @@
 const {
-  listJobsAdmin,
-  getJobByIdAdmin,
-  setJobStatusAdmin,
-  deleteJobAdminById
-} = require("../models/adminStatsModel");
+  listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById} = require("../models/adminStatsModel");
 const listJobs = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;

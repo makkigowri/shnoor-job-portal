@@ -79,7 +79,6 @@ const listUsersAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const dataResult = await pool.query(dataQuery, [...values, limit, offset]);
   return { users: dataResult.rows, total, page: Number(page), limit: Number(limit), totalPages: Math.max(Math.ceil(total / limit), 1) };
 };
-
 const getUserByIdAdmin = async (id) => {
   const query = `
     SELECT u.id, u.fullname, u.email, u.phone, u.role, u.is_blocked, u.created_at,
@@ -174,7 +173,6 @@ const listJobsAdmin = async ({ search, status, page = 1, limit = 10 }) => {
   const dataResult = await pool.query(dataQuery, [...values, limit, offset]);
   return { jobs: dataResult.rows, total, page: Number(page), limit: Number(limit), totalPages: Math.max(Math.ceil(total / limit), 1) };
 };
-
 const getJobByIdAdmin = async (id) => {
   const query = `
     SELECT j.*, u.fullname AS recruiter_name, u.email AS recruiter_email, c.company_name,
@@ -399,32 +397,7 @@ const getAssessmentStatisticsAdmin = async () => {
   return result.rows[0];
 };
 module.exports = {
-  getDashboardStats,
-  getLatestUsers,
-  getLatestRecruiters,
-  getRecentJobPosts,
-  getRecentApplicationsAdmin,
-  listUsersAdmin,
-  getUserByIdAdmin,
-  listRecruitersAdmin,
-  getRecruiterByIdAdmin,
-  setUserBlockedStatus,
-  deleteUserAdminById,
-  listJobsAdmin,
-  getJobByIdAdmin,
-  setJobStatusAdmin,
-  deleteJobAdminById,
-  listApplicationsAdmin,
-  getApplicationByIdAdmin,
-  deleteApplicationAdminById,
-  getTopRecruiters,
-  getTopAppliedJobs,
-  getMostActiveUsers,
-  getRecentRegistrations,
-  getRecentActivities,
-  getSystemStatistics,
-  listAssessmentsAdmin,
-  getAssessmentByIdAdmin,
-  deleteAssessmentAdminById,
-  getAssessmentStatisticsAdmin
+  getDashboardStats,getLatestUsers,getLatestRecruiters,getRecentJobPosts,getRecentApplicationsAdmin,listUsersAdmin,getUserByIdAdmin,listRecruitersAdmin,getRecruiterByIdAdmin,
+  setUserBlockedStatus,deleteUserAdminById,listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById,listApplicationsAdmin,getApplicationByIdAdmin,deleteApplicationAdminById,getTopRecruiters,
+  getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics,listAssessmentsAdmin,getAssessmentByIdAdmin,deleteAssessmentAdminById,getAssessmentStatisticsAdmin
 };

@@ -1,6 +1,5 @@
 const pool = require("../config/db");
 const crypto = require("crypto");
-
 const TI_SELECT = `
   SELECT ti.*, j.title AS job_title, j.location AS job_location,
     c.fullname AS candidate_name, c.email AS candidate_email, c.phone AS candidate_phone,
@@ -9,9 +8,7 @@ const TI_SELECT = `
   JOIN jobs j ON j.id = ti.job_id
   JOIN users c ON c.id = ti.candidate_id
   JOIN users r ON r.id = ti.recruiter_id `;
-
 const generateRoomCode = () => crypto.randomBytes(12).toString("hex");
-
 const getEligibleApplicationsForRecruiter = async (recruiterId) => {
   const query = `
     SELECT ap.id AS application_id, ap.job_id, ap.user_id AS candidate_id, ap.status,
@@ -30,7 +27,6 @@ const getEligibleApplicationsForRecruiter = async (recruiterId) => {
   const result = await pool.query(query, [recruiterId]);
   return result.rows;
 };
-
 const scheduleTechnicalInterview = async (
   recruiterId,
   { applicationId, scheduledDate, scheduledTime, durationMinutes, notes }
@@ -79,7 +75,6 @@ const scheduleTechnicalInterview = async (
   );
   return result.rows[0];
 };
-
 const getForRecruiter = async (recruiterId, { status } = {}) => {
   const values = [recruiterId];
   let query = `${TI_SELECT} WHERE ti.recruiter_id = $1`;
@@ -91,7 +86,6 @@ const getForRecruiter = async (recruiterId, { status } = {}) => {
   const result = await pool.query(query, values);
   return result.rows;
 };
-
 const getForCandidate = async (candidateId) => {
   const result = await pool.query(
     `${TI_SELECT} WHERE ti.candidate_id = $1 ORDER BY ti.scheduled_date DESC, ti.scheduled_time DESC`,
@@ -99,22 +93,18 @@ const getForCandidate = async (candidateId) => {
   );
   return result.rows;
 };
-
 const getByIdForRecruiter = async (id, recruiterId) => {
   const result = await pool.query(`${TI_SELECT} WHERE ti.id = $1 AND ti.recruiter_id = $2`, [id, recruiterId]);
   return result.rows[0];
 };
-
 const getByIdForCandidate = async (id, candidateId) => {
   const result = await pool.query(`${TI_SELECT} WHERE ti.id = $1 AND ti.candidate_id = $2`, [id, candidateId]);
   return result.rows[0];
 };
-
 const getByRoomCode = async (roomCode) => {
   const result = await pool.query(`${TI_SELECT} WHERE ti.room_code = $1`, [roomCode]);
   return result.rows[0];
 };
-
 const markJoined = async (id, role) => {
   const column = role === "recruiter" ? "recruiter_joined_at" : "candidate_joined_at";
   const query = `
@@ -128,7 +118,6 @@ const markJoined = async (id, role) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-
 const markMeetingEnded = async (id) => {
   const result = await pool.query(
     `UPDATE technical_interviews SET
@@ -141,7 +130,6 @@ const markMeetingEnded = async (id) => {
   );
   return result.rows[0];
 };
-
 const updateResult = async (id, recruiterId, { result, feedback }) => {
   const query = `
     UPDATE technical_interviews SET
@@ -155,7 +143,6 @@ const updateResult = async (id, recruiterId, { result, feedback }) => {
   const dbResult = await pool.query(query, [result, feedback || null, id, recruiterId]);
   return dbResult.rows[0];
 };
-
 const updateApplicationStatusForResult = async (applicationId, status) => {
   const result = await pool.query(
     `UPDATE applications SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING * `,
@@ -163,7 +150,6 @@ const updateApplicationStatusForResult = async (applicationId, status) => {
   );
   return result.rows[0];
 };
-
 const getAdminStats = async () => {
   const result = await pool.query(`
     SELECT
@@ -181,19 +167,7 @@ const getAdminStats = async () => {
     rejected: Number(row.rejected) || 0
   };
 };
-
 module.exports = {
-  generateRoomCode,
-  getEligibleApplicationsForRecruiter,
-  scheduleTechnicalInterview,
-  getForRecruiter,
-  getForCandidate,
-  getByIdForRecruiter,
-  getByIdForCandidate,
-  getByRoomCode,
-  markJoined,
-  markMeetingEnded,
-  updateResult,
-  updateApplicationStatusForResult,
-  getAdminStats
+  generateRoomCode,getEligibleApplicationsForRecruiter,scheduleTechnicalInterview,getForRecruiter,getForCandidate,getByIdForRecruiter,getByIdForCandidate,getByRoomCode,markJoined,
+  markMeetingEnded,updateResult,updateApplicationStatusForResult,getAdminStats
 };

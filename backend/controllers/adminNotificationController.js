@@ -1,8 +1,5 @@
 const {
-  sendBroadcastNotification,
-  getNotificationHistory,
-  deleteNotificationHistoryEntry
-} = require("../models/adminNotificationModel");
+  sendBroadcastNotification,getNotificationHistory,deleteNotificationHistoryEntry} = require("../models/adminNotificationModel");
 const sendNotification = async (req, res, next) => {
   try {
     const { title, message, type, audience } = req.body;

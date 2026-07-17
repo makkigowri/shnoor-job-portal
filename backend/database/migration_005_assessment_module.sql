@@ -47,12 +47,10 @@ BEGIN
     ALTER TABLE assessments ALTER COLUMN recruiter_id SET NOT NULL;
   END IF;
 END $$;
-
 CREATE INDEX IF NOT EXISTS idx_assessments_recruiter_id ON assessments(recruiter_id);
 CREATE INDEX IF NOT EXISTS idx_assessments_job_id ON assessments(job_id);
 CREATE INDEX IF NOT EXISTS idx_assessments_status ON assessments(status);
 CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at DESC);
-
 DROP TRIGGER IF EXISTS trg_assessments_updated_at ON assessments;
 CREATE TRIGGER trg_assessments_updated_at
 BEFORE UPDATE ON assessments
@@ -79,7 +77,6 @@ ALTER TABLE assessment_questions ADD COLUMN IF NOT EXISTS marks INTEGER NOT NULL
 ALTER TABLE assessment_questions ADD COLUMN IF NOT EXISTS order_index INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE assessment_questions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT NOW();
 ALTER TABLE assessment_questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW();
-
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -90,7 +87,6 @@ BEGIN
       FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE;
   END IF;
 END $$;
-
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM assessment_questions WHERE assessment_id IS NULL) THEN
@@ -100,10 +96,8 @@ BEGIN
     ALTER TABLE assessment_questions ALTER COLUMN question_text SET NOT NULL;
   END IF;
 END $$;
-
 CREATE INDEX IF NOT EXISTS idx_assessment_questions_assessment_id ON assessment_questions(assessment_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_questions_order ON assessment_questions(assessment_id, order_index);
-
 DROP TRIGGER IF EXISTS trg_assessment_questions_updated_at ON assessment_questions;
 CREATE TRIGGER trg_assessment_questions_updated_at
 BEFORE UPDATE ON assessment_questions
@@ -170,7 +164,6 @@ CREATE INDEX IF NOT EXISTS idx_assessment_assignments_assessment_id ON assessmen
 CREATE INDEX IF NOT EXISTS idx_assessment_assignments_candidate_id ON assessment_assignments(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_assignments_recruiter_id ON assessment_assignments(recruiter_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_assignments_status ON assessment_assignments(status);
-
 DROP TRIGGER IF EXISTS trg_assessment_assignments_updated_at ON assessment_assignments;
 CREATE TRIGGER trg_assessment_assignments_updated_at
 BEFORE UPDATE ON assessment_assignments
@@ -238,7 +231,6 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_assessment_submissions_assessment_id ON assessment_submissions(assessment_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_submissions_candidate_id ON assessment_submissions(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_submissions_status ON assessment_submissions(status);
-
 DROP TRIGGER IF EXISTS trg_assessment_submissions_updated_at ON assessment_submissions;
 CREATE TRIGGER trg_assessment_submissions_updated_at
 BEFORE UPDATE ON assessment_submissions

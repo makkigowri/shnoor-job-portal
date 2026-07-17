@@ -7,7 +7,6 @@ BEGIN
     SET question_text = question
     WHERE (question_text IS NULL OR question_text = '')
       AND question IS NOT NULL;
-
     ALTER TABLE assessment_questions ALTER COLUMN question DROP NOT NULL;
   END IF;
 END $$;
