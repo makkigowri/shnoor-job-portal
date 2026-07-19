@@ -1,7 +1,7 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const { findUserById } = require("../models/userModel");
-const technicalInterviewModel = require("../models/technicalInterviewModel");
+
 
 const initMeetingSocket = (httpServer) => {
   const io = new Server(httpServer, {

@@ -16,7 +16,7 @@ import CandidateAssessmentDetails from "./pages/user/assessments/AssessmentDetai
 import TakeAssessment from "./pages/user/assessments/TakeAssessment";
 import AssessmentResult from "./pages/user/assessments/AssessmentResult";
 import AIInterview from "./pages/user/interview/AIInterview";
-import TechnicalInterviewRoom from "./pages/meeting/TechnicalInterviewRoom";
+import MeetingRoom from './pages/common/MeetingRoom';
 import RecruiterDashboard from "./pages/recruiter/Dashboard";
 import CompanyProfile from "./pages/recruiter/CompanyProfile";
 import PostJob from "./pages/recruiter/PostJob";
@@ -154,10 +154,10 @@ const App = () => {
         }
       />
       <Route
-        path="/technical-interview/room/:roomCode"
+        path="/meeting/:roomName"
         element={
           <ProtectedRoute allowedRoles={["jobseeker", "recruiter"]}>
-            <TechnicalInterviewRoom />
+            <MeetingRoom />
           </ProtectedRoute>
         }
       />

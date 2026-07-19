@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { getMyInterviews } from "../../../services/interviewService";
 import UserDashboardLayout from "../../../layouts/UserDashboardLayout";
 import useAuth from "../../../hooks/useAuth";
 import { getMyApplications } from "../../../services/applicationService";
@@ -9,7 +10,7 @@ import {
   getCompletedAssessments
 } from "../../../services/assessmentService";
 import { getMyAiInterviews } from "../../../services/aiInterviewService";
-import { getMyTechnicalInterviews } from "../../../services/technicalInterviewService";
+
 
 const formatDate = (value) => {
   if (!value) return null;
@@ -124,8 +125,7 @@ const StageNode = ({ stage, isLast }) => {
     <div className="relative flex md:flex-1 items-start md:items-center gap-4 md:gap-0">
       <div className="flex md:flex-col items-center md:flex-1 gap-4 md:gap-3 relative">
         <div
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
+          // REMOVED: onMouseEnter and onMouseLeave
           onClick={() => setOpen((prev) => !prev)}
           className="relative cursor-pointer select-none"
         >
@@ -439,12 +439,13 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
             {technicalInterview.recruiter_name && (
               <p className="text-xs text-gray-400 mt-1">Recruiter: {technicalInterview.recruiter_name}</p>
             )}
-            <a
-              href={`/technical-interview/room/${technicalInterview.room_code}`}
-              className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2 transition"
-            >
-              Join Interview
-            </a>
+           <Link
+  to={`/meeting/${technicalInterview.location_or_link}`}
+  onClick={(e) => e.stopPropagation()}
+  className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2"
+>
+  Join Interview
+</Link>
           </div>
         )
       });
@@ -589,15 +590,21 @@ export default function MyAssessments() {
     setLoading(true);
     setError("");
     try {
-      const [applicationsRes, pendingRes, upcomingRes, completedRes, aiRes, tiRes] = await Promise.all([
-        getMyApplications(),
-        getPendingAssessments(),
-        getUpcomingAssessments(),
-        getCompletedAssessments(),
-        getMyAiInterviews().catch(() => ({ interviews: [] })),
-        getMyTechnicalInterviews().catch(() => ({ interviews: [] }))
-      ]);
-
+     const [
+  applicationsRes,
+  pendingRes,
+  upcomingRes,
+  completedRes,
+  aiRes,
+  tiRes
+] = await Promise.all([
+  getMyApplications(),
+  getPendingAssessments(),
+  getUpcomingAssessments(),
+  getCompletedAssessments(),
+  getMyAiInterviews().catch(() => ({ interviews: [] })),
+  getMyInterviews().catch(() => ({ interviews: [] }))
+]);
       const assessmentByApplication = new Map();
       (upcomingRes.assessments || []).forEach((item) => {
         assessmentByApplication.set(item.application_id, { stage: "upcoming", item });
@@ -613,19 +620,20 @@ export default function MyAssessments() {
       });
 
       const aiByApplication = new Map((aiRes.interviews || []).map((iv) => [iv.application_id, iv]));
-      const tiByApplication = new Map((tiRes.interviews || []).map((ti) => [ti.application_id, ti]));
-
+      const tiByApplication = new Map((tiRes.interviews || []).map((iv) => [iv.application_id, iv]));
       const applications = applicationsRes.applications || [];
       const built = applications
         .filter((app) => assessmentByApplication.has(app.id))
         .map((app) => ({
           application: app,
           journey: buildJourney(
-            app,
-            assessmentByApplication.get(app.id),
-            aiByApplication.get(app.id),
-            tiByApplication.get(app.id)
-          )
+          app,
+          assessmentByApplication.get(app.id),
+          aiByApplication.get(app.id),
+          tiByApplication.get(app.id)
+        )
+                  
+          
         }));
 
       setJourneys(built);
