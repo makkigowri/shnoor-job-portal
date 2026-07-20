@@ -68,12 +68,13 @@ const register = async (req, res, next) => {
 };
 const login = async (req, res, next) => {
   try {
-    const { email, password, role } = req.body;
-    if (role === "admin") {
-      const admin = await findAdminByEmail(email.toLowerCase());
-      if (!admin) {
-        return res.status(401).json({ success: false, message: "Invalid email or password" });
-      }
+    const { email, password } = req.body;
+    // Role is no longer supplied by the client. We auto-detect the account
+    // type by looking the email up first in the admin table, then in the
+    // regular users table (job seeker / recruiter), and derive the role
+    // from wherever the account is found.
+    const admin = await findAdminByEmail(email.toLowerCase());
+    if (admin) {
       const isAdminMatch = await bcrypt.compare(password, admin.password);
       if (!isAdminMatch) {
         return res.status(401).json({ success: false, message: "Invalid email or password" });
@@ -97,9 +98,6 @@ const login = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
-    }
-    if (role && role !== user.role) {
-      return res.status(401).json({ success: false, message: "Selected role does not match this account" });
     }
     const token = generateToken({ id: user.id, role: user.role });
     const { password: _password, ...userWithoutPassword } = user;

@@ -30,7 +30,7 @@ const AdminFilterBar = ({
               key={filter.name}
               value={filter.value}
               onChange={(e) => filter.onChange(e.target.value)}
-              className="h-11 w-full sm:w-48 rounded-xl border border-gray-300 px-4 text-sm text-gray-700 focus:border-[#7393D3] focus:outline-none"
+              className="h-12 w-full sm:w-52 rounded-xl border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-700 focus:border-[#7393D3] focus:outline-none"
             >
               {filter.options.map((option) => (
                 <option key={option.value} value={option.value}>

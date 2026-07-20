@@ -41,11 +41,11 @@ const roundScore = (value) => {
 
 const TONE = {
   green: {
-    circle: "bg-emerald-500 border-emerald-500 text-white",
-    ring: "ring-emerald-100",
-    line: "bg-emerald-400",
-    label: "text-emerald-700",
-    pill: "bg-emerald-50 text-emerald-700 border border-emerald-200"
+    circle: "bg-[#7393D3] border-[#7393D3] text-white",
+    ring: "ring-[#7393D3]/20",
+    line: "bg-[#7393D3]",
+    label: "text-[#3E3A74]",
+    pill: "bg-blue-50 text-blue-700 border border-blue-200"
   },
   blue: {
     circle: "bg-[#7393D3] border-[#7393D3] text-white",
@@ -184,6 +184,50 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
   let overallStatus = { label: "Assessment Pending", tone: "amber" };
 
   if (!assessmentRow) {
+    if (application.status === "Rejected") {
+      // Application never reached the assessment stage because it was
+      // filtered out during ATS/recruiter screening. Reflect that clearly
+      // instead of showing a generic "Assessment Pending" state, and keep
+      // the assessment stage locked (no assessment is available).
+      stages.push({
+        key: "assessment",
+        label: "Assessment",
+        tone: "red",
+        state: "rejected",
+        subLabel: "Not Shortlisted",
+        popover: (
+          <div>
+            <p className="text-sm text-gray-600">Rejected in ATS Screening</p>
+            <p className="text-xs text-gray-400 mt-1">
+              This application did not proceed past the initial screening stage.
+            </p>
+          </div>
+        )
+      });
+      overallStatus = { label: "Rejected in ATS Screening", tone: "red" };
+      stages.push({
+        key: "ai_interview",
+        label: "AI Interview",
+        tone: "gray",
+        state: "upcoming",
+        popover: <p className="text-sm text-gray-500">Not reached</p>
+      });
+      stages.push({
+        key: "technical_interview",
+        label: "Technical Interview",
+        tone: "gray",
+        state: "upcoming",
+        popover: <p className="text-sm text-gray-500">Not reached</p>
+      });
+      stages.push({
+        key: "offer",
+        label: "Offer Letter",
+        tone: "gray",
+        state: "upcoming",
+        popover: <p className="text-sm text-gray-500">Not reached</p>
+      });
+      return { stages, overallStatus };
+    }
     stages.push({
       key: "assessment",
       label: "Assessment",
@@ -623,7 +667,7 @@ export default function MyAssessments() {
       const tiByApplication = new Map((tiRes.interviews || []).map((iv) => [iv.application_id, iv]));
       const applications = applicationsRes.applications || [];
       const built = applications
-        .filter((app) => assessmentByApplication.has(app.id))
+        .filter((app) => app.status !== "Withdrawn")
         .map((app) => ({
           application: app,
           journey: buildJourney(
@@ -667,7 +711,7 @@ export default function MyAssessments() {
 
       {!loading && journeys.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
-          You have no applications with assessments yet.
+          You have not applied to any jobs yet.
         </div>
       )}
 

@@ -2,16 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../layouts/AuthLayout";
 import Input from "../../components/common/Input";
-import Select from "../../components/common/Select";
 import Checkbox from "../../components/common/Checkbox";
 import Button from "../../components/common/Button";
 import useAuth from "../../hooks/useAuth";
-
-const LOGIN_AS_OPTIONS = [
-  { value: "jobseeker", label: "Job Seeker" },
-  { value: "recruiter", label: "Recruiter" },
-  { value: "admin", label: "Admin" },
-];
 
 const Login = () => {
   const { login } = useAuth();
@@ -19,7 +12,6 @@ const Login = () => {
   const [form, setForm] = useState({
     email: "",
     password: "",
-    loginAs: "jobseeker",
     rememberMe: false,
     acceptTerms: false,
   });
@@ -44,7 +36,6 @@ const Login = () => {
       const user = await login({
         email: form.email,
         password: form.password,
-        role: form.loginAs,
         acceptTerms: String(form.acceptTerms),
       });
 
@@ -99,14 +90,6 @@ const Login = () => {
           value={form.password}
           onChange={handleChange}
           placeholder="Enter your password"
-          required
-        />
-        <Select
-          label="Login As"
-          name="loginAs"
-          value={form.loginAs}
-          onChange={handleChange}
-          options={LOGIN_AS_OPTIONS}
           required
         />
         <div className="flex items-center justify-between">

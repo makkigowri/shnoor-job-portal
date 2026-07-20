@@ -123,7 +123,7 @@ const Dashboard = () => {
         <div className="mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3 flex items-center justify-between">
           <span>Upload your resume so you can start applying to jobs.</span>
           <button
-            onClick={() => navigate("/user/resume")}
+            onClick={() => navigate("/user/profile")}
             className="font-semibold underline"
           >
             Upload Now
