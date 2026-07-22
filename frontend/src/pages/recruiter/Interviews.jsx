@@ -3,8 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getRecruiterAiInterviews } from "../../services/aiInterviewService";
-
-
 const techStatusBadge = (status) => {
   switch (status) {
     case "Scheduled":
@@ -19,13 +17,11 @@ const techStatusBadge = (status) => {
       return "bg-gray-100 text-gray-600";
   }
 };
-
 const resultBadge = (result) => {
   if (result === "Pass") return "bg-emerald-100 text-emerald-700";
   if (result === "Fail") return "bg-red-100 text-red-600";
   return "bg-gray-100 text-gray-500";
 };
-
 const getRowInfo = (row) => {
   const iv = row.aiInterview;
   const tech = row.technicalInterview;
@@ -101,7 +97,6 @@ const getRowInfo = (row) => {
     interviewStatusClass: "bg-red-100 text-red-600"
   };
 };
-
 const STAGE_FILTERS = [
   { key: "", label: "All Stages" },
   { key: "AI Interview", label: "AI Interview" },
@@ -112,7 +107,6 @@ const STAGE_FILTERS = [
   { key: "Offer Released", label: "Offer Released" },
   { key: "Rejected", label: "Rejected" }
 ];
-
 const ScheduleInterviewModal = ({ onClose, onSaved }) => {
   const [eligible, setEligible] = useState([]);
   const [loadingEligible, setLoadingEligible] = useState(true);
@@ -125,11 +119,9 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   useEffect(() => {
     let active = true;
     const token = localStorage.getItem("shnoor_token");
-    
     axios.get("http://localhost:5001/api/meeting/eligible", {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
@@ -137,7 +129,6 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
       if (active) setEligible(res.data.applications || []);
     })
     .catch((err) => {
-      // Fallback: If you haven't written the backend data array yet, this lets you still test Lana!
       if (active) {
         setEligible([
           { application_id: "lana_id", candidate_name: "Lana", job_title: "Java Developer", overall_score: 78, candidate_email: "lana@jobwork.com" }
@@ -152,7 +143,6 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
       active = false;
     };
   }, []);
-
   const selectedCandidate = eligible.find((a) => String(a.application_id) === String(form.applicationId));
   const generatedRoomName =
   "room_" + Math.random().toString(36).substring(2, 8);
@@ -189,7 +179,6 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
     setSubmitting(false);
   }
 };
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
@@ -292,15 +281,11 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
     </div>
   );
 };
-
 const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
   const [result, setResult] = useState("");
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
- 
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
@@ -369,7 +354,6 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
     </div>
   );
 };
-
 export default function Interviews() {
   const navigate = useNavigate();
   const [aiInterviews, setAiInterviews] = useState([]);
@@ -379,12 +363,10 @@ export default function Interviews() {
   const [error, setError] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [resultTarget, setResultTarget] = useState(null);
-
  const loadAll = useCallback(async () => {
   setLoading(true);
   setError("");
   try {
-    // 1. Fetch AI interviews safely
     let aiInterviewsData = [];
     try {
       const aiRes = await getRecruiterAiInterviews();
@@ -393,7 +375,6 @@ export default function Interviews() {
       console.log("AI interviews fallback");
     }
     setAiInterviews(aiInterviewsData);
-
     const token = localStorage.getItem("shnoor_token");
 const response = await axios.get(
   "http://localhost:5001/api/interviews",
@@ -403,14 +384,11 @@ const response = await axios.get(
     },
   }
 );
-    
-    // ADD THIS FIX: Map through interviews and force status to "Scheduled" for testing!
     const interviews = (response.data.interviews || []).map(meeting => ({
       ...meeting,
-      status: meeting.status || "Scheduled", // Fallback if backend status is empty
-      room_code: meeting.room_code || "test-room" // Fallback if room_code is empty
+      status: meeting.status || "Scheduled", 
+      room_code: meeting.room_code || "test-room" 
     }));
-
     setTechnicalInterviews(interviews);
   } catch (err) {
     setTechnicalInterviews([]); 
@@ -421,7 +399,6 @@ const response = await axios.get(
   useEffect(() => {
     loadAll();
   }, [loadAll]);
-
   const rows = useMemo(() => {
     const techByApplication = new Map(technicalInterviews.map((t) => [t.application_id, t]));
     const covered = new Set();
@@ -453,7 +430,6 @@ const response = await axios.get(
     if (!stageFilter) return merged;
     return merged.filter((row) => getRowInfo(row).stage === stageFilter);
   }, [aiInterviews, technicalInterviews, stageFilter]);
-
   const renderActions = (row) => {
     const iv = row.aiInterview;
     const tech = row.technicalInterview;
@@ -505,7 +481,6 @@ const response = await axios.get(
     }
     return <span className="text-gray-300 text-sm">—</span>;
   };
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -535,19 +510,15 @@ const response = await axios.get(
           </button>
         </div>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       {loading && <p className="mt-8 text-gray-500">Loading interviews...</p>}
-
       {!loading && rows.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
           No interviews to show yet. Candidates appear here once they complete their AI Interview.
         </div>
       )}
-
       {!loading && rows.length > 0 && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
           <table className="w-full">
@@ -607,7 +578,6 @@ const response = await axios.get(
           </table>
         </div>
       )}
-
       {scheduleOpen && (
         <ScheduleInterviewModal
           onClose={() => setScheduleOpen(false)}
@@ -617,7 +587,6 @@ const response = await axios.get(
           }}
         />
       )}
-
       {resultTarget && (
         <ReleaseResultModal
           interview={resultTarget}

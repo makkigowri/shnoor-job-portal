@@ -51,7 +51,6 @@ const SearchJobs = () => {
   useEffect(() => {
     fetchJobs(1);
   }, []);
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchJobs(1);
@@ -158,11 +157,8 @@ const SearchJobs = () => {
             No jobs found matching your search.
           </div>
         )}
-
         <div className="space-y-5">
-
           {jobs.map((job) => (
-
             <div
               key={job.id}
               className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-lg transition"
@@ -198,41 +194,28 @@ const SearchJobs = () => {
                   <p className="text-sm text-body">
                     Experience
                   </p>
-
                   <h4 className="font-semibold">
                     {job.experience}
                   </h4>
-
                 </div>
-
                 <div>
-
                   <p className="text-sm text-body">
                     Salary
                   </p>
-
                   <h4 className="font-semibold">
                     {job.salary}
                   </h4>
-
                 </div>
-
                 <div>
-
                   <p className="text-sm text-body">
                     Employment
                   </p>
-
                   <h4 className="font-semibold">
                     {job.employment_type}
                   </h4>
-
                 </div>
-
               </div>
-
               <div className="mt-6 flex gap-4">
-
                 <button
                   type="button"
                   onClick={() => handleApply(job)}
@@ -247,7 +230,6 @@ const SearchJobs = () => {
   ? "Applying..."
   : "Apply Now"}
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setSelectedJob(job)}
@@ -255,11 +237,8 @@ const SearchJobs = () => {
                 >
                   View Details
                 </button>
-
               </div>
-
             </div>
-
           ))}
         </div>
         {totalPages > 1 && (

@@ -49,5 +49,4 @@ const ResultTable = ({ results, onViewDetail }) => {
     </div>
   );
 };
-
 export default ResultTable;

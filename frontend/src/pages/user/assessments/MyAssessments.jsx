@@ -10,15 +10,12 @@ import {
   getCompletedAssessments
 } from "../../../services/assessmentService";
 import { getMyAiInterviews } from "../../../services/aiInterviewService";
-
-
 const formatDate = (value) => {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 };
-
 const formatDateTime = (value) => {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -31,14 +28,12 @@ const formatDateTime = (value) => {
     minute: "2-digit"
   });
 };
-
 const roundScore = (value) => {
   if (value == null || value === "") return null;
   const num = Number(value);
   if (Number.isNaN(num)) return null;
   return Math.round(num);
 };
-
 const TONE = {
   green: {
     circle: "bg-[#7393D3] border-[#7393D3] text-white",
@@ -79,27 +74,22 @@ const TONE = {
     pill: "bg-purple-50 text-purple-700 border border-purple-200"
   }
 };
-
 const CheckIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
     <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-
 const CrossIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-
 const DotIcon = () => <span className="w-2.5 h-2.5 rounded-full bg-white block" />;
-
 const DashIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
     <path d="M6 12h12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
   </svg>
 );
-
 const StatusPill = ({ label, tone = "gray", large = false }) => (
   <span
     className={`inline-flex items-center rounded-full font-semibold ${TONE[tone].pill} ${
@@ -109,7 +99,6 @@ const StatusPill = ({ label, tone = "gray", large = false }) => (
     {label}
   </span>
 );
-
 const StageIcon = ({ state }) => {
   if (state === "completed") return <CheckIcon />;
   if (state === "rejected") return <CrossIcon />;
@@ -117,7 +106,6 @@ const StageIcon = ({ state }) => {
   if (state === "current") return <DotIcon />;
   return <span className="w-2 h-2 rounded-full bg-gray-300 block" />;
 };
-
 const StageNode = ({ stage, isLast }) => {
   const [open, setOpen] = useState(false);
   const tone = TONE[stage.tone];
@@ -125,7 +113,6 @@ const StageNode = ({ stage, isLast }) => {
     <div className="relative flex md:flex-1 items-start md:items-center gap-4 md:gap-0">
       <div className="flex md:flex-col items-center md:flex-1 gap-4 md:gap-3 relative">
         <div
-          // REMOVED: onMouseEnter and onMouseLeave
           onClick={() => setOpen((prev) => !prev)}
           className="relative cursor-pointer select-none"
         >
@@ -156,7 +143,6 @@ const StageNode = ({ stage, isLast }) => {
     </div>
   );
 };
-
 const Timeline = ({ stages }) => (
   <div className="mt-10 flex flex-col md:flex-row gap-8 md:gap-0">
     {stages.map((stage, index) => (
@@ -164,7 +150,6 @@ const Timeline = ({ stages }) => (
     ))}
   </div>
 );
-
 const buildJourney = (application, assessmentRow, aiInterview, technicalInterview) => {
   const stages = [];
   stages.push({
@@ -180,15 +165,9 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       </div>
     )
   });
-
   let overallStatus = { label: "Assessment Pending", tone: "amber" };
-
   if (!assessmentRow) {
     if (application.status === "Rejected") {
-      // Application never reached the assessment stage because it was
-      // filtered out during ATS/recruiter screening. Reflect that clearly
-      // instead of showing a generic "Assessment Pending" state, and keep
-      // the assessment stage locked (no assessment is available).
       stages.push({
         key: "assessment",
         label: "Assessment",
@@ -290,7 +269,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
         </div>
       )
     });
-
     if (!pass) {
       overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
       stages.push({
@@ -316,7 +294,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (!aiInterview || aiInterview.status === "Available") {
       stages.push({
         key: "ai_interview",
@@ -356,7 +333,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (aiInterview.status === "In Progress") {
       stages.push({
         key: "ai_interview",
@@ -383,7 +359,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     const aiPass = aiInterview.result === "Pass";
     const aiScore = roundScore(aiInterview.overall_score);
     stages.push({
@@ -402,7 +377,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
         </div>
       )
     });
-
     if (!aiPass || aiInterview.decision === "Rejected") {
       overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
       stages.push({
@@ -421,7 +395,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (aiInterview.decision === "Selected") {
       stages.push({
         key: "technical_interview",
@@ -448,7 +421,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       overallStatus = { label: "Offer Released", tone: "green" };
       return { stages, overallStatus };
     }
-
     if (!technicalInterview) {
       stages.push({
         key: "technical_interview",
@@ -468,7 +440,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (["Scheduled", "In Progress"].includes(technicalInterview.status)) {
       stages.push({
         key: "technical_interview",
@@ -503,7 +474,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (technicalInterview.status === "Awaiting Result") {
       stages.push({
         key: "technical_interview",
@@ -523,7 +493,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       });
       return { stages, overallStatus };
     }
-
     if (technicalInterview.result === "Selected") {
       stages.push({
         key: "technical_interview",
@@ -554,7 +523,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
       overallStatus = { label: "Offer Released", tone: "green" };
       return { stages, overallStatus };
     }
-
     stages.push({
       key: "technical_interview",
       label: "Technical Interview",
@@ -578,7 +546,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
     overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
     return { stages, overallStatus };
   }
-
   stages.push({
     key: "ai_interview",
     label: "AI Interview",
@@ -602,7 +569,6 @@ const buildJourney = (application, assessmentRow, aiInterview, technicalIntervie
   });
   return { stages, overallStatus };
 };
-
 const JourneyCard = ({ candidateName, application, journey }) => (
   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
     <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-gray-100">
@@ -623,13 +589,11 @@ const JourneyCard = ({ candidateName, application, journey }) => (
     <Timeline stages={journey.stages} />
   </div>
 );
-
 export default function MyAssessments() {
   const { user } = useAuth();
   const [journeys, setJourneys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -662,7 +626,6 @@ export default function MyAssessments() {
           assessmentByApplication.set(item.application_id, { stage: "completed", item });
         }
       });
-
       const aiByApplication = new Map((aiRes.interviews || []).map((iv) => [iv.application_id, iv]));
       const tiByApplication = new Map((tiRes.interviews || []).map((iv) => [iv.application_id, iv]));
       const applications = applicationsRes.applications || [];
@@ -675,11 +638,8 @@ export default function MyAssessments() {
           assessmentByApplication.get(app.id),
           aiByApplication.get(app.id),
           tiByApplication.get(app.id)
-        )
-                  
-          
+        ) 
         }));
-
       setJourneys(built);
     } catch (err) {
       setError(err?.response?.data?.message || "Unable to load your assessments right now");
@@ -687,13 +647,10 @@ export default function MyAssessments() {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     loadAll();
   }, [loadAll]);
-
   const candidateName = user?.fullname || "Candidate";
-
   return (
     <UserDashboardLayout>
       <div>
@@ -702,19 +659,15 @@ export default function MyAssessments() {
           Track your complete application journey, from assessment to offer, in one place.
         </p>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       {loading && <p className="mt-8 text-gray-500">Loading your assessments...</p>}
-
       {!loading && journeys.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
           You have not applied to any jobs yet.
         </div>
       )}
-
       {!loading && journeys.length > 0 && (
         <div className="mt-8 space-y-8">
           {journeys.map(({ application, journey }) => (

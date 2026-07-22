@@ -82,7 +82,6 @@ const AdminJobs = () => {
             }
           ]}
         />
-
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 bg-gray-50">
@@ -139,7 +138,6 @@ const AdminJobs = () => {
             ))}
           </tbody>
         </table>
-
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
       {viewJob && (

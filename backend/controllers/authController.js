@@ -69,10 +69,6 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    // Role is no longer supplied by the client. We auto-detect the account
-    // type by looking the email up first in the admin table, then in the
-    // regular users table (job seeker / recruiter), and derive the role
-    // from wherever the account is found.
     const admin = await findAdminByEmail(email.toLowerCase());
     if (admin) {
       const isAdminMatch = await bcrypt.compare(password, admin.password);

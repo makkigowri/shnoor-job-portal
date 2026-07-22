@@ -28,11 +28,9 @@ export default function AssessmentDetails() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load();
   }, [id]);
-
   const handlePublish = async () => {
     setActionLoading(true);
     setError("");
@@ -118,11 +116,9 @@ export default function AssessmentDetails() {
           </Link>
         </div>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Questions</p>
@@ -158,7 +154,6 @@ export default function AssessmentDetails() {
           <span className="font-semibold">{assessment.total_marks}</span> marks to pass.
         </p>
       </div>
-
       <div className="mt-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h2 className="text-2xl font-semibold text-[#3E3A74]">Questions Preview</h2>

@@ -7,5 +7,4 @@ const useAdminAuth = () => {
   }
   return context;
 };
-
 export default useAdminAuth;

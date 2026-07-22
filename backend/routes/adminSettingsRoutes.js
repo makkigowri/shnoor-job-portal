@@ -1,10 +1,6 @@
 const express = require("express");
 const {
-  getAppSettings,
-  saveAppSettings,
-  uploadAppLogo,
-  changeAdminSettingsPassword
-} = require("../controllers/adminSettingsController");
+  getAppSettings,saveAppSettings,uploadAppLogo,changeAdminSettingsPassword} = require("../controllers/adminSettingsController");
 const { protectAdmin } = require("../middleware/adminAuthMiddleware");
 const { upload } = require("../middleware/upload");
 const router = express.Router();

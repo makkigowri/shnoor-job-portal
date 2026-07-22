@@ -1,7 +1,3 @@
-// Per-question breakdown shown on the Assessment Result page. Note: the
-// backend deliberately does not return the correct_answer to candidates
-// (see assessmentSubmissionModel.getSubmissionDetailForCandidate), so this
-// only shows what the candidate answered and whether it was marked correct.
 const SubmissionSummary = ({ answers }) => {
   if (!answers || answers.length === 0) {
     return (
@@ -10,7 +6,6 @@ const SubmissionSummary = ({ answers }) => {
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       {answers.map((ans, i) => {
@@ -52,5 +47,4 @@ const SubmissionSummary = ({ answers }) => {
     </div>
   );
 };
-
 export default SubmissionSummary;

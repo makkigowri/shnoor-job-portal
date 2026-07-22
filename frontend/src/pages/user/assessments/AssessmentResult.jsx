@@ -5,13 +5,11 @@ import StatusBadge from "../../../components/recruiter/StatusBadge";
 import ResultCard from "../../../components/user/ResultCard";
 import SubmissionSummary from "../../../components/user/SubmissionSummary";
 import { getMySubmission } from "../../../services/assessmentService";
-
 export default function AssessmentResult() {
   const { submissionId } = useParams();
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -27,7 +25,6 @@ export default function AssessmentResult() {
     };
     load();
   }, [submissionId]);
-
   if (loading) {
     return (
       <UserDashboardLayout>
@@ -35,7 +32,6 @@ export default function AssessmentResult() {
       </UserDashboardLayout>
     );
   }
-
   if (!submission) {
     return (
       <UserDashboardLayout>
@@ -46,7 +42,6 @@ export default function AssessmentResult() {
       </UserDashboardLayout>
     );
   }
-
   if (submission.status === "In Progress") {
     return (
       <UserDashboardLayout>
@@ -59,7 +54,6 @@ export default function AssessmentResult() {
       </UserDashboardLayout>
     );
   }
-
   return (
     <UserDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -79,15 +73,12 @@ export default function AssessmentResult() {
           All Assessments
         </Link>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
-
       <div className="mt-8">
         <ResultCard submission={submission} />
       </div>
-
       {submission.result === "Pass" && submission.assignment_id && (
         <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -102,7 +93,6 @@ export default function AssessmentResult() {
           </Link>
         </div>
       )}
-
       <div className="mt-8">
         <h2 className="text-2xl font-semibold text-[#3E3A74] mb-5">Answer Summary</h2>
         <SubmissionSummary answers={submission.answers} />

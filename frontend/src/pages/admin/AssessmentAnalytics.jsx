@@ -21,7 +21,6 @@ const AdminAssessmentAnalytics = () => {
     };
     load();
   }, []);
-
   if (loading) {
     return (
       <AdminLayout title="Assessment Analytics" subtitle="Platform-wide assessment performance at a glance.">
@@ -95,7 +94,6 @@ const AdminAssessmentAnalytics = () => {
             ))}
           </div>
         </div>
-
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-xl font-semibold text-[#3E3A74]">Pass vs Fail</h2>
           <div className="mt-8">

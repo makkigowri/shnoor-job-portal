@@ -53,7 +53,6 @@ export default function TakeAssessment() {
         const data = await startCandidateAssessment(assignmentId);
         setSubmission(data.submission);
         setQuestions(data.questions || []);
-
         if (data.submission.status !== "In Progress") {
           navigate(`/user/assessments/result/${data.submission.id}`, { replace: true });
           return;

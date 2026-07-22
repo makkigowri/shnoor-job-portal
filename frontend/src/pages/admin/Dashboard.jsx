@@ -6,7 +6,6 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   useEffect(() => {
     const load = async () => {
       try {
@@ -20,9 +19,7 @@ const AdminDashboard = () => {
     };
     load();
   }, []);
-
   const activities = analytics?.recentActivities || [];
-
   return (
     <AdminLayout title="Admin Dashboard" subtitle="Recent activity across the Shnoor Job Portal application.">
       {loading && <p className="text-gray-500">Loading dashboard...</p>}

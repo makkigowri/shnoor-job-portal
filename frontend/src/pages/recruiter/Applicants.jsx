@@ -4,7 +4,6 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
-
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -19,33 +18,27 @@ const statusBadge = (status) => {
       return "bg-gray-100 text-gray-700";
   }
 };
-
 const atsScoreColor = (score) => {
   if (score >= 80) return "text-green-600";
   if (score >= 60) return "text-yellow-600";
   return "text-red-500";
 };
-
 export default function Applicants() {
   const [searchParams] = useSearchParams();
   const nameSearch = (searchParams.get("search") || "").toLowerCase();
-
   const [jobs, setJobs] = useState([]);
   const [jobFilter, setJobFilter] = useState("");
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState("");
   const [runSummary, setRunSummary] = useState(null);
-
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
       .catch(() => {});
   }, []);
-
   const loadApplicants = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -63,7 +56,6 @@ export default function Applicants() {
       setLoading(false);
     }
   }, [jobFilter, nameSearch]);
-
   useEffect(() => {
     loadApplicants();
   }, [loadApplicants]);
@@ -71,7 +63,6 @@ export default function Applicants() {
     setRunSummary(null);
     setRunError("");
   }, [jobFilter]);
-
   const handleRunAts = async () => {
     if (!jobFilter) return;
     setRunning(true);
@@ -87,9 +78,7 @@ export default function Applicants() {
       setRunning(false);
     }
   };
-
   const selectedJobTitle = jobs.find((job) => String(job.id) === String(jobFilter))?.title;
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -119,13 +108,11 @@ export default function Applicants() {
           </button>
         </div>
       </div>
-
       {!jobFilter && (
         <div className="mt-6 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl px-4 py-3 text-sm">
           Select a specific job from "All Jobs" to run ATS scoring for its applicants.
         </div>
       )}
-
       {runSummary && (
         <div className="mt-6 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
           ATS scoring completed for <span className="font-semibold">{selectedJobTitle}</span>:{" "}
@@ -133,27 +120,22 @@ export default function Applicants() {
           {runSummary.skipped > 0 && `, ${runSummary.skipped} skipped (no resume text or job skills)`}.
         </div>
       )}
-
       {runError && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
           {runError}
         </div>
       )}
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
           {error}
         </div>
       )}
-
       {loading && <p className="mt-8 text-gray-500">Loading applicants...</p>}
-
       {!loading && applicants.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
           No applicants found. Once job seekers apply to your job posts, they'll show up here.
         </div>
       )}
-
       {!loading && applicants.length > 0 && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
           <table className="w-full">

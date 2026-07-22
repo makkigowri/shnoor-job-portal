@@ -80,5 +80,4 @@ const QuestionCard = ({ question, index, onEdit, onDelete }) => {
     </div>
   );
 };
-
 export default QuestionCard;

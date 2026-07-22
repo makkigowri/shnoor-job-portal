@@ -144,7 +144,6 @@ const AdminApplications = () => {
             ))}
           </tbody>
         </table>
-
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
       {viewApplication && (

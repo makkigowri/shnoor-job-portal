@@ -5,7 +5,6 @@ const scrollToSection = (id) => {
     window.location.href = id === "top" ? "/" : `/#${id}`;
     return;
   }
-
   if (id === "top") {
     window.scrollTo({
       top: 0,
@@ -13,7 +12,6 @@ const scrollToSection = (id) => {
     });
     return;
   }
-
   document.getElementById(id)?.scrollIntoView({
     behavior: "smooth"
   });

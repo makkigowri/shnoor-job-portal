@@ -75,7 +75,6 @@ export default function AssessmentDashboard() {
           + Create Assessment
         </Link>
       </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Total</p>
@@ -113,7 +112,6 @@ export default function AssessmentDashboard() {
       {actionError && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{actionError}</div>
       )}
-
       {loading && <p className="mt-8 text-gray-500">Loading assessments...</p>}
       {!loading && assessments.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">

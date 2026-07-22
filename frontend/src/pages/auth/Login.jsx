@@ -5,7 +5,6 @@ import Input from "../../components/common/Input";
 import Checkbox from "../../components/common/Checkbox";
 import Button from "../../components/common/Button";
 import useAuth from "../../hooks/useAuth";
-
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -38,13 +37,7 @@ const Login = () => {
         password: form.password,
         acceptTerms: String(form.acceptTerms),
       });
-
       if (user.role === "admin") {
-        // The existing Admin Module (dashboard, users, jobs, etc.) reads
-        // its session from these separate keys via AdminAuthContext/adminApi.
-        // Mirroring the session here means that pre-built module keeps
-        // working untouched, while the Admin still logs in from this same
-        // shared Login page/API like everyone else.
         const token = localStorage.getItem("shnoor_token");
         localStorage.setItem("shnoor_admin_token", token);
         localStorage.setItem("shnoor_admin_user", JSON.stringify(user));

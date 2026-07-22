@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-
-// Renders a live countdown and calls onExpire exactly once when time runs out.
-// `deadline` must be a Date (or ISO string) representing the absolute moment
-// the assessment must be auto-submitted by.
 const AssessmentTimer = ({ deadline, onExpire }) => {
   const deadlineTime = typeof deadline === "string" ? new Date(deadline).getTime() : deadline?.getTime();
   const [remainingMs, setRemainingMs] = useState(() => Math.max(0, deadlineTime - Date.now()));
   const expiredRef = useRef(false);
-
   useEffect(() => {
     expiredRef.current = false;
     const tick = () => {
@@ -23,16 +18,13 @@ const AssessmentTimer = ({ deadline, onExpire }) => {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deadlineTime]);
-
   const totalSeconds = Math.floor(remainingMs / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   const pad = (n) => String(n).padStart(2, "0");
-
   const isCritical = totalSeconds <= 60;
   const isWarning = totalSeconds <= 300 && !isCritical;
-
   return (
     <div
       className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-lg tabular-nums transition-colors ${
@@ -52,5 +44,4 @@ const AssessmentTimer = ({ deadline, onExpire }) => {
     </div>
   );
 };
-
 export default AssessmentTimer;

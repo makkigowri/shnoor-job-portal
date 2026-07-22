@@ -25,5 +25,4 @@ const ConfirmDialog = ({ open, title, message, confirmLabel = "Confirm", onConfi
     </div>
   );
 };
-
 export default ConfirmDialog;

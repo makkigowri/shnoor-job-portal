@@ -134,7 +134,6 @@ const AdminNotifications = () => {
           </button>
         </form>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="font-bold text-[#3E3A74]">Notification History</h3>

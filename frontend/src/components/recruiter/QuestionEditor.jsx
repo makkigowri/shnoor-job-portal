@@ -26,7 +26,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
     };
   });
   const [error, setError] = useState("");
-
   const handleTypeChange = (type) => {
     setQuestion((prev) => ({
       ...prev,
@@ -40,9 +39,7 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
     options[index] = value;
     setQuestion({ ...question, options });
   };
-
   const addOption = () => setQuestion({ ...question, options: [...question.options, ""] });
-
   const removeOption = (index) => {
     const options = question.options.filter((_, i) => i !== index);
     setQuestion({
@@ -77,7 +74,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
     }
     onSave({ ...question, options: [], marks: Number(question.marks) || 1 });
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
@@ -124,7 +120,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
               />
             </div>
           </div>
-
           {question.questionType === "mcq" && (
             <div>
               <label className="font-medium text-gray-900 text-sm">Options (select the correct one)</label>
@@ -166,7 +161,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
               </button>
             </div>
           )}
-
           {question.questionType === "true_false" && (
             <div>
               <label className="font-medium text-gray-900 text-sm">Correct Answer</label>
@@ -186,7 +180,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
               </div>
             </div>
           )}
-
           {question.questionType === "short_answer" && (
             <div>
               <label className="font-medium text-gray-900 text-sm">Expected Answer (optional, for reference)</label>
@@ -199,7 +192,6 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
               />
             </div>
           )}
-
           <div className="flex gap-4 pt-2">
             <button
               type="submit"
@@ -220,5 +212,4 @@ const QuestionEditor = ({ initialQuestion, onSave, onCancel }) => {
     </div>
   );
 };
-
 export default QuestionEditor;

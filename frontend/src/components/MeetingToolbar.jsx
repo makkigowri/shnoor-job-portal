@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTrackToggle } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-
 import { 
   FaMicrophone, 
   FaMicrophoneSlash, 
@@ -10,17 +9,12 @@ import {
   FaDesktop, 
   FaPhoneSlash 
 } from 'react-icons/fa6';
-
 export default function MeetingToolbar({ onLeave }) {
- 
   const { toggle: toggleCam, enabled: isCamOn } = useTrackToggle({ source: Track.Source.Camera });
   const { toggle: toggleMic, enabled: isMicOn } = useTrackToggle({ source: Track.Source.Microphone });
   const { toggle: toggleScreen, enabled: isScreenOn } = useTrackToggle({ source: Track.Source.ScreenShare });
-
   return (
     <div className="flex items-center gap-4 px-6 py-4 bg-white border border-gray-200 rounded-full shadow-lg">
-      
-     
       <button
         onClick={() => toggleMic()}
         style={{
@@ -31,8 +25,6 @@ export default function MeetingToolbar({ onLeave }) {
       >
         {isMicOn ? <FaMicrophone className="w-5 h-5" /> : <FaMicrophoneSlash className="w-5 h-5" />}
       </button>
-
-      
       <button
         onClick={() => toggleCam()}
         style={{
@@ -43,8 +35,6 @@ export default function MeetingToolbar({ onLeave }) {
       >
         {isCamOn ? <FaVideo className="w-5 h-5" /> : <FaVideoSlash className="w-5 h-5" />}
       </button>
-
-     
       <button
         onClick={() => toggleScreen()}
         style={{
@@ -55,12 +45,8 @@ export default function MeetingToolbar({ onLeave }) {
         title={isScreenOn ? 'Stop Presenting' : 'Present Screen'}
       >
         <FaDesktop className="w-5 h-5" />
-      </button>
-
-     
+      </button>     
       <div className="w-px h-6 bg-gray-200 mx-1" />
-
-     
       <button
         onClick={onLeave}
         style={{

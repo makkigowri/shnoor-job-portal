@@ -25,5 +25,4 @@ const UserDashboardLayout = ({ children }) => {
     </div>
   );
 };
-
 export default UserDashboardLayout;

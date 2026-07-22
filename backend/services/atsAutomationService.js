@@ -15,7 +15,6 @@ const {
 const {
   assignPublishedAssessmentsToNewlyShortlistedCandidate
 } = require("../models/assessmentAssignmentModel");
-
 const getAtsThreshold = () => {
   const configured = Number(process.env.ATS_AUTO_SHORTLIST_THRESHOLD);
   return Number.isFinite(configured) && configured > 0 ? configured : 80;
@@ -106,17 +105,13 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
     <p>
       Please log in to SHNOOR Job Portal and complete your technical assessment.
     </p>
-
     <a href="http://localhost:5173/user/my-assessments"
       style="background:#4F46E5;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;">
       Start Assessment
     </a>
-
     <br><br>
-
     Regards,<br>
     <strong>SHNOOR Recruitment Team</strong>
-
   </div>
   `
 );

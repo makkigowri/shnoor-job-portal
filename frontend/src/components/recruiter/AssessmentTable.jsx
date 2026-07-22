@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "./StatusBadge";
-
 const ActionMenu = ({ assessment, onClose, onDelete, actioningId }) => {
   const navigate = useNavigate();
   const menuRef = useRef(null);
   const [open, setOpen] = useState(false);
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -23,15 +21,12 @@ const ActionMenu = ({ assessment, onClose, onDelete, actioningId }) => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-
   const isBusy = actioningId === assessment.id;
   const canClose = assessment.status === "Published";
-
   const go = (path) => {
     setOpen(false);
     navigate(path);
   };
-
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
@@ -93,7 +88,6 @@ const ActionMenu = ({ assessment, onClose, onDelete, actioningId }) => {
     </div>
   );
 };
-
 const AssessmentTable = ({ assessments, onClose, onDelete, actioningId }) => {
   const navigate = useNavigate();
   return (

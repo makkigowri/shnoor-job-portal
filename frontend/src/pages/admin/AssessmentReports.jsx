@@ -66,7 +66,6 @@ const AdminAssessmentReports = () => {
           </Link>
         </div>
       </div>
-
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
@@ -119,7 +118,6 @@ const AdminAssessmentReports = () => {
             ))}
           </tbody>
         </table>
-
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
       {reportLoading && <p className="mt-4 text-gray-500">Loading report...</p>}
@@ -168,7 +166,6 @@ const AdminAssessmentReports = () => {
             <p className="mt-6 text-xs text-gray-400">
               Note: individual candidate results are managed by the recruiter who owns this assessment.
             </p>
-
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setReport(null)}

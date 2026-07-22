@@ -1,8 +1,6 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const { findUserById } = require("../models/userModel");
-
-
 const initMeetingSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
@@ -11,7 +9,6 @@ const initMeetingSocket = (httpServer) => {
     },
     path: "/socket.io/meeting"
   });
-
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth && socket.handshake.auth.token;
@@ -29,7 +26,6 @@ const initMeetingSocket = (httpServer) => {
       next(new Error("Not authorized"));
     }
   });
-
   io.on("connection", (socket) => {
     socket.on("join-room", async ({ roomCode }) => {
       try {
@@ -66,12 +62,10 @@ const initMeetingSocket = (httpServer) => {
         socket.emit("meeting-error", { message: "Failed to join meeting room" });
       }
     });
-
     socket.on("signal", ({ to, data }) => {
       if (!to) return;
       io.to(to).emit("signal", { from: socket.id, role: socket.role, data });
     });
-
     socket.on("media-status", ({ cameraOn, micOn }) => {
       if (!socket.roomCode) return;
       socket.to(socket.roomCode).emit("participant-media-status", {
@@ -80,7 +74,6 @@ const initMeetingSocket = (httpServer) => {
         micOn
       });
     });
-
     socket.on("screen-share-status", ({ sharing }) => {
       if (!socket.roomCode) return;
       socket.to(socket.roomCode).emit("participant-screen-share", {
@@ -88,14 +81,12 @@ const initMeetingSocket = (httpServer) => {
         sharing
       });
     });
-
     socket.on("leave-room", () => {
       if (socket.roomCode) {
         socket.to(socket.roomCode).emit("participant-left", { socketId: socket.id });
         socket.leave(socket.roomCode);
       }
     });
-
     socket.on("disconnect", () => {
       if (socket.roomCode) {
         socket.to(socket.roomCode).emit("participant-left", { socketId: socket.id });
@@ -105,5 +96,4 @@ const initMeetingSocket = (httpServer) => {
 
   return io;
 };
-
 module.exports = { initMeetingSocket };

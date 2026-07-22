@@ -153,7 +153,6 @@ const Settings = () => {
                   {deleteError}
                 </div>
               )}
-
               <div>
                 <label className="block mb-2 font-medium">
                   Enter your password to confirm
@@ -165,7 +164,6 @@ const Settings = () => {
                   className="w-full md:w-1/2 border border-border rounded-lg px-4 py-3"
                 />
               </div>
-
               <div className="flex gap-4">
                 <button
                   onClick={handleDeleteAccount}
@@ -188,7 +186,6 @@ const Settings = () => {
             </div>
           )}
         </div>
-
       </div>
     </UserDashboardLayout>
   );

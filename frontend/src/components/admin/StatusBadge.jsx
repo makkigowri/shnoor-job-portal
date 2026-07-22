@@ -18,5 +18,4 @@ const StatusBadge = ({ status }) => {
     </span>
   );
 };
-
 export default StatusBadge;

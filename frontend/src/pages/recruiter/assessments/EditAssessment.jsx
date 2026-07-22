@@ -7,7 +7,6 @@ import QuestionCard from "../../../components/recruiter/QuestionCard";
 import QuestionEditor from "../../../components/recruiter/QuestionEditor";
 import { getAssessmentById, updateAssessment, publishAssessment } from "../../../services/assessmentService";
 import { getMyJobs } from "../../../services/jobService";
-
 const initialState = {
   title: "",
   description: "",
@@ -16,7 +15,6 @@ const initialState = {
   durationMinutes: 30,
   passingMarks: 0
 };
-
 export default function EditAssessment() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,13 +29,11 @@ export default function EditAssessment() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
       .catch(() => {});
   }, []);
-
   const load = async () => {
     setLoading(true);
     setError("");
@@ -60,18 +56,13 @@ export default function EditAssessment() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
   const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
   const handleAddQuestion = () => {
     setEditingIndex(null);
     setShowEditor(true);
@@ -100,7 +91,6 @@ export default function EditAssessment() {
     [updated[index], updated[target]] = [updated[target], updated[index]];
     setQuestions(updated);
   };
-
   const buildQuestionsPayload = () =>
     questions.map((q, i) => ({
       questionText: q.question_text ?? q.questionText,
@@ -110,7 +100,6 @@ export default function EditAssessment() {
       marks: Number(q.marks) || 1,
       orderIndex: i
     }));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -138,7 +127,6 @@ export default function EditAssessment() {
       setSubmitting(false);
     }
   };
-
   const handlePublish = async () => {
     setError("");
     setSuccess("");
@@ -162,7 +150,6 @@ export default function EditAssessment() {
       setPublishing(false);
     }
   };
-
   if (loading) {
     return (
       <RecruiterDashboardLayout>
@@ -170,7 +157,6 @@ export default function EditAssessment() {
       </RecruiterDashboardLayout>
     );
   }
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -188,14 +174,12 @@ export default function EditAssessment() {
           Back to Details
         </Link>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
       {success && (
         <div className="mt-6 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3">{success}</div>
       )}
-
       <form onSubmit={handleSubmit} className="bg-white mt-8 rounded-2xl border border-gray-200 shadow-sm p-8">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
@@ -263,7 +247,6 @@ export default function EditAssessment() {
             </p>
           </div>
         </div>
-
         <div className="mt-10">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <h2 className="text-xl font-semibold text-[#3E3A74]">Questions ({questions.length})</h2>
@@ -313,7 +296,6 @@ export default function EditAssessment() {
             ))}
           </div>
         </div>
-
         <div className="mt-10 flex flex-wrap gap-4">
           <button
             type="submit"
@@ -341,7 +323,6 @@ export default function EditAssessment() {
           </button>
         </div>
       </form>
-
       {showEditor && (
         <QuestionEditor
           initialQuestion={editingIndex !== null ? questions[editingIndex] : null}

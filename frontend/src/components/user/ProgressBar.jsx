@@ -1,5 +1,3 @@
-// Simple labeled progress bar, used to show how many questions have been
-// answered so far during Take Assessment.
 const ProgressBar = ({ answered, total }) => {
   const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
   return (
@@ -19,5 +17,4 @@ const ProgressBar = ({ answered, total }) => {
     </div>
   );
 };
-
 export default ProgressBar;

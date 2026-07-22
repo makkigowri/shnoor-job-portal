@@ -72,7 +72,6 @@ export default function Notifications() {
     }
   };
   const hasUnread = notifications.some((item) => !item.is_read);
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between">

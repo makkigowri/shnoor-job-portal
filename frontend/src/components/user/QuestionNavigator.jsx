@@ -1,5 +1,3 @@
-// Question Palette: grid of numbered buttons showing answered / unanswered /
-// current state, letting the candidate jump to any question instantly.
 const QuestionNavigator = ({ questions, answeredMap, currentIndex, onNavigate }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
@@ -42,5 +40,4 @@ const QuestionNavigator = ({ questions, answeredMap, currentIndex, onNavigate })
     </div>
   );
 };
-
 export default QuestionNavigator;

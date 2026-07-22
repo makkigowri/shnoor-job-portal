@@ -3,10 +3,6 @@ const TYPE_LABELS = {
   true_false: "True / False",
   short_answer: "Short Answer"
 };
-
-// Renders a single question with the appropriate answer input for its type,
-// and reports changes back up as plain text (to match the backend's
-// answer_text column, which is used for auto-grading mcq/true_false).
 const QuestionCard = ({ question, index, total, value, onChange }) => {
   let options = question.options;
   if (typeof options === "string") {
@@ -16,7 +12,6 @@ const QuestionCard = ({ question, index, total, value, onChange }) => {
       options = [];
     }
   }
-
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
       <div className="flex items-center gap-3 flex-wrap">
@@ -30,9 +25,7 @@ const QuestionCard = ({ question, index, total, value, onChange }) => {
           {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
         </span>
       </div>
-
       <p className="mt-4 text-lg text-gray-900 font-medium">{question.question_text}</p>
-
       <div className="mt-5 space-y-3">
         {question.question_type === "mcq" &&
           Array.isArray(options) &&
@@ -55,7 +48,6 @@ const QuestionCard = ({ question, index, total, value, onChange }) => {
               <span className="text-gray-800">{opt}</span>
             </label>
           ))}
-
         {question.question_type === "true_false" &&
           ["True", "False"].map((opt) => (
             <label
@@ -76,7 +68,6 @@ const QuestionCard = ({ question, index, total, value, onChange }) => {
               <span className="text-gray-800">{opt}</span>
             </label>
           ))}
-
         {question.question_type === "short_answer" && (
           <textarea
             value={value || ""}
@@ -90,5 +81,4 @@ const QuestionCard = ({ question, index, total, value, onChange }) => {
     </div>
   );
 };
-
 export default QuestionCard;

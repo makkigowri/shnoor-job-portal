@@ -121,7 +121,6 @@ export default function AssessmentResults() {
           Back to Details
         </Link>
       </div>
-
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
@@ -152,7 +151,6 @@ export default function AssessmentResults() {
           <ResultTable results={results} onViewDetail={handleViewDetail} />
         )}
       </div>
-
       {detailLoading && <p className="mt-4 text-gray-500">Loading submission...</p>}
       {detail && <SubmissionDetailModal submission={detail} onClose={() => setDetail(null)} />}
     </RecruiterDashboardLayout>

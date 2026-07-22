@@ -3,24 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LiveKitRoom, useTracks, VideoTrack, RoomAudioRenderer, useChat } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import MeetingToolbar from '../../components/MeetingToolbar';
-
 export default function MeetingRoom() {
   const { roomName } = useParams();
   const navigate = useNavigate();
-
   const [token, setToken] = useState(null);
   const [livekitUrl, setLivekitUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [timeElapsed, setTimeElapsed] = useState(0);
-
   const [userContext, setUserContext] = useState({
     fullname: 'Authorized Candidate',
     role: 'Jobseeker'
   });
-
-  
   const [activePanel, setActivePanel] = useState(null); 
 
   useEffect(() => {
@@ -29,25 +24,21 @@ export default function MeetingRoom() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
   const formatTime = (totalSeconds) => {
     const hrs = Math.floor(totalSeconds / 3600);
     const mins = Math.floor((totalSeconds % 3600) / 60);
     const secs = totalSeconds % 60;
     return `${hrs > 0 ? `${hrs}:` : ''}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
   useEffect(() => {
     const fetchMeetingCredentials = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
         const storedToken = localStorage.getItem('shnoor_token');
         if (!storedToken) {
           throw new Error('Authentication session token is missing. Please log in first.');
         }
-
         const storedUser = localStorage.getItem('shnoor_user');
         if (storedUser) {
           try {
@@ -58,7 +49,6 @@ export default function MeetingRoom() {
             });
           } catch (_) {}
         }
-
         const response = await fetch(`/api/meeting/join/${roomName}`, {
           method: 'GET',
           headers: {
@@ -66,7 +56,6 @@ export default function MeetingRoom() {
             'Authorization': `Bearer ${storedToken}`
           }
         });
-
         if (!response.ok) {
           let msg = `Request failed: ${response.status}`;
           try {
@@ -75,12 +64,10 @@ export default function MeetingRoom() {
           } catch (_) {}
           throw new Error(msg);
         }
-
         const data = await response.json();
         if (!data.success || !data.token || !data.url) {
           throw new Error('Failed to generate valid secure meeting tokens.');
         }
-
         setToken(data.token);
         setLivekitUrl(data.url);
         setConnectionStatus('connected');
@@ -92,17 +79,14 @@ export default function MeetingRoom() {
         setIsLoading(false);
       }
     };
-
     if (roomName) {
       fetchMeetingCredentials();
     }
   }, [roomName]);
-
   const handleDisconnect = () => {
     setConnectionStatus('disconnected');
     navigate(-1);
   };
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
@@ -111,7 +95,6 @@ export default function MeetingRoom() {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -142,10 +125,8 @@ export default function MeetingRoom() {
       </div>
     );
   }
-
   return (
-    <div style={{ backgroundColor: 'rgb(250, 250, 250)' }} className="flex flex-col h-screen font-sans overflow-hidden">
-      
+    <div style={{ backgroundColor: 'rgb(250, 250, 250)' }} className="flex flex-col h-screen font-sans overflow-hidden">   
       <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100 shadow-sm z-30">
         <div className="flex items-center gap-3">
           <div style={{ backgroundColor: '#3E3A74' }} className="w-8 h-8 rounded-lg flex items-center justify-center">
@@ -156,20 +137,15 @@ export default function MeetingRoom() {
             <p className="text-[15px] text-gray-400 font-semibold tracking-wider uppercase">Meet</p>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           <div style={{ backgroundColor: '#eef2ff', color: '#3E3A74', borderColor: '#7393D3' }} className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold">
             <span style={{ backgroundColor: '#3E3A74' }} className="w-2 h-2 rounded-full animate-pulse" />
             {connectionStatus === 'connected' ? 'Live' : 'Reconnecting'}
           </div>
-
           <div style={{ color: '#3E3A74' }} className="bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-mono font-bold tracking-wider">
             {formatTime(timeElapsed)}
           </div>
-
           <div className="h-6 w-[1px] bg-gray-200" />
-
-          
           <button 
             onClick={() => setActivePanel(activePanel === 'chat' ? null : 'chat')}
             className={`p-2 rounded-full transition-all duration-200 ${activePanel === 'chat' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -178,8 +154,6 @@ export default function MeetingRoom() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </button>
-
-         
           <button 
             onClick={() => setActivePanel(activePanel === 'participants' ? null : 'participants')}
             className={`p-2 rounded-full transition-all duration-200 ${activePanel === 'participants' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -190,8 +164,6 @@ export default function MeetingRoom() {
           </button>
         </div>
       </header>
-
-     
       <div className="flex flex-1 overflow-hidden relative">
         <LiveKitRoom
           token={token}
@@ -202,28 +174,21 @@ export default function MeetingRoom() {
           onDisconnected={handleDisconnect}
           className="flex-1 flex flex-row relative h-full w-full overflow-hidden"
         >
-         
           <div className="flex-1 flex flex-col relative p-4 sm:p-6 min-w-0 transition-all duration-300">
             <div className="flex-1 flex items-center justify-center w-full h-full pb-24">
               <MeetingGrid />
             </div>
-
-            
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
               <MeetingToolbar onLeave={handleDisconnect} />
             </div>
           </div>
-
           <RoomAudioRenderer />
-
-          
           <MeetingSidePanel activePanel={activePanel} onClose={() => setActivePanel(null)} />
         </LiveKitRoom>
       </div>
     </div>
   );
 }
-
 function MeetingGrid() {
   const tracks = useTracks(
     [
@@ -232,12 +197,10 @@ function MeetingGrid() {
     ],
     { onlySubscribed: false }
   );
-
   const tileCount = tracks.length;
   const screenShareTrack = tracks.find(t => t.source === Track.Source.ScreenShare);
   const isScreenSharing = !!screenShareTrack;
   const cameraTracks = tracks.filter(t => t.source === Track.Source.Camera);
-
   if (tileCount === 0) {
     return (
       <div className="text-center p-8 bg-white/60 backdrop-blur border border-gray-100 rounded-3xl max-w-sm mx-auto">
@@ -250,8 +213,6 @@ function MeetingGrid() {
       </div>
     );
   }
-
- 
   if (isScreenSharing) {
     return (
       <div className="flex flex-col lg:flex-row gap-4 w-full h-full items-stretch transition-all duration-500 ease-out">
@@ -262,7 +223,6 @@ function MeetingGrid() {
             {screenShareTrack.participant.name || screenShareTrack.participant.identity || 'User'}'s Screen
           </div>
         </div>
-
         <div className="flex-1 lg:max-w-[22%] flex lg:flex-col gap-3 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto pr-1 pb-2 lg:pb-0 content-start">
           {cameraTracks.map((track) => (
             <div key={`${track.participant.sid}-${track.source}`} className="w-48 sm:w-60 lg:w-full shrink-0 aspect-video">
@@ -273,8 +233,6 @@ function MeetingGrid() {
       </div>
     );
   }
-
- 
   let gridClasses = "grid gap-4 w-full h-full transition-all duration-300 items-center justify-center ";
   if (tileCount === 1) {
     gridClasses += "grid-cols-1 max-w-4xl aspect-video mx-auto";
@@ -287,7 +245,6 @@ function MeetingGrid() {
   } else {
     gridClasses += "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 w-full";
   }
-
   return (
     <div className={gridClasses}>
       {tracks.map((track) => (
@@ -298,14 +255,12 @@ function MeetingGrid() {
     </div>
   );
 }
-
 function VideoTile({ track }) {
   const name = track.participant.name || track.participant.identity || 'User';
   const firstLetter = name.charAt(0).toUpperCase();
   const isCamOff = track.source === Track.Source.Camera && !track.participant.isCameraEnabled;
   const isMicOff = !track.participant.isMicrophoneEnabled;
   const isSpeaking = track.participant.isSpeaking;
-
   return (
     <div className={`relative w-full h-full bg-gray-950 border transition-all duration-300 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center group hover:shadow-md ${isSpeaking ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-200'}`}>
       {isCamOff ? (
@@ -318,7 +273,6 @@ function VideoTile({ track }) {
       ) : (
         <VideoTrack trackRef={track} className="w-full h-full object-cover rounded-2xl" />
       )}
-
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
         <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-medium text-white flex items-center gap-1.5 max-w-[80%] truncate">
           <span className={`w-1.5 h-1.5 rounded-full ${isCamOff ? 'bg-gray-400' : 'bg-emerald-500'}`} />
@@ -334,21 +288,14 @@ function VideoTile({ track }) {
     </div>
   );
 }
-
-
 function MeetingSidePanel({ activePanel, onClose }) {
-  const tracks = useTracks([{ source: Track.Source.Camera, withPlaceholder: true }], { onlySubscribed: false });
-  
-  
+  const tracks = useTracks([{ source: Track.Source.Camera, withPlaceholder: true }], { onlySubscribed: false }); 
   const { send, chatMessages } = useChat();
   const [msgText, setMsgText] = useState('');
-
   if (!activePanel) return null;
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!msgText.trim()) return;
-
     try {
       if (send) {
         await send(msgText.trim());
@@ -358,7 +305,6 @@ function MeetingSidePanel({ activePanel, onClose }) {
       console.error("Message transmission failure:", err);
     }
   };
-
   return (
     <aside className="w-full sm:w-[350px] bg-white border-l border-gray-200 h-full flex flex-col shrink-0 z-40 transition-all duration-300">
       <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between shrink-0">
@@ -371,7 +317,6 @@ function MeetingSidePanel({ activePanel, onClose }) {
           </svg>
         </button>
       </div>
-
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {activePanel === 'chat' ? (
           <div className="flex flex-col gap-3 min-h-full justify-between">
@@ -395,7 +340,6 @@ function MeetingSidePanel({ activePanel, onClose }) {
               const pInitial = pName.charAt(0).toUpperCase();
               const pMicOff = !track.participant.isMicrophoneEnabled;
               const pCamOff = !track.participant.isCameraEnabled;
-
               return (
                 <div key={track.participant.sid} className="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -404,7 +348,6 @@ function MeetingSidePanel({ activePanel, onClose }) {
                     </div>
                     <span className="text-xs font-semibold text-gray-700 truncate">{pName}</span>
                   </div>
-
                   <div className="flex items-center gap-1.5 shrink-0">
                     <div className={`p-1 rounded-lg ${pMicOff ? 'text-red-500 bg-red-50' : 'text-emerald-500 bg-emerald-50'}`}>
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -425,7 +368,6 @@ function MeetingSidePanel({ activePanel, onClose }) {
           </div>
         )}
       </div>
-
       {activePanel === 'chat' && (
         <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2 shrink-0">
           <input

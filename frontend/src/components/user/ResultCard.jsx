@@ -4,9 +4,6 @@ const formatDuration = (seconds) => {
   const s = seconds % 60;
   return `${m}m ${s}s`;
 };
-
-// Top-of-page summary card on the Assessment Result page: score, percentage,
-// pass/fail outcome and time taken.
 const ResultCard = ({ submission }) => {
   const isPass = submission.result === "Pass";
   return (
@@ -48,5 +45,4 @@ const ResultCard = ({ submission }) => {
     </div>
   );
 };
-
 export default ResultCard;

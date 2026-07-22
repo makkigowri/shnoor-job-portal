@@ -39,7 +39,6 @@ const AdminAssessmentManagement = () => {
     e.preventDefault();
     load(1);
   };
-
   const handleView = async (id) => {
     setViewLoading(true);
     try {
@@ -149,7 +148,6 @@ const AdminAssessmentManagement = () => {
             ))}
           </tbody>
         </table>
-
         <Pagination page={data.page} totalPages={data.totalPages} onChange={load} />
       </div>
       {viewLoading && <p className="mt-4 text-gray-500">Loading assessment...</p>}
@@ -186,7 +184,6 @@ const AdminAssessmentManagement = () => {
                 <p className="text-gray-500 text-sm">No questions added yet.</p>
               )}
             </div>
-
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setViewAssessment(null)}
