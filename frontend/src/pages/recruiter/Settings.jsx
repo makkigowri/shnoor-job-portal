@@ -82,20 +82,20 @@ export default function Settings() {
           </div>
           <div className="grid md:grid-cols-2 gap-6 mt-6">
             <div>
-              <label className="font-medium text-gray-900">Full Name</label>
-              <input value={user?.fullname || ""} readOnly className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
+              <label htmlFor="fullname" className="font-medium text-gray-900">Full Name</label>
+              <input value={user?.fullname || ""} readOnly id="fullname" className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
             </div>
             <div>
-              <label className="font-medium text-gray-900">Email</label>
-              <input value={user?.email || ""} readOnly className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
+              <label htmlFor="email" className="font-medium text-gray-900">Email</label>
+              <input value={user?.email || ""} readOnly  id="email" className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
             </div>
             <div>
-              <label className="font-medium text-gray-900">Phone</label>
-              <input value={user?.phone || ""} readOnly className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
+              <label htmlFor="phone" className="font-medium text-gray-900">Phone</label>
+              <input value={user?.phone || ""} readOnly id="phone" className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
             </div>
             <div>
-              <label className="font-medium text-gray-900">Role</label>
-              <input value="Recruiter" readOnly className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
+              <label htmlFor="role" className="font-medium text-gray-900">Role</label>
+              <input value="Recruiter" readOnly id="role" className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 mt-2" />
             </div>
           </div>
           <p className="mt-4 text-sm text-gray-500">Company details (logo, industry, description) are managed on the Company Profile page.</p>
@@ -110,27 +110,27 @@ export default function Settings() {
           )}
           <div className="grid md:grid-cols-2 gap-6 mt-6">
             <div className="md:col-span-2">
-              <label className="font-medium text-gray-900">Current Password</label>
+              <label htmlFor="currrentpwd" className="font-medium text-gray-900">Current Password</label>
               <input
-                type="password"
+                type="password" id="currentpwd"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
                 className="w-full border border-gray-300 rounded-xl p-3 mt-2 focus:border-[#7393D3] focus:outline-none"
               />
             </div>
             <div>
-              <label className="font-medium text-gray-900">New Password</label>
+              <label htmlFor="newpwd" className="font-medium text-gray-900">New Password</label>
               <input
-                type="password"
+                type="password" id="newpwd"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
                 className="w-full border border-gray-300 rounded-xl p-3 mt-2 focus:border-[#7393D3] focus:outline-none"
               />
             </div>
             <div>
-              <label className="font-medium text-gray-900">Confirm New Password</label>
+              <label htmlFor="cnewowd" className="font-medium text-gray-900">Confirm New Password</label>
               <input
-                type="password"
+                type="password" id="cnewpwd"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
                 className="w-full border border-gray-300 rounded-xl p-3 mt-2 focus:border-[#7393D3] focus:outline-none"
@@ -160,7 +160,7 @@ export default function Settings() {
                 <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{deleteError}</div>
               )}
                <div>
-                <label className="block mb-2 font-medium">
+                <label htmlFor="cnf" className="block mb-2 font-medium">
                   Enter your password to confirm
                 </label>
                 <input

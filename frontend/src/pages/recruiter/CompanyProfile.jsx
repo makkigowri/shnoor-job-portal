@@ -115,28 +115,28 @@ export default function CompanyProfile() {
         </div>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="font-medium text-gray-900">Company Name</label>
-            <input name="companyName" value={company.companyName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label htmlFor="companyName" className="font-medium text-gray-900">Company Name</label>
+            <input name="companyName" id="companyName" value={company.companyName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Website</label>
-            <input name="website" value={company.website} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label className="font-medium text-gray-900" htmlFor="website">Website</label>
+            <input name="website" id="website" value={company.website} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Email</label>
-            <input name="email" value={company.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label className="font-medium text-gray-900" htmlFor="email">Email</label>
+            <input name="email" id="email" value={company.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Phone</label>
-            <input name="phone" value={company.phone} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label htmlFor="phone" className="font-medium text-gray-900">Phone</label>
+            <input name="phone" id="phone" value={company.phone} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Industry</label>
-            <input name="industry" value={company.industry} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label htmlFor="industry" className="font-medium text-gray-900">Industry</label>
+            <input name="industry" id="industry" value={company.industry} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Company Size</label>
-            <select name="companySize" value={company.companySize} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none">
+            <label htmlFor="companysize" className="font-medium text-gray-900">Company Size</label>
+            <select name="companySize" id="companysize" value={company.companySize} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none">
               <option>1-10 Employees</option>
               <option>10-50 Employees</option>
               <option>50-200 Employees</option>
@@ -145,12 +145,12 @@ export default function CompanyProfile() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="font-medium text-gray-900">Headquarters</label>
-            <input name="headquarters" value={company.headquarters} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label id="headquarters" className="font-medium text-gray-900">Headquarters</label>
+            <input name="headquarters" id="headquarters" value={company.headquarters} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div className="md:col-span-2">
-            <label className="font-medium text-gray-900">Company Description</label>
-            <textarea rows="6" name="description" value={company.description} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label htmlFor="description" className="font-medium text-gray-900">Company Description</label>
+            <textarea rows="6" name="description" id="description" value={company.description} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
         </div>
         <div className="mt-8">

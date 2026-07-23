@@ -38,16 +38,16 @@ export default function PostJob() {
       <form onSubmit={handleSubmit} className="bg-white mt-8 rounded-2xl border border-gray-200 shadow-sm p-8">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="font-medium text-gray-900">Job Title</label>
-            <input name="title" value={job.title} onChange={handleChange} required className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Frontend Developer" />
+            <label htmlFor="title" className="font-medium text-gray-900">Job Title</label>
+            <input name="title" id="title" value={job.title} onChange={handleChange} required className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Frontend Developer" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Department</label>
-            <input name="department" value={job.department} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Software Development" />
+            <label htmlFor="department" className="font-medium text-gray-900">Department</label>
+            <input id="department" name="department" value={job.department} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Software Development" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Employment Type</label>
-            <select name="employmentType" value={job.employmentType} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none">
+            <label htmlFor="employmentType" className="font-medium text-gray-900">Employment Type</label>
+            <select name="employmentType" id="employementTyoe" value={job.employmentType} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none">
               <option>Full Time</option>
               <option>Part Time</option>
               <option>Internship</option>
@@ -56,37 +56,37 @@ export default function PostJob() {
             </select>
           </div>
           <div>
-            <label className="font-medium text-gray-900">Experience</label>
-            <input name="experience" value={job.experience} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="2-4 Years" />
+            <label htmlFor="experience" className="font-medium text-gray-900">Experience</label>
+            <input name="experience" id="experience" value={job.experience} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="2-4 Years" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Salary</label>
-            <input name="salary" value={job.salary} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="6 LPA - 10 LPA" />
+            <label htmlFor="salary" className="font-medium text-gray-900">Salary</label>
+            <input name="salary" id="salary" value={job.salary} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="6 LPA - 10 LPA" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Location</label>
-            <input name="location" value={job.location} onChange={handleChange} required className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Hyderabad" />
+            <label htmlFor="location" className="font-medium text-gray-900">Location</label>
+            <input name="location" id="location" value={job.location} onChange={handleChange} required className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="Hyderabad" />
           </div>
           <div className="md:col-span-2">
-            <label className="font-medium text-gray-900">Skills</label>
-            <input name="skills" value={job.skills} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="React, JavaScript, HTML, CSS" />
+            <label htmlFor="skills" className="font-medium text-gray-900">Skills</label>
+            <input name="skills" id="skills" value={job.skills} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="React, JavaScript, HTML, CSS" />
           </div>
           <div>
-            <label className="font-medium text-gray-900">Number of Openings</label>
-            <input type="number" min="1" name="openings" value={job.openings} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
+            <label htmlFor="number" className="font-medium text-gray-900">Number of Openings</label>
+            <input type="number" id="number" min="1" name="openings" value={job.openings} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
         </div>
         <div className="mt-6">
-          <label className="font-medium text-gray-900">Job Description</label>
-          <textarea rows="6" name="description" value={job.description} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
+          <label htmlFor="description" className="font-medium text-gray-900">Job Description</label>
+          <textarea rows="6" name="description" id="description" value={job.description} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
         </div>
         <div className="mt-6">
-          <label className="font-medium text-gray-900">Responsibilities</label>
-          <textarea rows="5" name="responsibilities" value={job.responsibilities} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
+          <label htmlFor="responsibilites" className="font-medium text-gray-900">Responsibilities</label>
+          <textarea rows="5" name="responsibilities" id="responsibilites" value={job.responsibilities} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
         </div>
         <div className="mt-6">
-          <label className="font-medium text-gray-900">Requirements</label>
-          <textarea rows="5" name="requirements" value={job.requirements} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
+          <label htmlFor="requirements" className="font-medium text-gray-900">Requirements</label>
+          <textarea rows="5" name="requirements" id="requirements" value={job.requirements} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
         </div>
         <button disabled={submitting} className="mt-8 bg-[#7393D3] hover:bg-[#5E84D6] text-white px-8 py-3 rounded-xl transition disabled:opacity-60">
           {submitting ? "Publishing..." : "Publish Job"}
