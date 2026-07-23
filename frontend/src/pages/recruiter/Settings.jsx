@@ -145,12 +145,12 @@ export default function Settings() {
           </button>
         </form>
         <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-8">
-          <h2 className="text-2xl font-semibold text-red-600">Danger Zone</h2>
-          <p className="mt-3 text-gray-500">Permanently delete your SHNOOR recruiter account, including all your job postings. This action cannot be undone.</p>
+         
+          <p className="mt-3 text-gray-600">Permanently delete your SHNOOR recruiter account, including all your job postings. This action cannot be undone.</p>
           {!confirmingDelete ? (
             <button
               onClick={() => setConfirmingDelete(true)}
-              className="mt-6 border border-red-500 text-red-500 px-6 py-3 rounded-xl hover:bg-red-500 hover:text-white transition"
+              className="mt-6 border border-red-700 text-red-700 px-6 py-3 rounded-xl hover:bg-red-700 hover:text-white transition"
             >
               Delete Account
             </button>
@@ -174,7 +174,7 @@ export default function Settings() {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleting}
-                  className="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition disabled:opacity-60"
+                  className="bg-red-700 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition disabled:opacity-60"
                 >
                   {deleting ? "Deleting..." : "Confirm Delete"}
                 </button>
