@@ -90,7 +90,7 @@ const Settings = () => {
           )}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block mb-2 font-medium">
+              <label htmlFor="currentpassword" className="block mb-2 font-medium">
                 Current Password
               </label>
               <input
@@ -101,7 +101,7 @@ const Settings = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="newpassword" className="block mb-2 font-medium">
                 New Password
               </label>
               <input
@@ -112,7 +112,7 @@ const Settings = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="newpwd" className="block mb-2 font-medium">
                 Confirm New Password
               </label>
               <input
@@ -132,9 +132,7 @@ const Settings = () => {
           </button>
         </form>
         <div className="bg-white rounded-xl border border-border shadow-sm p-8">
-          <h2 className="text-xl font-semibold mb-4 text-red-600">
-            Danger Zone
-          </h2>
+         
           <p className="text-body">
             Permanently delete your SHNOOR Job Portal account. This action cannot be undone.
           </p>
@@ -154,7 +152,7 @@ const Settings = () => {
                 </div>
               )}
               <div>
-                <label className="block mb-2 font-medium">
+                <label htmlFor="conformpwd" className="block mb-2 font-medium">
                   Enter your password to confirm
                 </label>
                 <input

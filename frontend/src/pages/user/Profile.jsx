@@ -194,7 +194,7 @@ const Profile = () => {
              />
            ) : (
            <div className="w-28 h-28 rounded-full border-2 border-dashed border-gray-300 bg-gray-100 flex items-center justify-center">
-  <span className="text-gray-400 text-sm">
+  <span className="text-gray-600 text-sm">
     No Photo
   </span>
 </div>
@@ -221,7 +221,7 @@ const Profile = () => {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="fullname" className="block mb-2 font-medium">
                 Full Name
               </label>
               <input
@@ -232,7 +232,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="email" className="block mb-2 font-medium">
                 Email
               </label>
               <input
@@ -243,7 +243,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="phone" className="block mb-2 font-medium">
                 Phone
               </label>
               <input
@@ -254,7 +254,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="location" className="block mb-2 font-medium">
                 Location
               </label>
               <input
@@ -265,7 +265,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="qualification" className="block mb-2 font-medium">
                 Qualification
               </label>
               <input
@@ -276,7 +276,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="specialization" className="block mb-2 font-medium">
                 Specialization
               </label>
               <input
@@ -287,7 +287,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="skills" className="block mb-2 font-medium">
                 Skills
               </label>
               <input
@@ -299,7 +299,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="github" className="block mb-2 font-medium">
                 GitHub
               </label>
               <input
@@ -310,7 +310,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="linkedin" className="block mb-2 font-medium">
                 LinkedIn
               </label>
               <input
@@ -321,7 +321,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">
+              <label htmlFor="resume" className="block mb-2 font-medium">
                 Upload Resume
               </label>
               {resumeError && (
@@ -395,7 +395,7 @@ const Profile = () => {
             </div>
           </div>
           <div className="mt-6">
-            <label className="block mb-2 font-medium">
+            <label htmlFor="aboutme" className="block mb-2 font-medium">
               About Me
             </label>
             <textarea
