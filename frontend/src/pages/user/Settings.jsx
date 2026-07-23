@@ -94,7 +94,7 @@ const Settings = () => {
                 Current Password
               </label>
               <input
-                type="password"
+                type="password" id="currentpassword"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
                 className="w-full border border-border rounded-lg px-4 py-3"
@@ -105,7 +105,7 @@ const Settings = () => {
                 New Password
               </label>
               <input
-                type="password"
+                type="password" id="newpassword"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
                 className="w-full border border-border rounded-lg px-4 py-3"
@@ -116,7 +116,7 @@ const Settings = () => {
                 Confirm New Password
               </label>
               <input
-                type="password"
+                type="password" id="newpwd"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
                 className="w-full border border-border rounded-lg px-4 py-3"
@@ -156,7 +156,7 @@ const Settings = () => {
                   Enter your password to confirm
                 </label>
                 <input
-                  type="password"
+                  type="password" id="conformpwd"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   className="w-full md:w-1/2 border border-border rounded-lg px-4 py-3"

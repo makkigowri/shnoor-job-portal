@@ -226,7 +226,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3 bg-gray-50"
-                name="fullname"
+                name="fullname" id="fullname"
                 value={form.fullname}
                 readOnly
               />
@@ -237,7 +237,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3 bg-gray-50"
-                name="email"
+                name="email" id="email"
                 value={form.email}
                 readOnly
               />
@@ -248,7 +248,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3 bg-gray-50"
-                name="phone"
+                name="phone" id="phone"
                 value={form.phone}
                 readOnly
               />
@@ -259,7 +259,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="location"
+                name="location" id="location"
                 value={form.location}
                 onChange={handleChange}
               />
@@ -270,7 +270,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="qualification"
+                name="qualification" id="qualification"
                 value={form.qualification}
                 onChange={handleChange}
               />
@@ -281,7 +281,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="specialization"
+                name="specialization" id="specialization"
                 value={form.specialization}
                 onChange={handleChange}
               />
@@ -292,7 +292,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="skills"
+                name="skills" id="skills"
                 value={form.skills}
                 placeholder="React, Java, Python..."
                 onChange={handleChange}
@@ -304,7 +304,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="github"
+                name="github" id="github"
                 value={form.github}
                 onChange={handleChange}
               />
@@ -315,7 +315,7 @@ const Profile = () => {
               </label>
               <input
                 className="w-full border border-border rounded-lg px-4 py-3"
-                name="linkedin"
+                name="linkedin" id="linkedin"
                 value={form.linkedin}
                 onChange={handleChange}
               />
@@ -383,7 +383,7 @@ const Profile = () => {
                     type="button"
                     onClick={handleDeleteResume}
                     disabled={resumeDeleting}
-                    className="border border-red-500 text-red-500 px-5 py-2 rounded-lg hover:bg-red-500 hover:text-white transition disabled:opacity-50 text-sm"
+                    className="border border-red-700 text-red-700 px-5 py-2 rounded-lg hover:bg-red-700 hover:text-white transition disabled:opacity-50 text-sm"
                   >
                     {resumeDeleting ? "Removing..." : "Remove Resume"}
                   </button>
@@ -401,7 +401,7 @@ const Profile = () => {
             <textarea
               rows={5}
               className="w-full border border-border rounded-lg px-4 py-3"
-              name="about"
+              name="about" id="aboutme"
               value={form.about}
               onChange={handleChange}
             />
