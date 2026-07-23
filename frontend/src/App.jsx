@@ -39,9 +39,11 @@ import CookiesPolicy from "./pages/legal/CookiesPolicy";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoutes from "./routes/AdminRoutes";
+import ChatbotWidget from "./components/chatbot/ChatbotWidget";
 const App = () => {
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -291,7 +293,9 @@ const App = () => {
       />
       <Route path="/admin/*" element={<AdminRoutes />} />
       <Route path="*" element={<NotFound />} />
-    </Routes>
+      </Routes>
+      <ChatbotWidget />
+    </>
   );
 };
 export default App;
