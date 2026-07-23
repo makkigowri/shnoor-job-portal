@@ -145,7 +145,7 @@ export default function CompanyProfile() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label id="headquarters" className="font-medium text-gray-900">Headquarters</label>
+            <label htmlFor="headquarters" className="font-medium text-gray-900">Headquarters</label>
             <input name="headquarters" id="headquarters" value={company.headquarters} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
           </div>
           <div className="md:col-span-2">

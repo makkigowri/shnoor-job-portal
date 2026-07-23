@@ -128,9 +128,9 @@ export default function Settings() {
               />
             </div>
             <div>
-              <label htmlFor="cnewowd" className="font-medium text-gray-900">Confirm New Password</label>
+              <label htmlFor="currentpwd" className="font-medium text-gray-900">Confirm New Password</label>
               <input
-                type="password" id="cnewpwd"
+                type="password" id="currentpwd"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
                 className="w-full border border-gray-300 rounded-xl p-3 mt-2 focus:border-[#7393D3] focus:outline-none"
