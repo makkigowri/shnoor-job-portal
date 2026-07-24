@@ -396,8 +396,17 @@ const getAssessmentStatisticsAdmin = async () => {
   const result = await pool.query(query);
   return result.rows[0];
 };
+const getAllJobsAdminExport = async () => {
+  const query = `
+    SELECT j.title,j.department,j.employment_type,j.experience,j.location,j.status,j.created_at,u.fullname AS recruiter_name,
+      (SELECT COUNT(*)::int FROM applications a WHERE a.job_id = j.id AND a.status != 'Withdrawn') AS applications_count
+    FROM jobs j JOIN users u ON u.id = j.recruiter_id
+    ORDER BY j.created_at DESC`;
+  const result = await pool.query(query);
+  return result.rows;
+};
 module.exports = {
   getDashboardStats,getLatestUsers,getLatestRecruiters,getRecentJobPosts,getRecentApplicationsAdmin,listUsersAdmin,getUserByIdAdmin,listRecruitersAdmin,getRecruiterByIdAdmin,
   setUserBlockedStatus,deleteUserAdminById,listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById,listApplicationsAdmin,getApplicationByIdAdmin,deleteApplicationAdminById,getTopRecruiters,
-  getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics,listAssessmentsAdmin,getAssessmentByIdAdmin,deleteAssessmentAdminById,getAssessmentStatisticsAdmin
+  getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics,listAssessmentsAdmin,getAssessmentByIdAdmin,deleteAssessmentAdminById,getAssessmentStatisticsAdmin,getAllJobsAdminExport
 };

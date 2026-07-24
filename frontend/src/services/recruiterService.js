@@ -1,7 +1,12 @@
 import api from "./api";
+import { downloadFileFromResponse } from "./exportService";
 export const getApplicants = async (filters = {}) => {
   const { data } = await api.get("/applications/recruiter", { params: filters });
   return data;
+};
+export const exportApplicants = async (jobId) => {
+  const response = await api.get(`/applications/export/job/${jobId}`, { responseType: "blob" });
+  downloadFileFromResponse(response, "Applicants.xlsx");
 };
 export const updateApplicationStatus = async (applicationId, status, recruiterNote) => {
   const { data } = await api.patch(`/applications/${applicationId}/status`, { status, recruiterNote });

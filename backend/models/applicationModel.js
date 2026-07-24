@@ -167,6 +167,39 @@ const getRecentApplicationsForRecruiter = async (recruiterId, limit = 5) => {
   const result = await pool.query(query, [recruiterId, limit]);
   return result.rows;
 };
+const EXPORT_APPLICANTS_SELECT = `
+  SELECT
+    ap.id AS application_id,ap.status AS application_status,ap.resume_path,ap.resume_filename,ap.applied_at,
+    u.fullname AS applicant_name,u.email AS applicant_email,u.phone AS applicant_phone,
+    j.id AS job_id,j.title AS job_title,j.recruiter_id,
+    COALESCE(aa.status, 'Not Assigned') AS assessment_status,
+    COALESCE(ai.status, 'Not Started') AS ai_interview_status,
+    COALESCE(ti.status, 'Not Scheduled') AS technical_interview_status
+  FROM applications ap
+  JOIN jobs j ON j.id = ap.job_id
+  JOIN users u ON u.id = ap.user_id
+  LEFT JOIN LATERAL (
+    SELECT status FROM assessment_assignments
+    WHERE application_id = ap.id
+    ORDER BY assigned_at DESC
+    LIMIT 1
+  ) aa ON true
+  LEFT JOIN ai_interviews ai ON ai.application_id = ap.id
+  LEFT JOIN technical_interviews ti ON ti.application_id = ap.id `;
+const getApplicantsForExport = async (jobId, recruiterId = null) => {
+  const conditions = [`ap.job_id = $1`, `ap.status != 'Withdrawn'`];
+  const values = [jobId];
+  if (recruiterId) {
+    conditions.push(`j.recruiter_id = $2`);
+    values.push(recruiterId);
+  }
+  const query = `
+    ${EXPORT_APPLICANTS_SELECT}
+    WHERE ${conditions.join(" AND ")}
+    ORDER BY ap.applied_at DESC `;
+  const result = await pool.query(query, values);
+  return result.rows;
+};
 module.exports = {
-  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter,applyAtsResult,getProcessableApplicationsForUser,getAppliedApplicantsForJob
+  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicationsByJob,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,countApplicationsForRecruiter,getRecentApplicationsForRecruiter,applyAtsResult,getProcessableApplicationsForUser,getAppliedApplicantsForJob,getApplicantsForExport
 };

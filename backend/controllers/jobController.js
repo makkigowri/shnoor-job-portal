@@ -1,6 +1,7 @@
 const { sendEmail } = require("../services/emailService");
 const pool = require("../config/db");
 const {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs} = require("../models/jobModel");
+const { buildExportFilename, formatDate, sendExcelFile } = require("../utils/exportUtils");
 const postJob = async (req, res, next) => {
   try {
     const { title, location } = req.body;
@@ -140,4 +141,19 @@ const searchJobsHandler = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler};
+const exportMyJobsHandler = async (req, res, next) => {
+  try {
+    const jobs = await findJobsByRecruiter(req.user.id);
+    const columns = [
+      "Job Title","Department","Employment Type","Experience","Location","Status","Total Applications","Created Date"
+    ];
+    const rows = jobs.map((j) => [
+      j.title,j.department || "",j.employment_type || "",j.experience || "",j.location || "",j.status,j.applications_count || 0,formatDate(j.created_at)
+    ]);
+    const filename = buildExportFilename("Jobs_Report");
+    await sendExcelFile(res, filename, columns, rows);
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler,exportMyJobsHandler};

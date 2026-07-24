@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
-import { getMyJobs, deleteJob } from "../../services/jobService";
+import { getMyJobs, deleteJob, exportMyJobs } from "../../services/jobService";
 export default function MyJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   const navigate = useNavigate();
   const loadJobs = async () => {
     setLoading(true);
@@ -31,15 +33,41 @@ export default function MyJobs() {
       alert(err?.response?.data?.message || "Failed to delete job");
     }
   };
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError("");
+    try {
+      await exportMyJobs();
+    } catch (err) {
+      setExportError(err?.response?.data?.message || "Unable to export jobs right now");
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <RecruiterDashboardLayout>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-4xl font-bold text-[#3E3A74]">My Jobs</h1>
           <p className="mt-2 text-gray-500">Manage all jobs posted by SHNOOR Technologies.</p>
         </div>
-        <Link to="/recruiter/post-job" className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 rounded-xl transition">+ New Job</Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || jobs.length === 0}
+            className="border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed font-medium px-5 py-3 rounded-xl transition whitespace-nowrap"
+          >
+            {exporting ? "Exporting..." : "Export Jobs"}
+          </button>
+          <Link to="/recruiter/post-job" className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 rounded-xl transition">+ New Job</Link>
+        </div>
       </div>
+      {exportError && (
+        <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
+          {exportError}
+        </div>
+      )}
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
           {error}

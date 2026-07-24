@@ -1,4 +1,5 @@
 import api from "./api";
+import { downloadFileFromResponse } from "./exportService";
 export const searchJobs = async (params) => {
   const { data } = await api.get("/jobs/search", { params });
   return data;
@@ -22,4 +23,8 @@ export const updateJob = async (id, payload) => {
 export const deleteJob = async (id) => {
   const { data } = await api.delete(`/jobs/${id}`);
   return data;
+};
+export const exportMyJobs = async () => {
+  const response = await api.get("/jobs/my-jobs/export", { responseType: "blob" });
+  downloadFileFromResponse(response, "Jobs_Report.xlsx");
 };

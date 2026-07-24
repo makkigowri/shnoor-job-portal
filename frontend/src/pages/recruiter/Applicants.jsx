@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
-import { getApplicants } from "../../services/recruiterService";
+import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
 const statusBadge = (status) => {
@@ -34,6 +34,8 @@ export default function Applicants() {
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState("");
   const [runSummary, setRunSummary] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -62,6 +64,7 @@ export default function Applicants() {
   useEffect(() => {
     setRunSummary(null);
     setRunError("");
+    setExportError("");
   }, [jobFilter]);
   const handleRunAts = async () => {
     if (!jobFilter) return;
@@ -76,6 +79,18 @@ export default function Applicants() {
       setRunError(err?.response?.data?.message || "Unable to run ATS scoring right now");
     } finally {
       setRunning(false);
+    }
+  };
+  const handleExport = async () => {
+    if (!jobFilter) return;
+    setExporting(true);
+    setExportError("");
+    try {
+      await exportApplicants(jobFilter);
+    } catch (err) {
+      setExportError(err?.response?.data?.message || "Unable to export applicants right now");
+    } finally {
+      setExporting(false);
     }
   };
   const selectedJobTitle = jobs.find((job) => String(job.id) === String(jobFilter))?.title;
@@ -106,6 +121,15 @@ export default function Applicants() {
           >
             {running ? "Running ATS..." : "Run ATS Score"}
           </button>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={!jobFilter || exporting}
+            title={!jobFilter ? "Select a specific job to export applications" : undefined}
+            className="border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed font-medium px-5 py-2.5 rounded-xl transition whitespace-nowrap"
+          >
+            {exporting ? "Exporting..." : "Export Applications"}
+          </button>
         </div>
       </div>
       {!jobFilter && (
@@ -123,6 +147,11 @@ export default function Applicants() {
       {runError && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
           {runError}
+        </div>
+      )}
+      {exportError && (
+        <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
+          {exportError}
         </div>
       )}
       {error && (

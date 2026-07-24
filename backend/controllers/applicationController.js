@@ -1,5 +1,5 @@
 const {
-  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus} = require("../models/applicationModel");
+  getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,getApplicantsForExport} = require("../models/applicationModel");
 const { findJobById } = require("../models/jobModel");
 const { getResumeByUserId } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
@@ -7,6 +7,7 @@ const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../mo
 const { getCompanyByRecruiterId } = require("../models/companyModel");
 const ALLOWED_STATUSES = ["Under Review", "Shortlisted", "Rejected"];
 const { sendEmail } = require("../services/emailService");
+const { buildExportFilename, formatDate, sendExcelFile } = require("../utils/exportUtils");
 const applyToJobHandler = async (req, res, next) => {
   try {
     const jobId = req.params.jobId;
@@ -275,6 +276,29 @@ const updateApplicationStatusHandler = async (req, res, next) => {
     next(error);
   }
 };
+const exportApplicantsHandler = async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+    const job = await findJobById(jobId);
+    if (!job || job.recruiter_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to export applicants for this job"
+      });
+    }
+    const applicants = await getApplicantsForExport(jobId, req.user.id);
+    const columns = [
+      "Applicant Name","Email","Phone Number","Resume","Application Status","Assessment Status","AI Interview Status","Technical Interview Status","Applied Date"
+    ];
+    const rows = applicants.map((a) => [
+      a.applicant_name,a.applicant_email,a.applicant_phone || "",a.resume_filename || "",a.application_status,a.assessment_status,a.ai_interview_status,a.technical_interview_status,formatDate(a.applied_at)
+    ]);
+    const filename = buildExportFilename("Applicants", job.title);
+    await sendExcelFile(res, filename, columns, rows);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
-  applyToJobHandler,withdrawApplicationHandler,listMyApplicationsHandler,listApplicantsHandler,updateApplicationStatusHandler
+  applyToJobHandler,withdrawApplicationHandler,listMyApplicationsHandler,listApplicantsHandler,updateApplicationStatusHandler,exportApplicantsHandler
 };

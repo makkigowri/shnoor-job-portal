@@ -1,5 +1,6 @@
 const {
-  listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById} = require("../models/adminStatsModel");
+  listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById,getAllJobsAdminExport} = require("../models/adminStatsModel");
+const { buildExportFilename, formatDate, sendExcelFile } = require("../utils/exportUtils");
 const listJobs = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
@@ -46,4 +47,19 @@ const deleteJob = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { listJobs, viewJob, updateJobStatus, deleteJob };
+const exportJobsAdminHandler = async (req, res, next) => {
+  try {
+    const jobs = await getAllJobsAdminExport();
+    const columns = [
+      "Job Title","Department","Employment Type","Experience","Location","Status","Total Applications","Created Date","Recruiter Name"
+    ];
+    const rows = jobs.map((j) => [
+      j.title,j.department || "",j.employment_type || "",j.experience || "",j.location || "",j.status,j.applications_count || 0,formatDate(j.created_at),j.recruiter_name || ""
+    ]);
+    const filename = buildExportFilename("Jobs_Report");
+    await sendExcelFile(res, filename, columns, rows);
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { listJobs, viewJob, updateJobStatus, deleteJob, exportJobsAdminHandler };

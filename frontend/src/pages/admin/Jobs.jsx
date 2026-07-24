@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MoreVertical } from "lucide-react";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
@@ -8,9 +9,72 @@ import {
   fetchAdminJobs,
   fetchAdminJobById,
   updateAdminJobStatus,
-  deleteAdminJob
+  deleteAdminJob,
+  exportAdminJobs
 } from "../../services/adminJobService";
+import { exportAdminApplicants } from "../../services/adminApplicationService";
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
+const JobActionsMenu = ({ job, exporting, onView, onExport, onToggleStatus, onDelete }) => {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const handleSelect = (action) => {
+    setOpen(false);
+    action();
+  };
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-[#3E3A74] transition"
+      >
+        <MoreVertical size={18} />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-20">
+          <button
+            type="button"
+            onClick={() => handleSelect(onView)}
+            className="w-full text-left px-4 py-2 text-sm text-[#3E3A74] hover:bg-gray-50"
+          >
+            View
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSelect(onExport)}
+            disabled={exporting}
+            className="w-full text-left px-4 py-2 text-sm text-[#3E3A74] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? "Exporting..." : "Export"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSelect(onToggleStatus)}
+            className="w-full text-left px-4 py-2 text-sm text-[#3E3A74] hover:bg-gray-50"
+          >
+            {job.status === "Active" ? "Close Job" : "Activate Job"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSelect(onDelete)}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            Delete Job
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 const AdminJobs = () => {
   const [data, setData] = useState({ jobs: [], page: 1, totalPages: 1 });
   const [search, setSearch] = useState("");
@@ -19,6 +83,8 @@ const AdminJobs = () => {
   const [error, setError] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [viewJob, setViewJob] = useState(null);
+  const [exportingJobs, setExportingJobs] = useState(false);
+  const [exportingApplicantsId, setExportingApplicantsId] = useState(null);
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -58,12 +124,34 @@ const AdminJobs = () => {
       setConfirmAction(null);
     }
   };
+  const handleExportJobs = async () => {
+    setExportingJobs(true);
+    setError("");
+    try {
+      await exportAdminJobs();
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to export jobs right now.");
+    } finally {
+      setExportingJobs(false);
+    }
+  };
+  const handleExportApplicants = async (jobId) => {
+    setExportingApplicantsId(jobId);
+    setError("");
+    try {
+      await exportAdminApplicants(jobId);
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to export applicants right now.");
+    } finally {
+      setExportingApplicantsId(null);
+    }
+  };
   return (
     <AdminLayout title="Jobs" subtitle="Manage every job posting across the platform.">
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-visible">
         <AdminFilterBar
           searchValue={search}
           onSearchChange={setSearch}
@@ -81,6 +169,16 @@ const AdminJobs = () => {
               ]
             }
           ]}
+           actions={
+    <button
+      type="button"
+      onClick={handleExportJobs}
+      disabled={exportingJobs}
+      className="border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed font-medium px-5 py-2.5 rounded-xl transition whitespace-nowrap"
+    >
+      {exportingJobs ? "Exporting..." : "Export Jobs"}
+    </button>
+  }
         />
         <table className="w-full text-sm">
           <thead>
@@ -110,29 +208,20 @@ const AdminJobs = () => {
                 <td className="px-6 py-3"><StatusBadge status={job.status} /></td>
                 <td className="px-6 py-3 text-gray-600">{formatDate(job.created_at)}</td>
                 <td className="px-6 py-3">
-                  <div className="flex gap-3">
-                    <button onClick={() => handleView(job.id)} className="text-[#7393D3] font-medium hover:underline">
-                      View
-                    </button>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({
-                          type: job.status === "Active" ? "close" : "activate",
-                          id: job.id,
-                          name: job.title
-                        })
-                      }
-                      className="text-amber-600 font-medium hover:underline"
-                    >
-                      {job.status === "Active" ? "Close" : "Activate"}
-                    </button>
-                    <button
-                      onClick={() => setConfirmAction({ type: "delete", id: job.id, name: job.title })}
-                      className="text-red-600 font-medium hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <JobActionsMenu
+                    job={job}
+                    exporting={exportingApplicantsId === job.id}
+                    onView={() => handleView(job.id)}
+                    onExport={() => handleExportApplicants(job.id)}
+                    onToggleStatus={() =>
+                      setConfirmAction({
+                        type: job.status === "Active" ? "close" : "activate",
+                        id: job.id,
+                        name: job.title
+                      })
+                    }
+                    onDelete={() => setConfirmAction({ type: "delete", id: job.id, name: job.title })}
+                  />
                 </td>
               </tr>
             ))}
