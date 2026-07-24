@@ -4,6 +4,7 @@ import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import AdminFilterBar from "../../components/admin/AdminFilterBar";
+import ActionMenu from "../../components/admin/ActionMenu";
 import {
   fetchRecruiters,
   blockRecruiter,
@@ -112,29 +113,27 @@ const AdminRecruiters = () => {
                 <td className="px-6 py-3 text-gray-600">{recruiter.applications_count}</td>
                 <td className="px-6 py-3"><StatusBadge status={recruiter.is_blocked ? "Blocked" : "Active"} /></td>
                 <td className="px-6 py-3">
-                  <div className="flex gap-3">
-                    <button onClick={() => handleView(recruiter.id)} className="text-[#7393D3] font-medium hover:underline">
-                      View
-                    </button>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({
-                          type: recruiter.is_blocked ? "unblock" : "block",
-                          id: recruiter.id,
-                          name: recruiter.fullname
-                        })
+                  <ActionMenu
+                    items={[
+                      { key: "view", label: "View", onClick: () => handleView(recruiter.id) },
+                      {
+                        key: "block",
+                        label: recruiter.is_blocked ? "Unblock" : "Block",
+                        onClick: () =>
+                          setConfirmAction({
+                            type: recruiter.is_blocked ? "unblock" : "block",
+                            id: recruiter.id,
+                            name: recruiter.fullname
+                          })
+                      },
+                      {
+                        key: "delete",
+                        label: "Delete",
+                        danger: true,
+                        onClick: () => setConfirmAction({ type: "delete", id: recruiter.id, name: recruiter.fullname })
                       }
-                      className="text-amber-600 font-medium hover:underline"
-                    >
-                      {recruiter.is_blocked ? "Unblock" : "Block"}
-                    </button>
-                    <button
-                      onClick={() => setConfirmAction({ type: "delete", id: recruiter.id, name: recruiter.fullname })}
-                      className="text-red-600 font-medium hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

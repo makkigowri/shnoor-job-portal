@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
+import ActionMenu from "../../components/admin/ActionMenu";
 import {
   sendAdminNotification,
   fetchNotificationHistory,
@@ -166,12 +167,16 @@ const AdminNotifications = () => {
                 <td className="px-6 py-3 text-gray-600">{item.sent_by}</td>
                 <td className="px-6 py-3 text-gray-600">{formatDateTime(item.created_at)}</td>
                 <td className="px-6 py-3">
-                  <button
-                    onClick={() => setConfirmDelete({ id: item.id, name: item.title })}
-                    className="text-red-600 font-medium hover:underline"
-                  >
-                    Delete
-                  </button>
+                  <ActionMenu
+                    items={[
+                      {
+                        key: "delete",
+                        label: "Delete",
+                        danger: true,
+                        onClick: () => setConfirmDelete({ id: item.id, name: item.title })
+                      }
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

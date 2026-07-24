@@ -4,6 +4,7 @@ import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import AdminFilterBar from "../../components/admin/AdminFilterBar";
+import ActionMenu from "../../components/admin/ActionMenu";
 import {
   fetchAdminApplications,
   fetchAdminApplicationById,
@@ -128,17 +129,17 @@ const AdminApplications = () => {
                 <td className="px-6 py-3"><StatusBadge status={application.status} /></td>
                 <td className="px-6 py-3 text-gray-600">{formatDate(application.applied_at)}</td>
                 <td className="px-6 py-3">
-                  <div className="flex gap-3">
-                    <button onClick={() => handleView(application.id)} className="text-[#7393D3] font-medium hover:underline">
-                      View
-                    </button>
-                    <button
-                      onClick={() => setConfirmAction({ id: application.id, name: application.candidate_name })}
-                      className="text-red-600 font-medium hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <ActionMenu
+                    items={[
+                      { key: "view", label: "View", onClick: () => handleView(application.id) },
+                      {
+                        key: "delete",
+                        label: "Delete",
+                        danger: true,
+                        onClick: () => setConfirmAction({ id: application.id, name: application.candidate_name })
+                      }
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

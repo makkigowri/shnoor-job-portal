@@ -5,6 +5,7 @@ import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import AdminFilterBar from "../../components/admin/AdminFilterBar";
+import ActionMenu from "../../components/admin/ActionMenu";
 import {
   fetchAdminAssessments,
   fetchAdminAssessmentById,
@@ -132,17 +133,17 @@ const AdminAssessmentManagement = () => {
                 <td className="px-6 py-3"><StatusBadge status={a.status} /></td>
                 <td className="px-6 py-3 text-gray-600">{formatDate(a.created_at)}</td>
                 <td className="px-6 py-3">
-                  <div className="flex gap-3">
-                    <button onClick={() => handleView(a.id)} className="text-[#7393D3] font-medium hover:underline">
-                      View
-                    </button>
-                    <button
-                      onClick={() => setConfirmAction({ id: a.id, name: a.title })}
-                      className="text-red-600 font-medium hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <ActionMenu
+                    items={[
+                      { key: "view", label: "View", onClick: () => handleView(a.id) },
+                      {
+                        key: "delete",
+                        label: "Delete",
+                        danger: true,
+                        onClick: () => setConfirmAction({ id: a.id, name: a.title })
+                      }
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
