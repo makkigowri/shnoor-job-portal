@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getMyJobs, deleteJob, exportMyJobs } from "../../services/jobService";
+import { getMyJobs, deleteJob } from "../../services/jobService";
+import { LuArrowUpDown } from "react-icons/lu";
 export default function MyJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
+  const [sortBy, setSortBy] = useState("latest");
+const [showSortMenu, setShowSortMenu] = useState(false);
+const sortMenuRef = useRef(null);
   const navigate = useNavigate();
   const loadJobs = async () => {
     setLoading(true);
@@ -24,6 +29,21 @@ export default function MyJobs() {
   useEffect(() => {
     loadJobs();
   }, []);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      sortMenuRef.current &&
+      !sortMenuRef.current.contains(event.target)
+    ) {
+      setShowSortMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () =>
+    document.removeEventListener("mousedown", handleClickOutside);
+}, []);
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this job?")) return;
     try {
@@ -44,6 +64,36 @@ export default function MyJobs() {
       setExporting(false);
     }
   };
+  const sortedJobs = useMemo(() => {
+  const sorted = [...jobs];
+
+  switch (sortBy) {
+    case "latest":
+      sorted.sort((a, b) => b.id - a.id);
+      break;
+
+    case "oldest":
+      sorted.sort((a, b) => a.id - b.id);
+      break;
+
+    case "az":
+      sorted.sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+      break;
+
+    case "za":
+      sorted.sort((a, b) =>
+        (b.title || "").localeCompare(a.title || "")
+      );
+      break;
+
+    default:
+      break;
+  }
+
+  return sorted;
+}, [jobs, sortBy]);
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -62,6 +112,74 @@ export default function MyJobs() {
           </button>
           <Link to="/recruiter/post-job" className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 rounded-xl transition">+ New Job</Link>
         </div>
+       <div className="flex items-center gap-3">
+
+  <Link
+    to="/recruiter/post-job"
+    className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 rounded-xl transition"
+  >
+    + New Job
+  </Link>
+
+  <div className="relative" ref={sortMenuRef}>
+
+    <button
+      type="button"
+      onClick={() => setShowSortMenu(!showSortMenu)}
+      className="border border-gray-300 bg-white hover:bg-gray-100 p-3 rounded-xl transition"
+    >
+      <LuArrowUpDown size={20} />
+    </button>
+
+    {showSortMenu && (
+      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+
+        <button
+          onClick={() => {
+            setSortBy("latest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Latest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("oldest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Oldest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("az");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          A → Z
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("za");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Z → A
+        </button>
+
+      </div>
+    )}
+
+  </div>
+
+</div>
       </div>
       {exportError && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
@@ -93,7 +211,7 @@ export default function MyJobs() {
               </tr>
             </thead>
             <tbody>
-              {jobs.map((job) => (
+             {sortedJobs.map((job) => (
                 <tr key={job.id} className="border-t border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-5 font-semibold text-gray-900">{job.title}</td>
                   <td className="px-6 py-5 text-gray-900">{job.department}</td>

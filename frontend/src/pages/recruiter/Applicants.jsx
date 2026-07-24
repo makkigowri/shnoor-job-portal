@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
+import { LuArrowUpDown } from "react-icons/lu";
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -36,6 +37,8 @@ export default function Applicants() {
   const [runSummary, setRunSummary] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
+  const [sortBy, setSortBy] = useState("latest");
+const [showSortMenu, setShowSortMenu] = useState(false);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -66,6 +69,36 @@ export default function Applicants() {
     setRunError("");
     setExportError("");
   }, [jobFilter]);
+  const sortedApplicants = useMemo(() => {
+  const sorted = [...applicants];
+
+  switch (sortBy) {
+    case "latest":
+      sorted.sort((a, b) => b.id - a.id);
+      break;
+
+    case "oldest":
+      sorted.sort((a, b) => a.id - b.id);
+      break;
+
+    case "az":
+      sorted.sort((a, b) =>
+        (a.candidate_name || "").localeCompare(b.candidate_name || "")
+      );
+      break;
+
+    case "za":
+      sorted.sort((a, b) =>
+        (b.candidate_name || "").localeCompare(a.candidate_name || "")
+      );
+      break;
+
+    default:
+      break;
+  }
+
+  return sorted;
+}, [applicants, sortBy]);
   const handleRunAts = async () => {
     if (!jobFilter) return;
     setRunning(true);
@@ -130,6 +163,59 @@ export default function Applicants() {
           >
             {exporting ? "Exporting..." : "Export Applications"}
           </button>
+          <div className="relative">
+  <button
+    type="button"
+    onClick={() => setShowSortMenu(!showSortMenu)}
+    className="border border-gray-300 bg-white hover:bg-gray-100 p-2.5 rounded-xl transition"
+  >
+    <LuArrowUpDown size={20} />
+  </button>
+
+  {showSortMenu && (
+    <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+      <button
+        onClick={() => {
+          setSortBy("latest");
+          setShowSortMenu(false);
+        }}
+        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+      >
+        Latest 
+      </button>
+
+      <button
+        onClick={() => {
+          setSortBy("oldest");
+          setShowSortMenu(false);
+        }}
+        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+      >
+        Oldest 
+      </button>
+
+      <button
+        onClick={() => {
+          setSortBy("az");
+          setShowSortMenu(false);
+        }}
+        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+      >
+        A → Z
+      </button>
+
+      <button
+        onClick={() => {
+          setSortBy("za");
+          setShowSortMenu(false);
+        }}
+        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+      >
+        Z → A
+      </button>
+    </div>
+  )}
+</div>
         </div>
       </div>
       {!jobFilter && (
@@ -179,7 +265,7 @@ export default function Applicants() {
               </tr>
             </thead>
             <tbody>
-              {applicants.map((candidate) => (
+              {sortedApplicants.map((candidate) => (
                 <tr key={candidate.id} className="border-t border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-5">
                     <div className="font-semibold text-gray-900">{candidate.candidate_name}</div>

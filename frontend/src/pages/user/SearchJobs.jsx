@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import JobDetailsModal from "../../components/user/JobDetailsModal";
 import { searchJobs } from "../../services/jobService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
+import { LuArrowUpDown } from "react-icons/lu";
 const SearchJobs = () => {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("title") || "");
@@ -21,6 +22,9 @@ const SearchJobs = () => {
   const [savingJobId, setSavingJobId] = useState(null);
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [sortBy, setSortBy] = useState("latest");
+const [showSortMenu, setShowSortMenu] = useState(false);
+const sortMenuRef = useRef(null);
   const limit = 5;
   const fetchJobs = useCallback(
     async (pageToFetch = 1) => {
@@ -51,6 +55,21 @@ const SearchJobs = () => {
   useEffect(() => {
     fetchJobs(1);
   }, []);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      sortMenuRef.current &&
+      !sortMenuRef.current.contains(event.target)
+    ) {
+      setShowSortMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () =>
+    document.removeEventListener("mousedown", handleClickOutside);
+}, []);
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchJobs(1);
@@ -94,6 +113,36 @@ const SearchJobs = () => {
     }
   };
   const isApplied = (job) => Boolean(job.application_status && job.application_status !== "Withdrawn");
+  const sortedJobs = useMemo(() => {
+  const sorted = [...jobs];
+
+  switch (sortBy) {
+    case "latest":
+      sorted.sort((a, b) => b.id - a.id);
+      break;
+
+    case "oldest":
+      sorted.sort((a, b) => a.id - b.id);
+      break;
+
+    case "az":
+      sorted.sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+      break;
+
+    case "za":
+      sorted.sort((a, b) =>
+        (b.title || "").localeCompare(a.title || "")
+      );
+      break;
+
+    default:
+      break;
+  }
+
+  return sorted;
+}, [jobs, sortBy]);
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
@@ -134,9 +183,74 @@ const SearchJobs = () => {
               <option>Remote</option>
               <option>Contract</option>
             </select>
-            <button type="submit" className="bg-primary text-white rounded-lg hover:bg-primary-hover">
-              Search
-            </button>
+            
+            <div className="flex items-center gap-3">
+
+  <button
+  type="submit"
+  className="w-full h-12 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition"
+>
+  Search
+</button>
+  <div className="relative" ref={sortMenuRef}>
+
+    <button
+      type="button"
+      onClick={() => setShowSortMenu(!showSortMenu)}
+      className="border border-border rounded-lg p-3 bg-white hover:bg-gray-100 transition"
+    >
+      <LuArrowUpDown size={20} />
+    </button>
+
+    {showSortMenu && (
+      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+
+        <button
+          onClick={() => {
+            setSortBy("latest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Latest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("oldest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Oldest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("az");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          A → Z
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("za");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Z → A
+        </button>
+
+      </div>
+    )}
+
+  </div>
+
+</div>
           </div>
         </form>
         {error && (
@@ -158,7 +272,7 @@ const SearchJobs = () => {
           </div>
         )}
         <div className="space-y-5">
-          {jobs.map((job) => (
+         {sortedJobs.map((job) => (
             <div
               key={job.id}
               className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-lg transition"
