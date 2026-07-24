@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import { getMyApplications, withdrawApplication } from "../../services/applicationService";
+import { LuArrowUpDown } from "react-icons/lu";
 const statusColor = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -43,6 +44,9 @@ const AppliedJobs = () => {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [withdrawingJobId, setWithdrawingJobId] = useState(null);
+  const [sortBy, setSortBy] = useState("latest");
+const [showSortMenu, setShowSortMenu] = useState(false);
+const sortMenuRef = useRef(null);
   const loadApplications = async () => {
     setLoading(true);
     setError("");
@@ -59,6 +63,21 @@ const AppliedJobs = () => {
   useEffect(() => {
     loadApplications();
   }, []);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      sortMenuRef.current &&
+      !sortMenuRef.current.contains(event.target)
+    ) {
+      setShowSortMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () =>
+    document.removeEventListener("mousedown", handleClickOutside);
+}, []);
   const handleWithdraw = async (jobId) => {
     setActionError("");
     setWithdrawingJobId(jobId);
@@ -73,17 +92,114 @@ const AppliedJobs = () => {
       setWithdrawingJobId(null);
     }
   };
+  const sortedApplications = useMemo(() => {
+  const sorted = [...applications];
+
+  switch (sortBy) {
+    case "latest":
+      sorted.sort(
+        (a, b) => new Date(b.applied_at) - new Date(a.applied_at)
+      );
+      break;
+
+    case "oldest":
+      sorted.sort(
+        (a, b) => new Date(a.applied_at) - new Date(b.applied_at)
+      );
+      break;
+
+    case "az":
+      sorted.sort((a, b) =>
+        (a.job_title || "").localeCompare(b.job_title || "")
+      );
+      break;
+
+    case "za":
+      sorted.sort((a, b) =>
+        (b.job_title || "").localeCompare(a.job_title || "")
+      );
+      break;
+
+    default:
+      break;
+  }
+
+  return sorted;
+}, [applications, sortBy]);
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-heading">
-            Applied Jobs
-          </h1>
-          <p className="mt-2 text-body">
-            Track all your SHNOOR job applications.
-          </p>
-        </div>
+        <div className="flex items-start justify-between">
+
+  <div>
+    <h1 className="text-3xl font-bold text-heading">
+      Applied Jobs
+    </h1>
+
+    <p className="mt-2 text-body">
+      Track all your SHNOOR job applications.
+    </p>
+  </div>
+
+  <div className="relative" ref={sortMenuRef}>
+
+    <button
+      type="button"
+      onClick={() => setShowSortMenu(!showSortMenu)}
+      className="border border-border rounded-lg p-3 bg-white hover:bg-gray-100 transition"
+    >
+      <LuArrowUpDown size={20} />
+    </button>
+
+    {showSortMenu && (
+      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+
+        <button
+          onClick={() => {
+            setSortBy("latest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Latest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("oldest");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Oldest 
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("az");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          A → Z
+        </button>
+
+        <button
+          onClick={() => {
+            setSortBy("za");
+            setShowSortMenu(false);
+          }}
+          className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+        >
+          Z → A
+        </button>
+
+      </div>
+    )}
+
+  </div>
+
+</div>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3">
             {error}
@@ -131,7 +247,7 @@ const AppliedJobs = () => {
                 </tr>
               </thead>
               <tbody>
-                {applications.map((item) => (
+               {sortedApplications.map((item) => (
                   <tr
                     key={item.id}
                     className="border-t border-border hover:bg-gray-50"
