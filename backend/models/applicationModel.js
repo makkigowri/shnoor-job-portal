@@ -124,7 +124,7 @@ const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, 
 const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
   const query = `
     SELECT ap.id, ap.user_id, ap.job_id, ap.resume_path, ap.resume_filename,
-      j.title AS job_title, j.skills AS job_skills, j.recruiter_id, j.status AS job_status
+      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
     WHERE j.recruiter_id = $1 AND ap.job_id = $2 AND ap.status = 'Applied'
@@ -135,7 +135,7 @@ const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
 const getProcessableApplicationsForUser = async (userId) => {
   const query = `
     SELECT ap.id, ap.user_id, ap.job_id, ap.status,
-      j.title AS job_title, j.skills AS job_skills, j.recruiter_id, j.status AS job_status
+      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
     WHERE ap.user_id = $1

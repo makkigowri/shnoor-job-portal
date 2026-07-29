@@ -24,7 +24,7 @@ const analyzeResume = async (req, res, next) => {
         message: "Couldn't read any text from this file. Please try a different resume."
       });
     }
-    const result = scoreResumeAgainstJob(resumeText, job.skills);
+    const result = scoreResumeAgainstJob(resumeText, job.skills, job.experience);
     res.status(200).json({
       success: true,
       job: { id: job.id, title: job.title },

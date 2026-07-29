@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getMyJobs, deleteJob, exportMyJobs } from "../../services/jobService";
 import { LuArrowUpDown } from "react-icons/lu";
-
 export default function MyJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +13,6 @@ export default function MyJobs() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef(null);
   const navigate = useNavigate();
-
   const loadJobs = async () => {
     setLoading(true);
     setError("");
@@ -27,23 +25,18 @@ export default function MyJobs() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadJobs();
   }, []);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
         setShowSortMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this job?")) return;
     try {
@@ -53,7 +46,6 @@ export default function MyJobs() {
       alert(err?.response?.data?.message || "Failed to delete job");
     }
   };
-
   const handleExport = async () => {
     setExporting(true);
     setExportError("");
@@ -65,23 +57,18 @@ export default function MyJobs() {
       setExporting(false);
     }
   };
-
   const sortedJobs = useMemo(() => {
     const sorted = [...jobs];
-
     switch (sortBy) {
       case "latest":
         sorted.sort((a, b) => b.id - a.id);
         break;
-
       case "oldest":
         sorted.sort((a, b) => a.id - b.id);
         break;
-
       case "az":
         sorted.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
         break;
-
       case "za":
         sorted.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
         break;
@@ -89,10 +76,8 @@ export default function MyJobs() {
       default:
         break;
     }
-
     return sorted;
   }, [jobs, sortBy]);
-
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -123,7 +108,6 @@ export default function MyJobs() {
             >
               <LuArrowUpDown size={20} />
             </button>
-
             {showSortMenu && (
               <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
                 <button
@@ -135,7 +119,6 @@ export default function MyJobs() {
                 >
                   Latest
                 </button>
-
                 <button
                   onClick={() => {
                     setSortBy("oldest");
@@ -145,7 +128,6 @@ export default function MyJobs() {
                 >
                   Oldest
                 </button>
-
                 <button
                   onClick={() => {
                     setSortBy("az");
@@ -155,7 +137,6 @@ export default function MyJobs() {
                 >
                   A → Z
                 </button>
-
                 <button
                   onClick={() => {
                     setSortBy("za");
@@ -170,7 +151,6 @@ export default function MyJobs() {
           </div>
         </div>
       </div>
-
       {exportError && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
           {exportError}

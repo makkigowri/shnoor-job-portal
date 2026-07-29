@@ -13,7 +13,8 @@
     "migrate:ats-automation": "node scripts/runAtsAutomationMigration.js",
     "migrate:ai-interview": "node scripts/runAiInterviewMigration.js",
     "migrate:ai-interview-phase9": "node scripts/runAiInterviewPhase9Migration.js",
-    "migrate:technical-interview": "node scripts/runTechnicalInterviewMigration.js"
+    "migrate:technical-interview": "node scripts/runTechnicalInterviewMigration.js",
+    "migrate:ats-threshold": "node scripts/runAtsThresholdMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

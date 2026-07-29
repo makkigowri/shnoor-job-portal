@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { createJob } from "../../services/jobService";
-const initialState = {title: "", department: "", employmentType: "Full Time",experience: "",salary: "",location: "",skills: "",openings: 1,description: "",responsibilities: "",requirements: ""};
+const initialState = {title: "", department: "", employmentType: "Full Time",experience: "",salary: "",location: "",skills: "",openings: 1,description: "",responsibilities: "",requirements: "",atsThreshold: ""};
 export default function PostJob() {
   const [job, setJob] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
@@ -74,6 +74,10 @@ export default function PostJob() {
           <div>
             <label htmlFor="number" className="font-medium text-gray-900">Number of Openings</label>
             <input type="number" id="number" min="1" name="openings" value={job.openings} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" />
+          </div>
+          <div>
+            <label htmlFor="atsThreshold" className="font-medium text-gray-900">ATS Threshold</label>
+            <input type="number" id="atsThreshold" min="0" max="100" name="atsThreshold" value={job.atsThreshold} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="80" />
           </div>
         </div>
         <div className="mt-6">

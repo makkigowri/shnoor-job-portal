@@ -45,11 +45,12 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
   if (!resumeText || !resumeText.trim()) {
     return { skipped: true, reason: "no_resume_text" };
   }
-  const result = scoreResumeAgainstJob(resumeText, job.job_skills || job.skills);
+  const result = scoreResumeAgainstJob(resumeText, job.job_skills || job.skills, job.job_experience || job.experience);
   if (result.score === null) {
     return { skipped: true, reason: "no_job_skills" };
   }
-  const threshold = getAtsThreshold();
+  const jobThreshold = job.job_ats_threshold ?? job.ats_threshold;
+  const threshold = Number.isFinite(Number(jobThreshold)) && Number(jobThreshold) > 0 ? Number(jobThreshold) : getAtsThreshold();
   const newStatus = result.score >= threshold ? "Shortlisted" : "Rejected";
   const updatedApplication = await applyAtsResult(application.id, {
     status: newStatus,
@@ -173,6 +174,8 @@ const rerunAtsForPendingApplications = async (userId, resumeText) => {
       job_id: row.job_id,
       job_title: row.job_title,
       job_skills: row.job_skills,
+      job_experience: row.job_experience,
+      job_ats_threshold: row.job_ats_threshold,
       recruiter_id: row.recruiter_id
     };
     const outcome = await evaluateApplicationAts({ application, job, resumeText });
@@ -196,6 +199,8 @@ const runAtsForJobApplicants = async (recruiterId, jobId) => {
       job_id: row.job_id,
       job_title: row.job_title,
       job_skills: row.job_skills,
+      job_experience: row.job_experience,
+      job_ats_threshold: row.job_ats_threshold,
       recruiter_id: row.recruiter_id
     };
     const resumeText = await resolveResumeText({ resume_path: row.resume_path });

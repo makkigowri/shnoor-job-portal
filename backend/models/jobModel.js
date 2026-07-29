@@ -5,34 +5,34 @@ const JOB_WITH_COMPANY_SELECT = `
     j.*,u.fullname AS recruiter_name,c.company_name,c.logo_path AS company_logo,c.website AS company_website,c.industry AS company_industry,c.headquarters AS company_headquarters,
     c.description AS company_description FROM jobs j JOIN users u ON u.id = j.recruiter_id LEFT JOIN companies c ON c.recruiter_id = j.recruiter_id `;
 const createJob = async (recruiterId, job) => {
-  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements
+  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,atsThreshold
   } = job;
   const { min, max } = parseSalaryRange(salary);
   const query = `
     INSERT INTO jobs
       (recruiter_id, title, department, employment_type, experience, salary, salary_min, salary_max,
-       location, skills, openings, description, responsibilities, requirements)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       location, skills, openings, description, responsibilities, requirements, ats_threshold)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
     RETURNING *`;
   const values = [
     recruiterId,
     title,department || null,employmentType || "Full Time",experience || null,salary || null,min,max,location || null,skills || null,openings || 1,description || null,responsibilities || null,
-    requirements || null
+    requirements || null,atsThreshold || null
   ];
   const result = await pool.query(query, values);
   return result.rows[0];
 };
 const updateJob = async (jobId, recruiterId, job) => {
-  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,status} = job;
+  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,status,atsThreshold} = job;
   const { min, max } = parseSalaryRange(salary);
   const query = `UPDATE jobs SET
       title = $1,department = $2,employment_type = $3,experience = $4,salary = $5,salary_min = $6,salary_max = $7,location = $8,skills = $9,openings = $10,description = $11,
-      responsibilities = $12,requirements = $13,status = COALESCE($14, status)
-    WHERE id = $15 AND recruiter_id = $16
+      responsibilities = $12,requirements = $13,status = COALESCE($14, status),ats_threshold = COALESCE($15, ats_threshold)
+    WHERE id = $16 AND recruiter_id = $17
     RETURNING * `;
   const values = [
     title,department || null,employmentType || "Full Time",experience || null,salary || null,min,max,location || null,skills || null,openings || 1,description || null,
-    responsibilities || null,requirements || null,status || null,jobId,recruiterId];
+    responsibilities || null,requirements || null,status || null,atsThreshold || null,jobId,recruiterId];
   const result = await pool.query(query, values);
   return result.rows[0];
 };
