@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import useAuth from "../../hooks/useAuth";
 import { getMyProfile, saveMyProfile, uploadProfilePhoto } from "../../services/profileService";
-import { getMyResume, uploadResume, deleteResume } from "../../services/resumeService";
+import {
+  getMyResumes,
+  uploadAdditionalResume,
+  deleteAdditionalResume,
+} from "../../services/resumeService";
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
 const Profile = () => {
   const { user } = useAuth();
@@ -27,10 +31,9 @@ const Profile = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
-  const [existingResume, setExistingResume] = useState(null);
-  const [resumeLoading, setResumeLoading] = useState(true);
+  
   const [resumeSaving, setResumeSaving] = useState(false);
-  const [resumeDeleting, setResumeDeleting] = useState(false);
+  const [resumes, setResumes] = useState([]);
   const [resumeError, setResumeError] = useState("");
   const [resumeSuccessMessage, setResumeSuccessMessage] = useState("");
   useEffect(() => {
@@ -62,19 +65,17 @@ const Profile = () => {
     loadProfile();
   }, []);
   useEffect(() => {
-    const loadResume = async () => {
-      setResumeLoading(true);
-      try {
-        const data = await getMyResume();
-        setExistingResume(data.resume || null);
-      } catch (err) {
-        setResumeError(err?.response?.data?.message || "Unable to load resume");
-      } finally {
-        setResumeLoading(false);
-      }
-    };
-    loadResume();
-  }, []);
+  loadResumes();
+}, []);
+
+const loadResumes = async () => {
+  try {
+    const data = await getMyResumes();
+    setResumes(data.resumes || []);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const handleChange = (e) => {
     setForm({
@@ -123,40 +124,33 @@ const Profile = () => {
     }
   };
   const handleUploadResume = async () => {
-    if (!resumeFile) {
-      setResumeError("Please choose a resume file first");
-      return;
+  if (!resumeFile) {
+    setResumeError("Please choose a resume.");
+    return;
+  }
+
+  setResumeSaving(true);
+
+  try {
+    await uploadAdditionalResume(resumeFile);
+
+    setResumeFile(null);
+
+    if (resumeInputRef.current) {
+      resumeInputRef.current.value = "";
     }
-    setResumeSaving(true);
-    setResumeError("");
-    setResumeSuccessMessage("");
-    try {
-      const data = await uploadResume(resumeFile);
-      setExistingResume(data.resume);
-      setResumeFile(null);
-      if (resumeInputRef.current) resumeInputRef.current.value = "";
-      setResumeSuccessMessage("Resume uploaded successfully");
-    } catch (err) {
-      setResumeError(err?.response?.data?.message || "Unable to upload resume");
-    } finally {
-      setResumeSaving(false);
-    }
-  };
-  const handleDeleteResume = async () => {
-    setResumeDeleting(true);
-    setResumeError("");
-    setResumeSuccessMessage("");
-    try {
-      await deleteResume();
-      setExistingResume(null);
-      setResumeSuccessMessage("Resume deleted successfully");
-    } catch (err) {
-      setResumeError(err?.response?.data?.message || "Unable to delete resume");
-    } finally {
-      setResumeDeleting(false);
-    }
-  };
-  const hasResume = Boolean(existingResume && existingResume.resume_path);
+
+    loadResumes();
+
+    setResumeSuccessMessage("Resume uploaded successfully");
+  } catch (err) {
+    setResumeError(err?.response?.data?.message || "Upload failed");
+  } finally {
+    setResumeSaving(false);
+  }
+};
+ 
+  
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
@@ -334,26 +328,7 @@ const Profile = () => {
                   {resumeSuccessMessage}
                 </div>
               )}
-              {!resumeLoading && hasResume && (
-                <div className="mb-3 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-primary">
-                      Current Resume
-                    </p>
-                    <p className="text-sm text-body truncate">
-                      {existingResume.resume_filename}
-                    </p>
-                  </div>
-                  <a
-                    href={`${API_ORIGIN}${existingResume.resume_path}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 border border-primary text-primary px-3 py-1.5 rounded-lg text-sm hover:bg-primary hover:text-white transition"
-                  >
-                    View
-                  </a>
-                </div>
-              )}
+              
               <div className="flex items-center gap-3">
                 <input
                   id="resume"
@@ -369,26 +344,60 @@ const Profile = () => {
                   Selected: {resumeFile.name}
                 </p>
               )}
-              <div className="flex flex-wrap items-center gap-3 mt-3">
+              <div className="mt-3">
                 <button
                   type="button"
                   onClick={handleUploadResume}
                   disabled={resumeSaving || !resumeFile}
-                  className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50"
                 >
-                  {resumeSaving ? "Uploading..." : hasResume ? "Replace Resume" : "Upload"}
+                  {resumeSaving ? "Uploading..." : "Upload Resume"}
                 </button>
-                {hasResume && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteResume}
-                    disabled={resumeDeleting}
-                    className="border border-red-700 text-red-700 px-5 py-2 rounded-lg hover:bg-red-700 hover:text-white transition disabled:opacity-50 text-sm"
-                  >
-                    {resumeDeleting ? "Removing..." : "Remove Resume"}
-                  </button>
-                )}
               </div>
+              {resumes.length > 0 && (
+  <div className="mt-6">
+    <h3 className="font-semibold text-lg mb-3">
+      My Resumes
+    </h3>
+
+    <div className="space-y-3">
+      {resumes.map((resume) => (
+        <div
+          key={resume.id}
+          className="flex items-center justify-between border rounded-lg p-3"
+        >
+          <div>
+            <p className="font-medium">
+              {resume.resume_filename}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <a
+              href={`${API_ORIGIN}${resume.resume_path}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              View
+            </a>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await deleteAdditionalResume(resume.id);
+                loadResumes();
+              }}
+              className="text-red-600 hover:underline"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
               <p className="text-sm text-gray-500 mt-2">
                 Accepted formats: PDF, DOC, DOCX. Maximum size 5MB.
               </p>

@@ -5,8 +5,17 @@ const handleChatMessage = async (req, res, next) => {
     if (!message || !message.trim()) {
       return res.status(400).json({ success: false, message: "Message is required" });
     }
-    const { intent, reply } = await getChatbotResponse(message);
-    return res.status(200).json({ success: true, intent, reply });
+    const { intent, reply, ticket } = await getChatbotResponse(
+  message,
+  req.user ? req.user.id : null
+);
+
+return res.status(200).json({
+  success: true,
+  intent,
+  reply,
+  ticket,
+});
   } catch (error) {
     next(error);
   }

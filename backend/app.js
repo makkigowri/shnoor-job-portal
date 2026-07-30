@@ -20,6 +20,8 @@ const assessmentAssignmentRoutes = require("./routes/assessmentAssignmentRoutes"
 const assessmentSubmissionRoutes = require("./routes/assessmentSubmissionRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
+const supportRoutes = require("./routes/supportRoutes");
+const offerLetterRoutes = require("./routes/offerLetterRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const { sendEmail } = require("./services/emailService");
 const app = express();
@@ -52,6 +54,8 @@ app.use("/api/assessment-assignments", assessmentAssignmentRoutes);
 app.use("/api/assessment-submissions", assessmentSubmissionRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/support", supportRoutes);
+app.use("/api/offer-letter", offerLetterRoutes);
 app.use(notFound);
 app.use(errorHandler);
 module.exports = app;

@@ -1,6 +1,13 @@
 const fs = require("fs");
 const path = require("path");
-const { getResumeByUserId, upsertResume, clearResume } = require("../models/resumeModel");
+const {
+  getResumeByUserId,
+  upsertResume,
+  clearResume,
+  getUserResumes,
+  addUserResume,
+  deleteUserResume
+} = require("../models/resumeModel");
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
 const extractResumeText = require("../utils/extractResumeText");
@@ -21,6 +28,18 @@ const getMyResume = async (req, res, next) => {
     res.status(200).json({
       success: true,
       resume: safeResume
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const getMyResumes = async (req, res, next) => {
+  try {
+    const resumes = await getUserResumes(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      resumes,
     });
   } catch (error) {
     next(error);
@@ -68,6 +87,32 @@ const uploadMyResume = async (req, res, next) => {
     next(error);
   }
 };
+const uploadAdditionalResume = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No resume file uploaded",
+      });
+    }
+
+    const resumePath = `/uploads/${req.file.filename}`;
+
+    const resume = await addUserResume(
+      req.user.id,
+      resumePath,
+      req.file.originalname
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Resume uploaded successfully",
+      resume,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 const deleteMyResume = async (req, res, next) => {
   try {
     const existing = await getResumeByUserId(req.user.id);
@@ -84,4 +129,35 @@ const deleteMyResume = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { getMyResume, uploadMyResume, deleteMyResume };
+const deleteAdditionalResume = async (req, res, next) => {
+  try {
+    const resume = await deleteUserResume(
+      req.params.id,
+      req.user.id
+    );
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+    }
+
+    removeFileIfExists(resume.resume_path);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = {
+  getMyResume,
+  getMyResumes,
+  uploadMyResume,
+  uploadAdditionalResume,
+  deleteMyResume,
+  deleteAdditionalResume,
+};

@@ -1,9 +1,24 @@
-const { scheduleInterview,getInterviewsByRecruiter,getInterviewsByCandidate,rescheduleInterview,updateInterviewStatus} = require("../models/interviewModel");
+const {
+  scheduleInterview,
+  getInterviewsByRecruiter,
+  getInterviewsByCandidate,
+  rescheduleInterview,
+  updateInterviewStatus,
+  releaseInterviewResult,getEligibleCandidates,
+} = require("../models/interviewModel");
 const { findJobById } = require("../models/jobModel");
 const { createNotification } = require("../models/notificationModel");
 const scheduleInterviewHandler = async (req, res, next) => {
   try {
-    const { applicationId, scheduledDate, scheduledTime, mode, locationOrLink, notes } = req.body;
+   const {
+  applicationId,
+  scheduledDate,
+  scheduledTime,
+  durationMinutes,
+  mode,
+  locationOrLink,
+  notes
+} = req.body;
     if (!applicationId || !scheduledDate || !scheduledTime) {
       return res.status(400).json({
         success: false,
@@ -11,13 +26,14 @@ const scheduleInterviewHandler = async (req, res, next) => {
       });
     }
     const interview = await scheduleInterview(req.user.id, {
-      applicationId,
-      scheduledDate,
-      scheduledTime,
-      mode,
-      locationOrLink,
-      notes
-    });
+  applicationId,
+  scheduledDate,
+  scheduledTime,
+  durationMinutes,
+  mode,
+  locationOrLink,
+  notes
+});
     if (!interview) {
       return res.status(404).json({
         success: false,
@@ -106,4 +122,64 @@ const updateInterviewStatusHandler = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = {scheduleInterviewHandler,listInterviewsHandler,listMyInterviewsHandler,rescheduleInterviewHandler,updateInterviewStatusHandler};
+const releaseInterviewResultHandler = async (req, res, next) => {
+  try {
+    const { result, feedback } = req.body;
+
+    if (!["Selected", "Rejected"].includes(result)) {
+      return res.status(400).json({
+        success: false,
+        message: "Result must be Selected or Rejected",
+      });
+    }
+
+    const interview = await releaseInterviewResult(
+      req.params.id,
+      req.user.id,
+      result,
+      feedback
+    );
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: "Interview not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Interview result released successfully.",
+      interview,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+const listEligibleCandidatesHandler = async (req, res) => {
+  try {
+    const candidates = await getEligibleCandidates(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      applications: candidates,
+    });
+  } catch (err) {
+    console.error("Eligible Candidates Error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch eligible candidates.",
+    });
+  }
+};
+module.exports = {
+  scheduleInterviewHandler,
+  listInterviewsHandler,
+  listMyInterviewsHandler,
+  rescheduleInterviewHandler,
+  updateInterviewStatusHandler,
+  releaseInterviewResultHandler,
+  listEligibleCandidatesHandler,
+};

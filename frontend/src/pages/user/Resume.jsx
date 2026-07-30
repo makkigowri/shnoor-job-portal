@@ -1,28 +1,35 @@
 import { useState, useEffect } from "react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
-import { getMyResume, uploadResume, deleteResume } from "../../services/resumeService";
+import {
+  getMyResume,
+  getMyResumes,
+  uploadResume,
+  uploadAdditionalResume,
+  deleteResume,
+  deleteAdditionalResume,
+} from "../../services/resumeService";
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
 const Resume = () => {
   const [resume, setResume] = useState(null);
-  const [existingResume, setExistingResume] = useState(null);
+ 
+  const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const loadResume = async () => {
-    setLoading(true);
-    try {
-      const data = await getMyResume();
-      setExistingResume(data.resume || null);
-    } catch (err) {
-      setError(err?.response?.data?.message || "Unable to load resume");
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const loadResumes = async () => {
+  try {
+    const data = await getMyResumes();
+    setResumes(data.resumes || []);
+  } catch (err) {
+    console.error(err);
+  }
+};
   useEffect(() => {
-    loadResume();
+    
+    loadResumes();
   }, []);
   const handleResume = (e) => {
     if (e.target.files.length > 0) {
@@ -40,8 +47,9 @@ const Resume = () => {
     setError("");
     setSuccessMessage("");
     try {
-      const data = await uploadResume(resume);
-      setExistingResume(data.resume);
+      await uploadAdditionalResume(resume);
+
+loadResumes();
       setResume(null);
       setSuccessMessage("Resume uploaded successfully. The recruiter will run ATS scoring after reviewing applicants for a job.");
     } catch (err) {
@@ -50,6 +58,24 @@ const Resume = () => {
       setSaving(false);
     }
   };
+  const handleUploadAnotherResume = async () => {
+  if (!resume) {
+    setError("Please choose a resume first");
+    return;
+  }
+
+  try {
+    await uploadAdditionalResume(resume);
+
+    setResume(null);
+
+    loadResumes();
+
+    setSuccessMessage("Resume uploaded successfully");
+  } catch (err) {
+    setError(err?.response?.data?.message || "Upload failed");
+  }
+};
   const handleDeleteResume = async () => {
     setDeleting(true);
     setError("");
@@ -64,7 +90,7 @@ const Resume = () => {
       setDeleting(false);
     }
   };
-  const hasResume = Boolean(existingResume && existingResume.resume_path);
+  
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
@@ -91,36 +117,49 @@ const Resume = () => {
             <h2 className="text-xl font-semibold mb-6">
               Upload Resume
             </h2>
-            {hasResume && !resume && (
-              <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold text-primary">
-                    Current Resume
-                  </h4>
-                  <p className="mt-2">
-                    {existingResume.resume_filename}
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <a
-                    href={`${API_ORIGIN}${existingResume.resume_path}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary hover:text-white transition"
-                  >
-                    View
-                  </a>
-                  <button
-                    type="button"
-                    onClick={handleDeleteResume}
-                    disabled={deleting}
-                    className="border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition disabled:opacity-50"
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            )}
+           {resumes.length > 0 && (
+  <div className="mb-6 rounded-lg border border-border p-4">
+    <h4 className="font-semibold text-lg mb-4">
+      My Resumes
+    </h4>
+
+    <div className="space-y-3">
+      {resumes.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between border rounded-lg p-3"
+        >
+          <div>
+            <p className="font-medium">
+              {item.resume_filename}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <a
+              href={`${API_ORIGIN}${item.resume_path}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-primary text-primary px-3 py-1 rounded-lg hover:bg-primary hover:text-white"
+            >
+              View
+            </a>
+
+            <button
+              onClick={async () => {
+                await deleteAdditionalResume(item.id);
+                loadResumes();
+              }}
+              className="border border-red-500 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
             <label
               htmlFor="resume"
               className="border-2 border-dashed border-primary rounded-xl h-72 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition"
@@ -156,11 +195,11 @@ const Resume = () => {
               </div>
             )}
             <button
-              onClick={handleSaveResume}
+              onClick={handleUploadAnotherResume}
               disabled={saving || !resume}
               className="mt-6 bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? "Saving..." : "Save Resume"}
+            {saving ? "Uploading..." : "Upload Resume"}
             </button>
           </div>
           <div className="space-y-5">

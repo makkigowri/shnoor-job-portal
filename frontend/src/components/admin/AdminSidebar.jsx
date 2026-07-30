@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import useAdminAuth from "../../hooks/useAdminAuth";
+import { MessageCircle } from "lucide-react";
 const menu = [
   { title: "Dashboard", path: "/admin/dashboard" },
   { title: "Users", path: "/admin/users" },
@@ -8,6 +9,8 @@ const menu = [
   { title: "Applications", path: "/admin/applications" },
   { title: "Assessments", path: "/admin/assessments" },
   { title: "Notifications", path: "/admin/notifications" },
+  { title:"Support",path: "/admin/support", },
+  { title:"Analytics",path: "/admin/support-analytics", },
   { title: "Settings", path: "/admin/settings" }
 ];
 export default function AdminSidebar() {

@@ -11,6 +11,8 @@ import AdminSettings from "../pages/admin/Settings";
 import AdminAssessmentManagement from "../pages/admin/AssessmentManagement";
 import AdminAssessmentAnalytics from "../pages/admin/AssessmentAnalytics";
 import AdminAssessmentReports from "../pages/admin/AssessmentReports";
+import Support from "../pages/admin/Support";
+import SupportAnalytics from "../pages/admin/SupportAnalytics" 
 const AdminRoutes = () => {
   return (
     <AdminAuthProvider>
@@ -87,6 +89,22 @@ const AdminRoutes = () => {
             </AdminProtectedRoute>
           }
         />
+       <Route
+  path="support"
+  element={
+    <AdminProtectedRoute>
+      <Support />
+    </AdminProtectedRoute>
+  }
+/>
+<Route
+  path="support-analytics"
+  element={
+    <AdminProtectedRoute>
+      {<SupportAnalytics />}
+    </AdminProtectedRoute>
+  }
+/>
         <Route
           path="settings"
           element={

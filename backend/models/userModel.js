@@ -35,4 +35,14 @@ const deleteUserById = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-module.exports = {createUser,findUserByEmail,findUserById,findUserByIdWithPassword,updateUserPassword,deleteUserById};
+const updateFcmToken = async (userId, fcmToken) => {
+  await pool.query(
+    `
+    UPDATE users
+    SET fcm_token=$1
+    WHERE id=$2
+    `,
+    [fcmToken, userId]
+  );
+};
+module.exports = {createUser,findUserByEmail,findUserById,findUserByIdWithPassword,updateUserPassword,deleteUserById,updateFcmToken,};

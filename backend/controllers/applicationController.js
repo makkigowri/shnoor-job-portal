@@ -3,6 +3,7 @@ const {
 const { findJobById } = require("../models/jobModel");
 const { getResumeByUserId } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
+const sendPushNotification = require("../utils/sendPushNotification");
 const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../models/assessmentAssignmentModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
 const ALLOWED_STATUSES = ["Under Review", "Shortlisted", "Rejected"];
@@ -34,12 +35,18 @@ const applyToJobHandler = async (req, res, next) => {
         message: `You have already applied to this job (status: ${status})`
       });
     }
-    createNotification(req.user.id, {
-      title: "Application Submitted",
-      message: `Your application for "${job.title}" has been submitted successfully.`,
-      type: "success",
-      relatedJobId: job.id
-    }).catch((err) => console.error("Failed to create notification:", err.message));
+   await createNotification(req.user.id, {
+  title: "Application Submitted",
+  message: `Your application for "${job.title}" has been submitted successfully.`,
+  type: "success",
+  relatedJobId: job.id
+});
+
+await sendPushNotification(
+  req.user.id,
+  "Application Submitted",
+  `Your application for "${job.title}" has been submitted successfully.`
+);
     await sendEmail(
       req.user.email,
       "Application Received - SHNOOR Job Portal",
@@ -80,12 +87,18 @@ const applyToJobHandler = async (req, res, next) => {
     `
     );
     if (job.recruiter_id) {
-      createNotification(job.recruiter_id, {
-        title: "New Application Received",
-        message: `${req.user.fullname || "A candidate"} applied for "${job.title}".`,
-        type: "info",
-        relatedJobId: job.id
-      }).catch((err) => console.error("Failed to create notification:", err.message));
+     await createNotification(job.recruiter_id, {
+  title: "New Application Received",
+  message: `${req.user.fullname || "A candidate"} applied for "${job.title}".`,
+  type: "info",
+  relatedJobId: job.id
+});
+
+await sendPushNotification(
+  job.recruiter_id,
+  "New Application Received",
+  `${req.user.fullname || "A candidate"} applied for "${job.title}".`
+);
     }
     res.status(201).json({
       success: true,

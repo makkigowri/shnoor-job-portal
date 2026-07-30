@@ -2,7 +2,18 @@ const pool = require("../config/db");
 const INTERVIEW_SELECT = `
   SELECT iv.*,j.title AS job_title,j.location AS job_location,u.fullname AS candidate_name,u.email AS candidate_email,u.phone AS candidate_phone
   FROM interviews iv JOIN jobs j ON j.id = iv.job_id JOIN users u ON u.id = iv.candidate_id `;
-const scheduleInterview = async (recruiterId, { applicationId, scheduledDate, scheduledTime, mode, locationOrLink, notes }) => {
+const scheduleInterview = async (
+  recruiterId,
+  {
+    applicationId,
+    scheduledDate,
+    scheduledTime,
+    durationMinutes,
+    mode,
+    locationOrLink,
+    notes
+  }
+) => {
   const appQuery = `
     SELECT ap.id, ap.job_id, ap.user_id FROM applications ap JOIN jobs j ON j.id = ap.job_id WHERE ap.id = $1 AND j.recruiter_id = $2 AND ap.status != 'Withdrawn' `;
   const appResult = await pool.query(appQuery, [applicationId, recruiterId]);
@@ -11,21 +22,78 @@ const scheduleInterview = async (recruiterId, { applicationId, scheduledDate, sc
     return null;
   }
   const upsertQuery = `
-    INSERT INTO interviews
-      (application_id, job_id, candidate_id, recruiter_id, scheduled_date, scheduled_time, mode, location_or_link, notes, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Scheduled')
+   INSERT INTO interviews
+(
+application_id,
+job_id,
+candidate_id,
+recruiter_id,
+scheduled_date,
+scheduled_time,
+duration_minutes,
+mode,
+location_or_link,
+notes,
+status
+)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Scheduled')
     ON CONFLICT (application_id) DO UPDATE SET
-      scheduled_date = EXCLUDED.scheduled_date,scheduled_time = EXCLUDED.scheduled_time,mode = EXCLUDED.mode,location_or_link = EXCLUDED.location_or_link,notes = EXCLUDED.notes,status = 'Scheduled',updated_at = NOW()
+      scheduled_date = EXCLUDED.scheduled_date,scheduled_time = EXCLUDED.scheduled_time,duration_minutes = EXCLUDED.duration_minutes,mode = EXCLUDED.mode,location_or_link = EXCLUDED.location_or_link,notes = EXCLUDED.notes,status = 'Scheduled',updated_at = NOW()
     RETURNING * `;
-  const values = [
-    applicationId,application.job_id,application.user_id,recruiterId,scheduledDate,scheduledTime,mode || "Online",locationOrLink || null,notes || null
-  ];
+ const values = [
+  applicationId,
+  application.job_id,
+  application.user_id,
+  recruiterId,
+  scheduledDate,
+  scheduledTime,
+  durationMinutes || 45,
+  mode || "Online",
+  locationOrLink || null,
+  notes || null
+];
   const result = await pool.query(upsertQuery, values);
   await pool.query(
     `UPDATE applications SET status = 'Interview Scheduled', updated_at = NOW() WHERE id = $1`,
     [applicationId]
   );
   return result.rows[0];
+};
+const getEligibleCandidates = async (recruiterId) => {
+
+  const query = `
+    SELECT
+      ap.id AS application_id,
+      u.fullname AS candidate_name,
+      u.email AS candidate_email,
+      j.title AS job_title
+
+    FROM ai_interviews ai
+
+    JOIN applications ap
+      ON ap.id = ai.application_id
+
+    JOIN jobs j
+      ON j.id = ap.job_id
+
+    JOIN users u
+      ON u.id = ap.user_id
+
+    LEFT JOIN interviews iv
+      ON iv.application_id = ap.id
+
+    WHERE
+      j.recruiter_id = $1
+      AND ai.status = 'Completed'
+      AND ai.result = 'Pass'
+      AND iv.id IS NULL
+
+    ORDER BY ai.completed_at DESC;
+  `;
+
+  const result = await pool.query(query, [recruiterId]);
+
+  return result.rows;
 };
 const getInterviewsByRecruiter = async (recruiterId, filters = {}) => {
   const conditions = [`iv.recruiter_id = $1`];
@@ -40,7 +108,30 @@ const getInterviewsByRecruiter = async (recruiterId, filters = {}) => {
     WHERE ${conditions.join(" AND ")} ORDER BY iv.scheduled_date ASC, iv.scheduled_time ASC
   `;
   const result = await pool.query(query, values);
-  return result.rows;
+
+const interviews = result.rows.map((interview) => {
+
+  
+  if (interview.status === "Scheduled") {
+
+    const endTime = new Date(
+      `${interview.scheduled_date}T${interview.scheduled_time}`
+    );
+
+    endTime.setMinutes(
+      endTime.getMinutes() + (interview.duration_minutes || 45)
+    );
+
+    
+    if (new Date() >= endTime && !interview.result) {
+      interview.status = "Awaiting Result";
+    }
+  }
+
+  return interview;
+});
+
+return interviews;
 };
 const getInterviewsByCandidate = async (candidateId) => {
   const query = `
@@ -69,6 +160,55 @@ const updateInterviewStatus = async (interviewId, recruiterId, status) => {
   const result = await pool.query(query, [status, interviewId, recruiterId]);
   return result.rows[0];
 };
+const releaseInterviewResult = async (
+  interviewId,
+  recruiterId,
+  result,
+  feedback
+) => {
+
+  const interviewQuery = `
+    UPDATE interviews
+    SET
+      result = $1,
+      feedback = $2,
+      completed_at = NOW(),
+      status = 'Completed',
+      updated_at = NOW()
+    WHERE id = $3
+      AND recruiter_id = $4
+    RETURNING *;
+  `;
+
+  const interviewResult = await pool.query(interviewQuery, [
+    result,
+    feedback || null,
+    interviewId,
+    recruiterId,
+  ]);
+
+  if (interviewResult.rows.length === 0) {
+    return null;
+  }
+
+  const interview = interviewResult.rows[0];
+
+  await pool.query(
+    `
+    UPDATE applications
+    SET
+      status = $1,
+      updated_at = NOW()
+    WHERE id = $2
+    `,
+    [
+      result === "Selected" ? "Selected" : "Rejected",
+      interview.application_id,
+    ]
+  );
+
+  return interview;
+};
 const countUpcomingInterviewsForRecruiter = async (recruiterId) => {
   const query = `
     SELECT COUNT(*)::int AS count
@@ -78,4 +218,12 @@ const countUpcomingInterviewsForRecruiter = async (recruiterId) => {
   const result = await pool.query(query, [recruiterId]);
   return result.rows[0].count;
 };
-module.exports = {scheduleInterview,getInterviewsByRecruiter,getInterviewsByCandidate,rescheduleInterview,updateInterviewStatus,countUpcomingInterviewsForRecruiter};
+module.exports = {
+  scheduleInterview,
+  getInterviewsByRecruiter,
+  getInterviewsByCandidate,
+  rescheduleInterview,
+  updateInterviewStatus,
+  releaseInterviewResult,
+  countUpcomingInterviewsForRecruiter,getEligibleCandidates,
+};

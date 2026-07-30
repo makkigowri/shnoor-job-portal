@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const {createUser,findUserByEmail,findUserByIdWithPassword,updateUserPassword,deleteUserById} = require("../models/userModel");
+const {createUser,findUserByEmail,findUserByIdWithPassword,updateUserPassword,deleteUserById,updateFcmToken} = require("../models/userModel");
 const { findAdminByEmail } = require("../models/adminModel");
 const generateToken = require("../utils/generateToken");
 const { sendEmail } = require("../services/emailService");
@@ -153,4 +153,27 @@ const deleteAccount = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { register, login, getProfile, changePassword, deleteAccount };
+
+
+const saveFcmToken = async (req, res, next) => {
+  try {
+    const { fcmToken } = req.body;
+
+    if (!fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: "FCM Token is required",
+      });
+    }
+
+    await updateFcmToken(req.user.id, fcmToken);
+
+    res.json({
+      success: true,
+      message: "FCM token saved successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { register, login, getProfile, changePassword, deleteAccount, saveFcmToken, };

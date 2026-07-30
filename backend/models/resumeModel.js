@@ -32,4 +32,44 @@ const clearResume = async (userId) => {
   const result = await pool.query(query, [userId]);
   return result.rows[0];
 };
-module.exports = {getResumeByUserId,upsertResume,clearResume};
+const getUserResumes = async (userId) => {
+  const result = await pool.query(
+    `SELECT *
+     FROM user_resumes
+     WHERE user_id = $1
+     ORDER BY uploaded_at DESC`,
+    [userId]
+  );
+
+  return result.rows;
+};
+
+const addUserResume = async (userId, resumePath, resumeFilename) => {
+  const result = await pool.query(
+    `INSERT INTO user_resumes (user_id, resume_path, resume_filename)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [userId, resumePath, resumeFilename]
+  );
+
+  return result.rows[0];
+};
+
+const deleteUserResume = async (resumeId, userId) => {
+  const result = await pool.query(
+    `DELETE FROM user_resumes
+     WHERE id = $1 AND user_id = $2
+     RETURNING *`,
+    [resumeId, userId]
+  );
+
+  return result.rows[0];
+};
+module.exports = {
+  getResumeByUserId,
+  upsertResume,
+  clearResume,
+  getUserResumes,
+  addUserResume,
+  deleteUserResume
+};

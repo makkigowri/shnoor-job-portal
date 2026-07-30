@@ -85,7 +85,7 @@ const getRowInfo = (row) => {
   if (tech.result === "Selected") {
     return {
       assessment,
-      stage: "Offer Released",
+      stage: "Offer Letter Pending",
       interviewStatus: "Completed",
       interviewStatusClass: "bg-emerald-100 text-emerald-700"
     };
@@ -122,7 +122,7 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
   useEffect(() => {
     let active = true;
     const token = localStorage.getItem("shnoor_token");
-    axios.get("http://localhost:5001/api/meeting/eligible", {
+    axios.get("http://localhost:5001/api/interviews/eligible", {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
     .then((res) => {
@@ -162,6 +162,7 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
     applicationId: form.applicationId,
     scheduledDate: form.scheduledDate,
     scheduledTime: form.scheduledTime,
+    durationMinutes: form.durationMinutes,
     mode: "Online",
     locationOrLink: generatedRoomName,
     notes: form.notes,
@@ -286,6 +287,43 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!result) {
+    setError("Please select Selected or Rejected.");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+    setError("");
+
+    const token = localStorage.getItem("shnoor_token");
+
+    await axios.patch(
+      `http://localhost:5001/api/interviews/${interview.id}/result`,
+      {
+        result,
+        feedback,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    onSaved();
+
+  } catch (err) {
+    setError(
+      err.response?.data?.message || "Failed to release interview result."
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
@@ -354,6 +392,97 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
     </div>
   );
 };
+const OfferLetterModal = ({ interview, onClose, onSent }) => {
+  const [message, setMessage] = useState("");
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!file) {
+      alert("Please select an Offer Letter PDF.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("shnoor_token");
+
+      const formData = new FormData();
+      formData.append("applicationId", interview.application_id);
+      formData.append("candidateId", interview.candidate_id);
+      formData.append("message", message);
+      formData.append("offerLetter", file);
+
+      await axios.post(
+        "http://localhost:5001/api/offer-letter/send",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      alert("Offer Letter Sent Successfully");
+
+      onSent();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send Offer Letter");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-[500px]">
+
+        <h2 className="text-xl font-bold mb-5">
+          Send Offer Letter
+        </h2>
+
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="w-full border p-2 rounded mb-4"
+        />
+
+        <textarea
+          rows={4}
+          value={message}
+          onChange={(e)=>setMessage(e.target.value)}
+          placeholder="Message (Optional)"
+          className="w-full border rounded p-3"
+        />
+
+        <div className="flex justify-end gap-3 mt-5">
+
+          <button
+            onClick={onClose}
+            className="border px-5 py-2 rounded"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSend}
+            disabled={loading}
+            className="bg-green-600 text-white px-5 py-2 rounded"
+          >
+            {loading ? "Sending..." : "Send"}
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  );
+};
 export default function Interviews() {
   const navigate = useNavigate();
   const [aiInterviews, setAiInterviews] = useState([]);
@@ -363,6 +492,7 @@ export default function Interviews() {
   const [error, setError] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [resultTarget, setResultTarget] = useState(null);
+  const [offerTarget, setOfferTarget] = useState(null);
  const loadAll = useCallback(async () => {
   setLoading(true);
   setError("");
@@ -470,13 +600,25 @@ const response = await axios.get(
       );
     }
     if (tech.status === "Completed") {
-      if (tech.result === "Selected") {
-        return (
-          <span className="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm inline-block">
-            Job Offer
-          </span>
-        );
-      }
+  if (tech.result === "Selected") {
+    return (
+      <button
+       onClick={() => setOfferTarget(tech)}
+         
+        
+        className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition"
+      >
+        Send Offer Letter
+      </button>
+    );
+  }
+
+  return (
+    <span className="px-4 py-2 rounded-lg bg-red-100 text-red-700 font-medium text-sm inline-block">
+      Rejected
+    </span>
+  );
+
       return <span className="text-gray-300 text-sm">—</span>;
     }
     return <span className="text-gray-300 text-sm">—</span>;
@@ -597,6 +739,16 @@ const response = await axios.get(
           }}
         />
       )}
+      {offerTarget && (
+      <OfferLetterModal
+        interview={offerTarget}
+        onClose={() => setOfferTarget(null)}
+        onSent={() => {
+          setOfferTarget(null);
+          loadAll();
+        }}
+      />
+    )}
     </RecruiterDashboardLayout>
   );
 }

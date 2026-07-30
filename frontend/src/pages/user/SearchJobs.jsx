@@ -3,9 +3,11 @@ import { useSearchParams } from "react-router-dom";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import JobDetailsModal from "../../components/user/JobDetailsModal";
 import { searchJobs } from "../../services/jobService";
+import { getMyResumes } from "../../services/resumeService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import { LuArrowUpDown } from "react-icons/lu";
+const API_ORIGIN = "http://localhost:5001";
 const SearchJobs = () => {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("title") || "");
@@ -22,6 +24,10 @@ const SearchJobs = () => {
   const [savingJobId, setSavingJobId] = useState(null);
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [showResumePopup, setShowResumePopup] = useState(false);
+const [resumeList, setResumeList] = useState([]);
+const [selectedResume, setSelectedResume] = useState("");
+const [pendingJob, setPendingJob] = useState(null);
   const [sortBy, setSortBy] = useState("latest");
 const [showSortMenu, setShowSortMenu] = useState(false);
 const sortMenuRef = useRef(null);
@@ -100,18 +106,51 @@ const sortMenuRef = useRef(null);
     }
   };
   const handleApply = async (job) => {
-    if (job.application_status && job.application_status !== "Withdrawn") return;
-    setActionError("");
-    setApplyingJobId(job.id);
-    try {
-      const data = await applyToJob(job.id);
-      updateJobInList(job.id, { application_status: data.application.status });
-    } catch (err) {
-      setActionError(err?.response?.data?.message || "Unable to submit application right now");
-    } finally {
-      setApplyingJobId(null);
-    }
-  };
+  if (job.application_status && job.application_status !== "Withdrawn") return;
+
+  try {
+    const data = await getMyResumes();
+
+    setResumeList(data.resumes || []);
+
+    setPendingJob(job);
+
+    setShowResumePopup(true);
+
+  } catch (err) {
+    setActionError("Unable to load resumes.");
+  }
+};
+const confirmApply = async () => {
+  if (!selectedResume) {
+    setActionError("Please select a resume.");
+    return;
+  }
+
+  setApplyingJobId(pendingJob.id);
+
+  try {
+    const data = await applyToJob(
+      pendingJob.id,
+      selectedResume
+    );
+
+    updateJobInList(pendingJob.id, {
+      application_status: data.application.status,
+    });
+
+    setShowResumePopup(false);
+    setPendingJob(null);
+    setSelectedResume("");
+  } catch (err) {
+    setActionError(
+      err?.response?.data?.message ||
+        "Unable to submit application."
+    );
+  } finally {
+    setApplyingJobId(null);
+  }
+};
   const isApplied = (job) => Boolean(job.application_status && job.application_status !== "Withdrawn");
   const sortedJobs = useMemo(() => {
   const sorted = [...jobs];
@@ -392,7 +431,123 @@ const sortMenuRef = useRef(null);
           applicationStatus={selectedJob.application_status}
         />
       )}
+      {showResumePopup && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+
+      {/* Header */}
+      <div className="border-b px-6 py-5">
+        <h2 className="text-2xl font-bold text-heading">
+          Select Resume
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Choose the resume you want to submit with this application.
+        </p>
+      </div>
+
+      {/* Body */}
+      <div className="px-6 py-5">
+
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg">
+            My Resumes
+          </h3>
+
+          <span className="text-sm text-gray-500">
+            {resumeList.length} Resume{resumeList.length > 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {resumeList.length === 0 ? (
+          <div className="border rounded-xl p-8 text-center text-gray-500">
+            No resumes uploaded.
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-72 overflow-y-auto">
+
+            {resumeList.map((resume) => (
+
+              <label
+                key={resume.id}
+                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all duration-200
+                ${
+                  selectedResume == resume.id
+                    ? "border-primary bg-blue-50 shadow-sm"
+                    : "border-gray-200 hover:border-primary hover:bg-gray-50"
+                }`}
+              >
+
+                <div className="flex items-center gap-4">
+
+                  <input
+                    type="radio"
+                    name="resume"
+                    checked={selectedResume == resume.id}
+                    onChange={() => setSelectedResume(resume.id)}
+                    className="w-4 h-4"
+                  />
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800">
+                      {resume.resume_filename}
+                    </h4>
+
+                    <p className="text-sm text-gray-500">
+                      Resume PDF
+                    </p>
+                  </div>
+
+                </div>
+
+                <a
+                  href={`${API_ORIGIN}${resume.resume_path}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-primary font-medium hover:underline"
+                >
+                  View
+                </a>
+
+              </label>
+
+            ))}
+
+          </div>
+        )}
+
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-end gap-3 border-t px-6 py-4 bg-gray-50">
+
+        <button
+          onClick={() => {
+            setShowResumePopup(false);
+            setPendingJob(null);
+            setSelectedResume("");
+          }}
+          className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmApply}
+          disabled={!selectedResume}
+          className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50"
+        >
+          Apply Resume
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
     </UserDashboardLayout>
+    
   );
 };
 export default SearchJobs;

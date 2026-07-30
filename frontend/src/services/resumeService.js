@@ -15,3 +15,25 @@ export const deleteResume = async () => {
   const { data } = await api.delete("/resume");
   return data;
 };
+export const getMyResumes = async () => {
+  const { data } = await api.get("/resume/all");
+  return data;
+};
+
+export const uploadAdditionalResume = async (file) => {
+  const formData = new FormData();
+  formData.append("resume", file);
+
+  const { data } = await api.post("/resume/add", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return data;
+};
+
+export const deleteAdditionalResume = async (resumeId) => {
+  const { data } = await api.delete(`/resume/${resumeId}`);
+  return data;
+};

@@ -29,3 +29,5 @@ backend/uploads/
 
 # Cache
 .cache/
+
+backend/config/shnoor-job-portal-firebase-adminsdk-fbsvc-39225a8005.json

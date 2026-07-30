@@ -1,5 +1,10 @@
 const KNOWLEDGE_BASE = require("./chatbotKnowledgeBase");
 const {
+  createTicket,
+  createMessage,
+  getActiveTicket,
+} = require("../models/supportModel");
+const {
   getActiveJobsCount,
   getActiveJobsSummary,
   getPublishedAssessmentsCount,
@@ -170,12 +175,49 @@ const buildReply = async (intent) => {
       return FALLBACK_MESSAGE;
   }
 };
-const getChatbotResponse = async (message) => {
+const getChatbotResponse = async (message, userId = null) => {
   const intent = detectIntent(message);
-  if (!intent) {
-    return { intent: "fallback", reply: FALLBACK_MESSAGE };
+
+  if (intent) {
+    const reply = await buildReply(intent);
+
+    return {
+      intent,
+      reply,
+      ticket: null,
+    };
   }
-  const reply = await buildReply(intent);
-  return { intent, reply };
+
+  const reply =
+    "I'm unable to answer your question.\n\nA support request has been created successfully.\n\nOur support team will get back to you shortly.";
+
+  let ticket = null;
+
+if (userId) {
+  ticket = await getActiveTicket(userId);
+
+  if (!ticket) {
+    ticket = await createTicket(
+      userId,
+      "Live Support"
+    );
+  }
+
+  await createMessage(
+    ticket.id,
+    "user",
+    userId,
+    message
+  );
+}
+
+return {
+  intent: "support",
+  reply,
+  ticket,
+};
+};
+module.exports = {
+  getChatbotResponse,
 };
 module.exports = { getChatbotResponse };

@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+import { messaging, getToken } from "./firebase";
 import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -41,6 +43,29 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoutes from "./routes/AdminRoutes";
 import ChatbotWidget from "./components/chatbot/ChatbotWidget";
 const App = () => {
+
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+
+        if (permission === "granted") {
+          const token = await getToken(messaging, {
+            vapidKey:
+              "BKeZvW6xROnkgRaoAyKF3-wCDVuTr2XHDyjogu46kPp10X94Psw7_AfvZ18D1l4oOlTYY0UGVsgMYe3J2gg47hs",
+          });
+
+          console.log("FCM TOKEN:", token);
+        } else {
+          console.log("Notification Permission Denied");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    requestPermission();
+  }, []);
   return (
     <>
       <Routes>
