@@ -32,32 +32,22 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
-    const data = await loginUser(credentials);
+  const data = await loginUser(credentials);
 
-    localStorage.setItem("shnoor_token", data.token);
-    localStorage.setItem("shnoor_user", JSON.stringify(data.user));
+  console.log("Login Response:", data);
 
-    setUser(data.user);
+  localStorage.setItem("shnoor_token", data.token);
+  localStorage.setItem("shnoor_user", JSON.stringify(data.user));
 
-    try {
-      const fcmToken = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
-      });
+  console.log(
+    "Token after saving:",
+    localStorage.getItem("shnoor_token")
+  );
 
-      if (fcmToken) {
-        await saveFcmToken(fcmToken);
-      }
-    } catch (err) {
-      console.error("Failed to save FCM Token", err);
-    }
+  setUser(data.user);
 
-    socket.emit("register", {
-      userId: data.user.id,
-      role: "user",
-    });
-
-    return data.user;
-  };
+  return data.user;
+};
 
   const register = async (payload) => {
     const data = await registerUser(payload);
@@ -67,20 +57,7 @@ const AuthProvider = ({ children }) => {
 
     setUser(data.user);
 
-   try {
-  const fcmToken = await getToken(messaging, {
-    vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
-  });
-
-  console.log("FCM Token:", fcmToken);
-
-  if (fcmToken) {
-    await saveFcmToken(fcmToken);
-  }
-} catch (err) {
-  console.error("Failed to save FCM Token", err);
-}
-
+  
     socket.emit("register", {
       userId: data.user.id,
       role: "user",

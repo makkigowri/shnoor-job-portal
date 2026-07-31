@@ -67,13 +67,13 @@ const getRowInfo = (row) => {
     };
   }
   if (tech.status === "Scheduled" || tech.status === "In Progress") {
-    return {
-      assessment,
-      stage: `Technical Interview ${tech.status}`,
-      interviewStatus: tech.status,
-      interviewStatusClass: techStatusBadge(tech.status)
-    };
-  }
+  return {
+    assessment,
+    stage: "Awaiting Result",
+    interviewStatus: tech.status,
+    interviewStatusClass: techStatusBadge(tech.status)
+  };
+}
   if (tech.status === "Awaiting Result") {
     return {
       assessment,
@@ -85,7 +85,7 @@ const getRowInfo = (row) => {
   if (tech.result === "Selected") {
     return {
       assessment,
-      stage: "Offer Letter Pending",
+      stage: "Offer Pending",
       interviewStatus: "Completed",
       interviewStatusClass: "bg-emerald-100 text-emerald-700"
     };
@@ -103,7 +103,7 @@ const STAGE_FILTERS = [
   { key: "Technical Interview Pending", label: "Awaiting Schedule" },
   { key: "Technical Interview Scheduled", label: "Technical Interview Scheduled" },
   { key: "Technical Interview In Progress", label: "Technical Interview In Progress" },
-  { key: "Technical Interview Completed", label: "Awaiting Result" },
+  { key: "Awaiting Result", label: "Awaiting Result" },
   { key: "Offer Released", label: "Offer Released" },
   { key: "Rejected", label: "Rejected" }
 ];
@@ -394,77 +394,97 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
 };
 const OfferLetterModal = ({ interview, onClose, onSent }) => {
   const [message, setMessage] = useState("");
-  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
-    if (!file) {
-      alert("Please select an Offer Letter PDF.");
-      return;
-    }
-
     try {
       setLoading(true);
 
       const token = localStorage.getItem("shnoor_token");
 
-      const formData = new FormData();
-      formData.append("applicationId", interview.application_id);
-      formData.append("candidateId", interview.candidate_id);
-      formData.append("message", message);
-      formData.append("offerLetter", file);
-
       await axios.post(
         "http://localhost:5001/api/offer-letter/send",
-        formData,
+        {
+          applicationId: interview.application_id,
+          candidateId: interview.candidate_id,
+          message,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      alert("Offer Letter Sent Successfully");
+      alert("Offer Letter sent successfully.");
 
       onSent();
-
     } catch (err) {
       console.error(err);
-      alert("Failed to send Offer Letter");
+      alert(
+        err.response?.data?.message ||
+          "Failed to send Offer Letter."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-[500px]">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl">
 
-        <h2 className="text-xl font-bold mb-5">
-          Send Offer Letter
-        </h2>
+        <div className="border-b px-6 py-5">
+          <h2 className="text-2xl font-bold text-[#3E3A74]">
+            Send Offer Letter
+          </h2>
 
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={(e) => setFile(e.target.files[0])}
-          className="w-full border p-2 rounded mb-4"
-        />
+          <p className="text-sm text-gray-500 mt-1">
+            An official offer letter email will be generated and sent
+            automatically to the selected candidate.
+          </p>
+        </div>
 
-        <textarea
-          rows={4}
-          value={message}
-          onChange={(e)=>setMessage(e.target.value)}
-          placeholder="Message (Optional)"
-          className="w-full border rounded p-3"
-        />
+        <div className="px-6 py-5 space-y-5">
 
-        <div className="flex justify-end gap-3 mt-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Candidate
+            </label>
+
+            <div className="border rounded-xl p-3 bg-gray-50">
+              <p className="font-semibold">
+                {interview.candidate_name}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                {interview.job_title}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Additional Message (Optional)
+            </label>
+
+            <textarea
+              rows={5}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Add any additional information for the candidate..."
+              className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#7393D3]"
+            />
+          </div>
+
+        </div>
+
+        <div className="border-t px-6 py-4 flex justify-end gap-3">
 
           <button
             onClick={onClose}
-            className="border px-5 py-2 rounded"
+            disabled={loading}
+            className="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
           >
             Cancel
           </button>
@@ -472,9 +492,9 @@ const OfferLetterModal = ({ interview, onClose, onSent }) => {
           <button
             onClick={handleSend}
             disabled={loading}
-            className="bg-green-600 text-white px-5 py-2 rounded"
+            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-60"
           >
-            {loading ? "Sending..." : "Send"}
+            {loading ? "Sending..." : "Send Offer Letter"}
           </button>
 
         </div>
@@ -579,21 +599,38 @@ const response = await axios.get(
     if (!tech) {
       return <span className="text-gray-300 text-sm">—</span>;
     }
-   if (tech.status === "Scheduled" || tech.status === "In Progress") {
-      return (
+   if (
+  tech.status === "Scheduled" ||
+  tech.status === "In Progress" ||
+  tech.status === "Awaiting Result"
+) {
+  return (
+    <div className="flex gap-2">
+
+      {stageFilter !== "Awaiting Result" && (
         <button
-          onClick={() => navigate(`/meeting/${tech.location_or_link}`)} 
-          className="px-5 py-2 rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium transition"
+          onClick={() => navigate(`/meeting/${tech.location_or_link}`)}
+          className="px-4 py-2 rounded-lg bg-[#7393D3] hover:bg-[#3E3A74] text-white text-sm"
         >
           Join
         </button>
-      );
-    }
+      )}
+
+      <button
+        onClick={() => setResultTarget(tech)}
+        className="px-4 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-bold"
+      >
+        Finalize Result
+      </button>
+
+    </div>
+  );
+}
     if (tech.status === "Awaiting Result") {
       return (
         <button
           onClick={() => setResultTarget(tech)}
-          className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#2f2c5c] text-white text-sm font-medium transition"
+          className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-sm font-medium transition"
         >
           Release Result
         </button>
@@ -606,7 +643,7 @@ const response = await axios.get(
        onClick={() => setOfferTarget(tech)}
          
         
-        className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition"
+        className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-sm font-medium transition"
       >
         Send Offer Letter
       </button>
@@ -614,7 +651,7 @@ const response = await axios.get(
   }
 
   return (
-    <span className="px-4 py-2 rounded-lg bg-red-100 text-red-700 font-medium text-sm inline-block">
+    <span className="px-4 py-2 rounded-lg bg-red-100 text-red-300 font-medium text-sm inline-block">
       Rejected
     </span>
   );
