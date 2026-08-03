@@ -3,6 +3,7 @@ import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import JobDetailsModal from "../../components/user/JobDetailsModal";
 import { getSavedJobs, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
+import SelectResumeModal from "../../components/user/SelectResumeModal";
 const SavedJobs = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +12,8 @@ const SavedJobs = () => {
   const [removingJobId, setRemovingJobId] = useState(null);
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [resumeModalJob, setResumeModalJob] = useState(null);
+  const [applySubmitError, setApplySubmitError] = useState("");
   const loadSavedJobs = async () => {
     setLoading(true);
     setError("");
@@ -41,20 +44,28 @@ const SavedJobs = () => {
     }
   };
   const isApplied = (job) => Boolean(job.application_status && job.application_status !== "Withdrawn");
-  const handleApply = async (job) => {
+  const handleApply = (job) => {
     if (isApplied(job)) return;
     setActionError("");
+    setApplySubmitError("");
+    setResumeModalJob(job);
+  };
+  const handleConfirmApply = async (resumeId) => {
+    const job = resumeModalJob;
+    if (!job) return;
+    setApplySubmitError("");
     setApplyingJobId(job.id);
     try {
-      const data = await applyToJob(job.id);
+      const data = await applyToJob(job.id, resumeId);
       setSavedJobs((prev) =>
         prev.map((item) => (item.id === job.id ? { ...item, application_status: data.application.status } : item))
       );
       setSelectedJob((prev) =>
         prev && prev.id === job.id ? { ...prev, application_status: data.application.status } : prev
       );
+      setResumeModalJob(null);
     } catch (err) {
-      setActionError(err?.response?.data?.message || "Unable to submit application right now");
+      setApplySubmitError(err?.response?.data?.message || "Unable to submit application right now");
     } finally {
       setApplyingJobId(null);
     }
@@ -162,6 +173,14 @@ const SavedJobs = () => {
           applying={applyingJobId === selectedJob.id}
           isSaved
           applicationStatus={selectedJob.application_status}
+        />
+      )}
+      {resumeModalJob && (
+        <SelectResumeModal
+          onClose={() => setResumeModalJob(null)}
+          onContinue={handleConfirmApply}
+          submitting={applyingJobId === resumeModalJob.id}
+          submitError={applySubmitError}
         />
       )}
     </UserDashboardLayout>

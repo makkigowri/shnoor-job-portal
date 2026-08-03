@@ -1,10 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Star, CheckCircle2 } from "lucide-react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import { getDashboardSummary } from "../../services/dashboardService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import useAuth from "../../hooks/useAuth";
+import SelectResumeModal from "../../components/user/SelectResumeModal";
+const MATCH_BADGES = {
+  highly_matched: { label: "Highly Matched", Icon: Star },
+  recommended: { label: "Recommended", Icon: CheckCircle2 }
+};
+const MatchBadge = ({ matchType }) => {
+  const badge = MATCH_BADGES[matchType];
+  if (!badge) return null;
+  const { label, Icon } = badge;
+  return (
+    <span className="absolute top-4 right-4 inline-flex items-center gap-1 rounded-full border border-[#166534]/20 bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#166534]">
+      <Icon size={12} strokeWidth={2.5} />
+      {label}
+    </span>
+  );
+};
 const statCards = (stats) => [
   {
     title: "Profile Completion",
@@ -44,6 +61,8 @@ const Dashboard = () => {
   const [actionError, setActionError] = useState("");
   const [savingJobId, setSavingJobId] = useState(null);
   const [applyingJobId, setApplyingJobId] = useState(null);
+  const [resumeModalJob, setResumeModalJob] = useState(null);
+  const [applySubmitError, setApplySubmitError] = useState("");
   const loadDashboard = async () => {
     setLoading(true);
     setError("");
@@ -80,20 +99,28 @@ const Dashboard = () => {
       setSavingJobId(null);
     }
   };
-  const handleApply = async (job) => {
+  const handleApply = (job) => {
     if (job.application_status && job.application_status !== "Withdrawn") return;
     setActionError("");
+    setApplySubmitError("");
+    setResumeModalJob(job);
+  };
+  const handleConfirmApply = async (resumeId) => {
+    const job = resumeModalJob;
+    if (!job) return;
+    setApplySubmitError("");
     setApplyingJobId(job.id);
     try {
-      const data = await applyToJob(job.id);
+      const data = await applyToJob(job.id, resumeId);
       setRecommendedJobs((prev) =>
         prev.map((item) =>
           item.id === job.id ? { ...item, application_status: data.application.status } : item
         )
       );
       setStats((prev) => ({ ...prev, jobsApplied: prev.jobsApplied + 1 }));
+      setResumeModalJob(null);
     } catch (err) {
-      setActionError(err?.response?.data?.message || "Unable to submit application right now");
+      setApplySubmitError(err?.response?.data?.message || "Unable to submit application right now");
     } finally {
       setApplyingJobId(null);
     }
@@ -195,9 +222,10 @@ const Dashboard = () => {
             {recommendedJobs.map((job) => (
               <div
                 key={job.id}
-                className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col"
+                className="relative border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col"
               >
-                <h3 className="text-xl font-bold text-[#3E3A74]">
+                <MatchBadge matchType={job.matchType} />
+                <h3 className="text-xl font-bold text-[#3E3A74] pr-28">
                   {job.title}
                 </h3>
                 <p className="text-gray-600 mt-2">
@@ -234,6 +262,14 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      {resumeModalJob && (
+        <SelectResumeModal
+          onClose={() => setResumeModalJob(null)}
+          onContinue={handleConfirmApply}
+          submitting={applyingJobId === resumeModalJob.id}
+          submitError={applySubmitError}
+        />
+      )}
     </UserDashboardLayout>
   );
 };

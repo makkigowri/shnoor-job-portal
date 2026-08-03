@@ -30,4 +30,11 @@ const updateProfilePhoto = async (userId, photoPath) => {
   const result = await pool.query(query, [userId, photoPath]);
   return result.rows[0];
 };
-module.exports = {getProfileByUserId,upsertProfile,updateProfilePhoto};
+const removeProfilePhoto = async (userId) => {
+  const query = `
+    UPDATE job_seeker_profiles SET photo_path = NULL WHERE user_id = $1
+    RETURNING * `;
+  const result = await pool.query(query, [userId]);
+  return result.rows[0];
+};
+module.exports = {getProfileByUserId,upsertProfile,updateProfilePhoto,removeProfilePhoto};

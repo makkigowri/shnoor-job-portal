@@ -9,13 +9,13 @@ const getApplicationByUserAndJob = async (userId, jobId) => {
   const result = await pool.query(query, [userId, jobId]);
   return result.rows[0];
 };
-const applyToJob = async (userId, jobId, resumePath, resumeFilename) => {
+const applyToJob = async (userId, jobId, resumePath, resumeFilename, resumeId = null) => {
   const query = `
-    INSERT INTO applications (user_id, job_id, resume_path, resume_filename, status, applied_at, updated_at)
-    VALUES ($1, $2, $3, $4, 'Applied', NOW(), NOW()) ON CONFLICT (user_id, job_id) DO UPDATE SET
-      status = 'Applied', resume_path = EXCLUDED.resume_path, resume_filename = EXCLUDED.resume_filename, recruiter_note = NULL,applied_at = NOW(), updated_at = NOW()
+    INSERT INTO applications (user_id, job_id, resume_path, resume_filename, resume_id, status, applied_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, 'Applied', NOW(), NOW()) ON CONFLICT (user_id, job_id) DO UPDATE SET
+      status = 'Applied', resume_path = EXCLUDED.resume_path, resume_filename = EXCLUDED.resume_filename, resume_id = EXCLUDED.resume_id, recruiter_note = NULL,applied_at = NOW(), updated_at = NOW()
     WHERE applications.status = 'Withdrawn' RETURNING * `;
-  const result = await pool.query(query, [userId, jobId, resumePath, resumeFilename]);
+  const result = await pool.query(query, [userId, jobId, resumePath, resumeFilename, resumeId]);
   return result.rows[0];
 };
 const withdrawApplication = async (userId, jobId) => {

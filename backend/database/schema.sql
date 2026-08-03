@@ -111,12 +111,31 @@ ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_path VARCHAR(500
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_filename VARCHAR(255);
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_uploaded_at TIMESTAMP;
 ALTER TABLE job_seeker_profiles ADD COLUMN IF NOT EXISTS resume_text TEXT;
+CREATE TABLE IF NOT EXISTS user_resumes (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  resume_name VARCHAR(255) NOT NULL,
+  resume_path VARCHAR(500) NOT NULL,
+  resume_filename VARCHAR(255) NOT NULL,
+  resume_text TEXT,
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  uploaded_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_user_resumes_user_id ON user_resumes(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_resumes_user_default ON user_resumes(user_id, is_default);
+DROP TRIGGER IF EXISTS trg_user_resumes_updated_at ON user_resumes;
+CREATE TRIGGER trg_user_resumes_updated_at
+BEFORE UPDATE ON user_resumes
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
 CREATE TABLE IF NOT EXISTS applications (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   resume_path VARCHAR(500),
   resume_filename VARCHAR(255),
+  resume_id INTEGER REFERENCES user_resumes(id) ON DELETE SET NULL,
   status VARCHAR(30) NOT NULL DEFAULT 'Applied'
     CHECK (status IN ('Applied', 'Under Review', 'Shortlisted', 'Rejected', 'Interview Scheduled', 'Withdrawn')),
   recruiter_note TEXT,
@@ -132,6 +151,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_ats_score ON applications(ats_score);
+CREATE INDEX IF NOT EXISTS idx_applications_resume_id ON applications(resume_id);
 DROP TRIGGER IF EXISTS trg_applications_updated_at ON applications;
 CREATE TRIGGER trg_applications_updated_at
 BEFORE UPDATE ON applications

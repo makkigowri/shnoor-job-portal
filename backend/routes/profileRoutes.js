@@ -1,9 +1,10 @@
 const express = require("express");
-const { getMyProfile, saveMyProfile, uploadProfilePhoto } = require("../controllers/profileController");
+const { getMyProfile, saveMyProfile, uploadProfilePhoto, deleteProfilePhoto } = require("../controllers/profileController");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 const { upload } = require("../middleware/upload");
 const router = express.Router();
 router.get("/", protect, authorizeRoles("jobseeker"), getMyProfile);
 router.put("/", protect, authorizeRoles("jobseeker"), saveMyProfile);
 router.post("/photo",protect, authorizeRoles("jobseeker"),upload.single("profilePhoto"),uploadProfilePhoto);
+router.delete("/photo", protect, authorizeRoles("jobseeker"), deleteProfilePhoto);
 module.exports = router;

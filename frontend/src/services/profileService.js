@@ -15,3 +15,7 @@ export const uploadProfilePhoto = async (file) => {
   });
   return data;
 };
+export const removeProfilePhoto = async () => {
+  const { data } = await api.delete("/profile/photo");
+  return data;
+};

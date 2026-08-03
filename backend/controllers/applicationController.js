@@ -1,7 +1,7 @@
 const {
   getApplicationByUserAndJob,applyToJob,withdrawApplication,getApplicationsByUser,getApplicantsForRecruiter,getApplicationForRecruiter,updateApplicationStatus,getApplicantsForExport} = require("../models/applicationModel");
 const { findJobById } = require("../models/jobModel");
-const { getResumeByUserId } = require("../models/resumeModel");
+const { getUserResumeById, getUserResumes } = require("../models/resumeModel");
 const { createNotification } = require("../models/notificationModel");
 const sendPushNotification = require("../utils/sendPushNotification");
 const { assignPublishedAssessmentsToNewlyShortlistedCandidate } = require("../models/assessmentAssignmentModel");
@@ -19,14 +19,36 @@ const applyToJobHandler = async (req, res, next) => {
     if (job.status !== "Active") {
       return res.status(400).json({ success: false, message: "This job is no longer accepting applications" });
     }
-    const resume = await getResumeByUserId(req.user.id);
-    if (!resume || !resume.resume_path) {
+    // Candidate selects one resume from the "Select Resume" modal before
+    // continuing; older clients that don't send resumeId keep working by
+    // falling back to whichever resume is marked default.
+    const { resumeId } = req.body || {};
+    let selectedResume = null;
+    if (resumeId) {
+      selectedResume = await getUserResumeById(resumeId, req.user.id);
+      if (!selectedResume) {
+        return res.status(400).json({
+          success: false,
+          message: "Selected resume was not found. Please choose a resume again."
+        });
+      }
+    } else {
+      const resumes = await getUserResumes(req.user.id);
+      selectedResume = resumes.find((item) => item.is_default) || resumes[0] || null;
+    }
+    if (!selectedResume) {
       return res.status(400).json({
         success: false,
-        message: "Please upload your resume before applying to a job"
+        message: "No resumes available. Please upload a resume before applying."
       });
     }
-    const application = await applyToJob(req.user.id, jobId, resume.resume_path, resume.resume_filename);
+    const application = await applyToJob(
+      req.user.id,
+      jobId,
+      selectedResume.resume_path,
+      selectedResume.resume_filename,
+      selectedResume.id
+    );
     if (!application) {
       const existing = await getApplicationByUserAndJob(req.user.id, jobId);
       const status = existing ? existing.status : "Applied";

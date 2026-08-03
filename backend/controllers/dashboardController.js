@@ -6,6 +6,36 @@ const { getUnreadCount } = require("../models/notificationModel");
 const { findJobsByRecruiter } = require("../models/jobModel");
 const { countUpcomingInterviewsForRecruiter } = require("../models/interviewModel");
 const PROFILE_FIELDS = ["location","qualification","specialization","skills","about","photo_path"];
+const normalizeList = (value) =>
+  (value || "")
+    .split(/[,;/|]+/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+const computeJobMatch = (profile, job) => {
+  if (!profile) return { matchType: null };
+  const userSkills = normalizeList(profile.skills);
+  const jobSkills = normalizeList(job.skills);
+  const skillsMatched =
+    userSkills.length > 0 &&
+    jobSkills.length > 0 &&
+    jobSkills.some((jobSkill) =>
+      userSkills.some((userSkill) => userSkill === jobSkill || userSkill.includes(jobSkill) || jobSkill.includes(userSkill))
+    );
+  const qualification = (profile.qualification || "").trim().toLowerCase();
+  const jobText = `${job.requirements || ""} ${job.description || ""} ${job.title || ""}`.toLowerCase();
+  const degreeMatched = qualification.length > 0 && jobText.includes(qualification);
+  let matchType = null;
+  if (degreeMatched && skillsMatched) matchType = "highly_matched";
+  else if (degreeMatched || skillsMatched) matchType = "recommended";
+  return { matchType };
+};
+const MATCH_RANK = { highly_matched: 0, recommended: 1 };
+const sortByMatch = (jobs) =>
+  [...jobs].sort((a, b) => {
+    const rankA = MATCH_RANK[a.matchType] ?? 2;
+    const rankB = MATCH_RANK[b.matchType] ?? 2;
+    return rankA - rankB;
+  });
 const calculateProfileCompletion = (profile, hasResume) => {
   const totalChecks = PROFILE_FIELDS.length + 1; // +1 for resume
   let filled = 0;
@@ -40,6 +70,7 @@ const getDashboardSummary = async (req, res, next) => {
     const recommendedQuery = `
       SELECT
         j.id, j.title, j.location, j.salary, j.employment_type, j.experience, j.created_at,
+        j.skills, j.requirements, j.description,
         c.company_name,
         c.logo_path AS company_logo,
         (sj.id IS NOT NULL) AS is_saved,
@@ -47,6 +78,13 @@ const getDashboardSummary = async (req, res, next) => {
       FROM jobs j LEFT JOIN companies c ON c.recruiter_id = j.recruiter_id LEFT JOIN saved_jobs sj ON sj.job_id = j.id AND sj.user_id = $1 LEFT JOIN applications ap ON ap.job_id = j.id AND ap.user_id = $1
       WHERE j.status = 'Active' AND ap.id IS NULL ORDER BY j.created_at DESC LIMIT 3 `;
     const recommendedResult = await pool.query(recommendedQuery, [userId]);
+    const recommendedJobsWithMatch = sortByMatch(
+      recommendedResult.rows.map((job) => {
+        const { requirements, description, ...jobForClient } = job;
+        const { matchType } = computeJobMatch(profile, job);
+        return { ...jobForClient, matchType };
+      })
+    );
     const recentApplications = applications.slice(0, 5);
     res.status(200).json({
       success: true,
@@ -58,7 +96,7 @@ const getDashboardSummary = async (req, res, next) => {
         unreadNotifications: unreadCount
       },
       hasResume,
-      recommendedJobs: recommendedResult.rows,
+      recommendedJobs: recommendedJobsWithMatch,
       recentApplications
     });
   } catch (error) {
