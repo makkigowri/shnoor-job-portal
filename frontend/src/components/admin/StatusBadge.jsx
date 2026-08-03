@@ -1,3 +1,4 @@
+import { memo } from "react";
 const STYLES = {
   active: "bg-green-50 text-green-700 border-green-200",
   blocked: "bg-red-50 text-red-700 border-red-200",
@@ -9,7 +10,7 @@ const STYLES = {
   "interview scheduled": "bg-purple-50 text-purple-700 border-purple-200",
   default: "bg-gray-100 text-gray-600 border-gray-200"
 };
-const StatusBadge = ({ status }) => {
+const StatusBadge = memo(({ status }) => {
   const key = (status || "").toLowerCase();
   const style = STYLES[key] || STYLES.default;
   return (
@@ -17,5 +18,5 @@ const StatusBadge = ({ status }) => {
       {status}
     </span>
   );
-};
+});
 export default StatusBadge;

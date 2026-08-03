@@ -1,73 +1,55 @@
-import { useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import { messaging, getToken } from "./firebase";
-import Landing from "./pages/Landing";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import Dashboard from "./pages/user/Dashboard";
-import Profile from "./pages/user/Profile";
-import Resume from "./pages/user/Resume";
-import SearchJobs from "./pages/user/SearchJobs";
-import SavedJobs from "./pages/user/SavedJobs";
-import AppliedJobs from "./pages/user/AppliedJobs";
-import Notifications from "./pages/user/Notifications";
-import Settings from "./pages/user/Settings";
-import MyAssessments from "./pages/user/assessments/MyAssessments";
-import CandidateAssessmentDetails from "./pages/user/assessments/AssessmentDetails";
-import TakeAssessment from "./pages/user/assessments/TakeAssessment";
-import AssessmentResult from "./pages/user/assessments/AssessmentResult";
-import AIInterview from "./pages/user/interview/AIInterview";
-import MeetingRoom from './pages/common/MeetingRoom';
-import RecruiterDashboard from "./pages/recruiter/Dashboard";
-import CompanyProfile from "./pages/recruiter/CompanyProfile";
-import PostJob from "./pages/recruiter/PostJob";
-import EditJob from "./pages/recruiter/EditJob";
-import MyJobs from "./pages/recruiter/MyJobs";
-import Applicants from "./pages/recruiter/Applicants";
-import ATSChecker from "./pages/recruiter/ATSChecker";
-import Interviews from "./pages/recruiter/Interviews";
-import Analytics from "./pages/recruiter/Analytics";
-import RecruiterNotifications from "./pages/recruiter/Notifications";
-import RecruiterSettings from "./pages/recruiter/Settings";
-import AssessmentDashboard from "./pages/recruiter/assessments/AssessmentDashboard";
-import CreateAssessment from "./pages/recruiter/assessments/CreateAssessment";
-import EditAssessment from "./pages/recruiter/assessments/EditAssessment";
-import AssessmentDetails from "./pages/recruiter/assessments/AssessmentDetails";
-import AssessmentResults from "./pages/recruiter/assessments/AssessmentResults";
-import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
-import TermsAndConditions from "./pages/legal/TermsAndConditions";
-import CookiesPolicy from "./pages/legal/CookiesPolicy";
-import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoutes from "./routes/AdminRoutes";
 import ChatbotWidget from "./components/chatbot/ChatbotWidget";
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const Dashboard = lazy(() => import("./pages/user/Dashboard"));
+const Profile = lazy(() => import("./pages/user/Profile"));
+const Resume = lazy(() => import("./pages/user/Resume"));
+const SearchJobs = lazy(() => import("./pages/user/SearchJobs"));
+const SavedJobs = lazy(() => import("./pages/user/SavedJobs"));
+const AppliedJobs = lazy(() => import("./pages/user/AppliedJobs"));
+const Notifications = lazy(() => import("./pages/user/Notifications"));
+const Settings = lazy(() => import("./pages/user/Settings"));
+const MyAssessments = lazy(() => import("./pages/user/assessments/MyAssessments"));
+const CandidateAssessmentDetails = lazy(() => import("./pages/user/assessments/AssessmentDetails"));
+const TakeAssessment = lazy(() => import("./pages/user/assessments/TakeAssessment"));
+const AssessmentResult = lazy(() => import("./pages/user/assessments/AssessmentResult"));
+const AIInterview = lazy(() => import("./pages/user/interview/AIInterview"));
+const MeetingRoom = lazy(() => import("./pages/common/MeetingRoom"));
+const RecruiterDashboard = lazy(() => import("./pages/recruiter/Dashboard"));
+const CompanyProfile = lazy(() => import("./pages/recruiter/CompanyProfile"));
+const PostJob = lazy(() => import("./pages/recruiter/PostJob"));
+const EditJob = lazy(() => import("./pages/recruiter/EditJob"));
+const MyJobs = lazy(() => import("./pages/recruiter/MyJobs"));
+const Applicants = lazy(() => import("./pages/recruiter/Applicants"));
+const ATSChecker = lazy(() => import("./pages/recruiter/ATSChecker"));
+const Interviews = lazy(() => import("./pages/recruiter/Interviews"));
+const Analytics = lazy(() => import("./pages/recruiter/Analytics"));
+const RecruiterNotifications = lazy(() => import("./pages/recruiter/Notifications"));
+const RecruiterSettings = lazy(() => import("./pages/recruiter/Settings"));
+const AssessmentDashboard = lazy(() => import("./pages/recruiter/assessments/AssessmentDashboard"));
+const CreateAssessment = lazy(() => import("./pages/recruiter/assessments/CreateAssessment"));
+const EditAssessment = lazy(() => import("./pages/recruiter/assessments/EditAssessment"));
+const AssessmentDetails = lazy(() => import("./pages/recruiter/assessments/AssessmentDetails"));
+const AssessmentResults = lazy(() => import("./pages/recruiter/assessments/AssessmentResults"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsAndConditions = lazy(() => import("./pages/legal/TermsAndConditions"));
+const CookiesPolicy = lazy(() => import("./pages/legal/CookiesPolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="h-10 w-10 rounded-full border-4 border-gray-200 border-t-indigo-600 animate-spin" />
+  </div>
+);
 const App = () => {
-
-  useEffect(() => {
-    const requestPermission = async () => {
-      try {
-        const permission = await Notification.requestPermission();
-
-        if (permission === "granted") {
-          const token = await getToken(messaging, {
-            vapidKey:
-              "BKeZvW6xROnkgRaoAyKF3-wCDVuTr2XHDyjogu46kPp10X94Psw7_AfvZ18D1l4oOlTYY0UGVsgMYe3J2gg47hs",
-          });
-
-          console.log("FCM TOKEN:", token);
-        } else {
-          console.log("Notification Permission Denied");
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    requestPermission();
-  }, []);
   return (
     <>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -319,6 +301,7 @@ const App = () => {
       <Route path="/admin/*" element={<AdminRoutes />} />
       <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
       <ChatbotWidget />
     </>
   );

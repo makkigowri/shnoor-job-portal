@@ -1,4 +1,5 @@
-const ApplicantTable = ({ applicants }) => {
+import { memo } from "react";
+const ApplicantTable = memo(({ applicants }) => {
   return (
     <table className="w-full">
       <thead className="bg-gray-100">
@@ -19,5 +20,5 @@ const ApplicantTable = ({ applicants }) => {
       </tbody>
     </table>
   );
-};
+});
 export default ApplicantTable;

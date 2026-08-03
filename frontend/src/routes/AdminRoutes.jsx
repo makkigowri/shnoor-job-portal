@@ -1,21 +1,26 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminAuthProvider from "../context/AdminAuthContext";
 import AdminProtectedRoute from "./AdminProtectedRoute";
-import AdminDashboard from "../pages/admin/Dashboard";
-import AdminUsers from "../pages/admin/Users";
-import AdminRecruiters from "../pages/admin/Recruiters";
-import AdminJobs from "../pages/admin/Jobs";
-import AdminApplications from "../pages/admin/Applications";
-import AdminNotifications from "../pages/admin/Notifications";
-import AdminSettings from "../pages/admin/Settings";
-import AdminAssessmentManagement from "../pages/admin/AssessmentManagement";
-import AdminAssessmentAnalytics from "../pages/admin/AssessmentAnalytics";
-import AdminAssessmentReports from "../pages/admin/AssessmentReports";
-import Support from "../pages/admin/Support";
-import SupportAnalytics from "../pages/admin/SupportAnalytics" 
+const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
+const AdminUsers = lazy(() => import("../pages/admin/Users"));
+const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
+const AdminJobs = lazy(() => import("../pages/admin/Jobs"));
+const AdminApplications = lazy(() => import("../pages/admin/Applications"));
+const AdminNotifications = lazy(() => import("../pages/admin/Notifications"));
+const AdminSettings = lazy(() => import("../pages/admin/Settings"));
+const AdminAssessmentManagement = lazy(() => import("../pages/admin/AssessmentManagement"));
+const AdminAssessmentAnalytics = lazy(() => import("../pages/admin/AssessmentAnalytics"));
+const AdminAssessmentReports = lazy(() => import("../pages/admin/AssessmentReports"));
+const AdminPageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="h-10 w-10 rounded-full border-4 border-gray-200 border-t-indigo-600 animate-spin" />
+  </div>
+);
 const AdminRoutes = () => {
   return (
     <AdminAuthProvider>
+      <Suspense fallback={<AdminPageLoader />}>
       <Routes>
         <Route
           path="dashboard"
@@ -89,22 +94,6 @@ const AdminRoutes = () => {
             </AdminProtectedRoute>
           }
         />
-       <Route
-  path="support"
-  element={
-    <AdminProtectedRoute>
-      <Support />
-    </AdminProtectedRoute>
-  }
-/>
-<Route
-  path="support-analytics"
-  element={
-    <AdminProtectedRoute>
-      {<SupportAnalytics />}
-    </AdminProtectedRoute>
-  }
-/>
         <Route
           path="settings"
           element={
@@ -115,6 +104,7 @@ const AdminRoutes = () => {
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </Suspense>
     </AdminAuthProvider>
   );
 };

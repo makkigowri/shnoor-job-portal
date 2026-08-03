@@ -1,20 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getMyCompany, saveMyCompany, uploadCompanyLogo } from "../../services/companyService";
+import ProfileField from "../../components/common/ProfileField";
+import ProfileActionButtons from "../../components/common/ProfileActionButtons";
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
 const DEFAULT_LOGO = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGzhluKdUf0IhxKsPrl1daQEZatX0_mJi8ITsuYsm8eQ&s=10";
+const EMPTY_COMPANY = {
+  companyName: "",
+  website: "",
+  email: "",
+  phone: "",
+  industry: "",
+  companySize: "200-500 Employees",
+  headquarters: "",
+  description: ""
+};
 export default function CompanyProfile() {
   const fileInputRef = useRef(null);
-  const [company, setCompany] = useState({
-    companyName: "",
-    website: "",
-    email: "",
-    phone: "",
-    industry: "",
-    companySize: "200-500 Employees",
-    headquarters: "",
-    description: ""
-  });
+  const [company, setCompany] = useState(EMPTY_COMPANY);
+  const [savedCompany, setSavedCompany] = useState(EMPTY_COMPANY);
+  const [editing, setEditing] = useState(false);
   const [logoPath, setLogoPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,7 +31,7 @@ export default function CompanyProfile() {
       try {
         const data = await getMyCompany();
         if (data.company) {
-          setCompany({
+          const loaded = {
             companyName: data.company.company_name || "",
             website: data.company.website || "",
             email: data.company.email || "",
@@ -35,7 +40,9 @@ export default function CompanyProfile() {
             companySize: data.company.company_size || "200-500 Employees",
             headquarters: data.company.headquarters || "",
             description: data.company.description || ""
-          });
+          };
+          setCompany(loaded);
+          setSavedCompany(loaded);
           setLogoPath(data.company.logo_path || null);
         }
       } catch (err) {
@@ -49,12 +56,25 @@ export default function CompanyProfile() {
   const handleChange = (e) => {
     setCompany({ ...company, [e.target.name]: e.target.value });
   };
+  const handleEdit = () => {
+    setError("");
+    setSuccessMessage("");
+    setEditing(true);
+  };
+  const handleCancel = () => {
+    setCompany(savedCompany);
+    setError("");
+    setSuccessMessage("");
+    setEditing(false);
+  };
   const handleSave = async () => {
     setSaving(true);
     setError("");
     setSuccessMessage("");
     try {
       await saveMyCompany(company);
+      setSavedCompany(company);
+      setEditing(false);
       setSuccessMessage("Company Profile Saved Successfully");
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to save company profile. Please try again.");
@@ -81,8 +101,20 @@ export default function CompanyProfile() {
   }
   return (
     <RecruiterDashboardLayout>
-      <h1 className="text-4xl font-bold text-[#3E3A74]">Company Profile</h1>
-      <p className="mt-2 text-gray-500">Manage your company information visible to job seekers.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-4xl font-bold text-[#3E3A74]">Company Profile</h1>
+          <p className="mt-2 text-gray-500">Manage your company information visible to job seekers.</p>
+        </div>
+        {!editing && (
+          <ProfileActionButtons
+            editing={false}
+            onEdit={handleEdit}
+            primaryClassName="bg-[#7393D3] hover:bg-[#5E84D6] text-white"
+            outlineClassName="border border-gray-300 text-gray-700 hover:bg-gray-50"
+          />
+        )}
+      </div>
 
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">
@@ -114,28 +146,22 @@ export default function CompanyProfile() {
           </div>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="companyName" className="font-medium text-gray-900">Company Name</label>
+          <ProfileField label="Company Name" value={company.companyName} editing={editing}>
             <input name="companyName" id="companyName" value={company.companyName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div>
-            <label className="font-medium text-gray-900" htmlFor="website">Website</label>
+          </ProfileField>
+          <ProfileField label="Website" value={company.website} editing={editing}>
             <input name="website" id="website" value={company.website} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div>
-            <label className="font-medium text-gray-900" htmlFor="email">Email</label>
+          </ProfileField>
+          <ProfileField label="Email" value={company.email} editing={editing}>
             <input name="email" id="email" value={company.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div>
-            <label htmlFor="phone" className="font-medium text-gray-900">Phone</label>
+          </ProfileField>
+          <ProfileField label="Phone" value={company.phone} editing={editing}>
             <input name="phone" id="phone" value={company.phone} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div>
-            <label htmlFor="industry" className="font-medium text-gray-900">Industry</label>
+          </ProfileField>
+          <ProfileField label="Industry" value={company.industry} editing={editing}>
             <input name="industry" id="industry" value={company.industry} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div>
-            <label htmlFor="companysize" className="font-medium text-gray-900">Company Size</label>
+          </ProfileField>
+          <ProfileField label="Company Size" value={company.companySize} editing={editing}>
             <select name="companySize" id="companysize" value={company.companySize} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none">
               <option>1-10 Employees</option>
               <option>10-50 Employees</option>
@@ -143,21 +169,26 @@ export default function CompanyProfile() {
               <option>200-500 Employees</option>
               <option>500+ Employees</option>
             </select>
-          </div>
-          <div className="md:col-span-2">
-            <label htmlFor="headquarters" className="font-medium text-gray-900">Headquarters</label>
+          </ProfileField>
+          <ProfileField label="Headquarters" value={company.headquarters} editing={editing} span>
             <input name="headquarters" id="headquarters" value={company.headquarters} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
-          </div>
-          <div className="md:col-span-2">
-            <label htmlFor="description" className="font-medium text-gray-900">Company Description</label>
+          </ProfileField>
+          <ProfileField label="Company Description" value={company.description} editing={editing} multiline span>
             <textarea rows="6" name="description" id="description" value={company.description} onChange={handleChange} className="w-full border border-gray-300 rounded-xl mt-2 p-3 focus:border-[#7393D3] focus:outline-none" />
+          </ProfileField>
+        </div>
+        {editing && (
+          <div className="mt-8">
+            <ProfileActionButtons
+              editing={true}
+              saving={saving}
+              onCancel={handleCancel}
+              onSave={handleSave}
+              primaryClassName="bg-[#7393D3] hover:bg-[#5E84D6] text-white"
+              outlineClassName="border border-gray-300 text-gray-700 hover:bg-gray-50"
+            />
           </div>
-        </div>
-        <div className="mt-8">
-          <button disabled={saving} onClick={handleSave} className="bg-[#7393D3] hover:bg-[#5E84D6] text-white px-8 py-3 rounded-xl transition disabled:opacity-60">
-            {saving ? "Saving..." : "Save Company Profile"}
-          </button>
-        </div>
+        )}
       </div>
     </RecruiterDashboardLayout>
   );

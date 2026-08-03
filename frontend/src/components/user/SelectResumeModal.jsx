@@ -2,18 +2,26 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { getMyResumes } from "../../services/resumeService";
+
 const formatResumeDate = (value) => {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
+
+/**
+ * Step 1 of the Apply Job workflow: lets the candidate pick exactly one of
+ * their uploaded resumes before the application is actually submitted.
+ * The parent is responsible for the real submit (Step 2) via onContinue.
+ */
 const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitError = "" }) => {
   const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+
   useEffect(() => {
     let active = true;
     const loadResumes = async () => {

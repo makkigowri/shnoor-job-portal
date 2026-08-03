@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import ActionMenu from "../../components/admin/ActionMenu";
@@ -7,6 +7,7 @@ import {
   fetchNotificationHistory,
   deleteAdminNotification
 } from "../../services/adminNotificationService";
+import { NOTIFICATION_CATEGORIES, categorizeNotification } from "../../utils/notificationCategories";
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
 const AdminNotifications = () => {
   const [form, setForm] = useState({ title: "", message: "", type: "info", audience: "all" });
@@ -16,6 +17,7 @@ const AdminNotifications = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("All");
   const loadHistory = async () => {
     setLoading(true);
     try {
@@ -61,6 +63,10 @@ const AdminNotifications = () => {
       setConfirmDelete(null);
     }
   };
+  const filteredHistory = useMemo(() => {
+    if (activeCategory === "All") return history;
+    return history.filter((item) => categorizeNotification(item) === activeCategory);
+  }, [history, activeCategory]);
   return (
     <AdminLayout title="Notifications" subtitle="Send announcements to users and recruiters, and review what has been sent.">
       {error && (
@@ -69,7 +75,6 @@ const AdminNotifications = () => {
       {success && (
         <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>
       )}
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
         <h3 className="font-bold text-[#3E3A74] mb-4">Send Notification</h3>
         <form onSubmit={handleSend} className="space-y-4">
@@ -136,8 +141,24 @@ const AdminNotifications = () => {
         </form>
       </div>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-4">
           <h3 className="font-bold text-[#3E3A74]">Notification History</h3>
+          <div className="flex flex-wrap gap-2">
+            {["All", ...NOTIFICATION_CATEGORIES].map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveCategory(category)}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition ${
+                  activeCategory === category
+                    ? "bg-[#7393D3] text-white"
+                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -155,10 +176,10 @@ const AdminNotifications = () => {
             {loading && (
               <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">Loading history...</td></tr>
             )}
-            {!loading && history.length === 0 && (
-              <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No notifications sent yet</td></tr>
+            {!loading && filteredHistory.length === 0 && (
+              <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No notifications in this category yet</td></tr>
             )}
-            {!loading && history.map((item) => (
+            {!loading && filteredHistory.map((item) => (
               <tr key={item.id} className="border-t border-gray-100">
                 <td className="px-6 py-3 text-gray-800">{item.title}</td>
                 <td className="px-6 py-3 text-gray-600 capitalize">{item.audience}</td>

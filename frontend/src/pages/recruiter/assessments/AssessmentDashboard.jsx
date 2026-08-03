@@ -98,7 +98,7 @@ export default function AssessmentDashboard() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-gray-300 rounded-xl px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
+          className="w-60 border border-gray-300 rounded-xl px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
         >
           <option value="">All Status</option>
           <option value="Draft">Draft</option>

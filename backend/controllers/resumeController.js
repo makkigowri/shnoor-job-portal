@@ -5,8 +5,13 @@ const {
   upsertResume,
   clearResume,
   getUserResumes,
+  getUserResumeById,
+  countUserResumes,
   addUserResume,
-  deleteUserResume
+  replaceUserResume,
+  setDefaultUserResume,
+  deleteUserResume,
+  promoteMostRecentAsDefault
 } = require("../models/resumeModel");
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
@@ -21,6 +26,21 @@ const removeFileIfExists = (resumePath) => {
     }
   });
 };
+
+// Keeps the legacy job_seeker_profiles resume columns pointed at whichever
+// resume is currently the default, so job applications and ATS scoring
+// (which only know about a single resume) keep working unchanged.
+const syncDefaultResumeToProfile = async (userId) => {
+  const resumes = await getUserResumes(userId);
+  const defaultSummary = resumes.find((resume) => resume.is_default);
+  if (!defaultSummary) {
+    await clearResume(userId);
+    return;
+  }
+  const fullResume = await getUserResumeById(defaultSummary.id, userId);
+  await upsertResume(userId, fullResume.resume_path, fullResume.resume_filename, fullResume.resume_text);
+};
+
 const getMyResume = async (req, res, next) => {
   try {
     const resume = await getResumeByUserId(req.user.id);
@@ -97,18 +117,130 @@ const uploadAdditionalResume = async (req, res, next) => {
     }
 
     const resumePath = `/uploads/${req.file.filename}`;
+    const resumeName = (req.body.resumeName && req.body.resumeName.trim()) || req.file.originalname;
 
-    const resume = await addUserResume(
-      req.user.id,
+    let resumeText = null;
+    let extractionError = null;
+    try {
+      resumeText = await extractResumeText(req.file.path, req.file.mimetype);
+    } catch (err) {
+      extractionError = err.message;
+      console.error("Resume text extraction failed during upload:", err.message);
+    }
+
+    // The very first resume a user uploads automatically becomes the default.
+    const existingCount = await countUserResumes(req.user.id);
+    const isDefault = existingCount === 0;
+
+    const resume = await addUserResume(req.user.id, {
+      resumeName,
       resumePath,
-      req.file.originalname
-    );
+      resumeFilename: req.file.originalname,
+      resumeText,
+      isDefault
+    });
+
+    if (isDefault) {
+      await syncDefaultResumeToProfile(req.user.id);
+    }
+
+    createNotification(req.user.id, {
+      title: "Resume Uploaded",
+      message: `Your resume "${resumeName}" has been uploaded successfully.`,
+      type: "info"
+    }).catch((err) => console.error("Failed to create notification:", err.message));
 
     res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
       resume,
+      atsAutomation: {
+        textExtracted: Boolean(resumeText && resumeText.trim()),
+        extractionError
+      }
     });
+  } catch (error) {
+    next(error);
+  }
+};
+const replaceResume = async (req, res, next) => {
+  try {
+    const existing = await getUserResumeById(req.params.id, req.user.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Resume not found" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No resume file uploaded" });
+    }
+
+    const resumePath = `/uploads/${req.file.filename}`;
+    let resumeText = null;
+    let extractionError = null;
+    try {
+      resumeText = await extractResumeText(req.file.path, req.file.mimetype);
+    } catch (err) {
+      extractionError = err.message;
+      console.error("Resume text extraction failed during replace:", err.message);
+    }
+
+    const resume = await replaceUserResume(req.params.id, req.user.id, {
+      resumePath,
+      resumeFilename: req.file.originalname,
+      resumeText
+    });
+
+    removeFileIfExists(existing.resume_path);
+
+    if (resume.is_default) {
+      await syncDefaultResumeToProfile(req.user.id);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Resume replaced successfully",
+      resume,
+      atsAutomation: {
+        textExtracted: Boolean(resumeText && resumeText.trim()),
+        extractionError
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const setDefaultResume = async (req, res, next) => {
+  try {
+    const existing = await getUserResumeById(req.params.id, req.user.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Resume not found" });
+    }
+
+    const resume = await setDefaultUserResume(req.params.id, req.user.id);
+    await syncDefaultResumeToProfile(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Default resume updated",
+      resume
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const downloadResume = async (req, res, next) => {
+  try {
+    const existing = await getUserResumeById(req.params.id, req.user.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Resume not found" });
+    }
+
+    const filename = path.basename(existing.resume_path);
+    const fullPath = path.join(uploadDir, filename);
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ success: false, message: "Resume file not found on server" });
+    }
+
+    res.download(fullPath, existing.resume_filename);
   } catch (error) {
     next(error);
   }
@@ -145,6 +277,11 @@ const deleteAdditionalResume = async (req, res, next) => {
 
     removeFileIfExists(resume.resume_path);
 
+    if (resume.is_default) {
+      await promoteMostRecentAsDefault(req.user.id);
+    }
+    await syncDefaultResumeToProfile(req.user.id);
+
     res.status(200).json({
       success: true,
       message: "Resume deleted successfully",
@@ -158,6 +295,9 @@ module.exports = {
   getMyResumes,
   uploadMyResume,
   uploadAdditionalResume,
+  replaceResume,
+  setDefaultResume,
+  downloadResume,
   deleteMyResume,
   deleteAdditionalResume,
 };

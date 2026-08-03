@@ -4,6 +4,9 @@ const {
   getMyResumes,
   uploadMyResume,
   uploadAdditionalResume,
+  replaceResume,
+  setDefaultResume,
+  downloadResume,
   deleteMyResume,
   deleteAdditionalResume,
 } = require("../controllers/resumeController");
@@ -26,6 +29,28 @@ router.post(
   authorizeRoles("jobseeker"),
   upload.single("resume"),
   uploadAdditionalResume
+);
+
+router.put(
+  "/:id/replace",
+  protect,
+  authorizeRoles("jobseeker"),
+  upload.single("resume"),
+  replaceResume
+);
+
+router.put(
+  "/:id/default",
+  protect,
+  authorizeRoles("jobseeker"),
+  setDefaultResume
+);
+
+router.get(
+  "/:id/download",
+  protect,
+  authorizeRoles("jobseeker"),
+  downloadResume
 );
 
 router.delete(

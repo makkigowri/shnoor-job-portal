@@ -4,13 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
 import AuthProvider from "./context/AuthContext.jsx";
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker
-    .register("/firebase-messaging-sw.js")
-    .then(() => console.log("Service Worker Registered"))
-    .catch((err) => console.error(err));
-}
-
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>

@@ -67,13 +67,13 @@ const getRowInfo = (row) => {
     };
   }
   if (tech.status === "Scheduled" || tech.status === "In Progress") {
-  return {
-    assessment,
-    stage: "Awaiting Result",
-    interviewStatus: tech.status,
-    interviewStatusClass: techStatusBadge(tech.status)
-  };
-}
+    return {
+      assessment,
+      stage: `Technical Interview ${tech.status}`,
+      interviewStatus: tech.status,
+      interviewStatusClass: techStatusBadge(tech.status)
+    };
+  }
   if (tech.status === "Awaiting Result") {
     return {
       assessment,
@@ -85,7 +85,7 @@ const getRowInfo = (row) => {
   if (tech.result === "Selected") {
     return {
       assessment,
-      stage: "Offer Pending",
+      stage: "Offer Released",
       interviewStatus: "Completed",
       interviewStatusClass: "bg-emerald-100 text-emerald-700"
     };
@@ -103,7 +103,7 @@ const STAGE_FILTERS = [
   { key: "Technical Interview Pending", label: "Awaiting Schedule" },
   { key: "Technical Interview Scheduled", label: "Technical Interview Scheduled" },
   { key: "Technical Interview In Progress", label: "Technical Interview In Progress" },
-  { key: "Awaiting Result", label: "Awaiting Result" },
+  { key: "Technical Interview Completed", label: "Awaiting Result" },
   { key: "Offer Released", label: "Offer Released" },
   { key: "Rejected", label: "Rejected" }
 ];
@@ -122,7 +122,7 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
   useEffect(() => {
     let active = true;
     const token = localStorage.getItem("shnoor_token");
-    axios.get("http://localhost:5001/api/interviews/eligible", {
+    axios.get("http://localhost:5001/api/meeting/eligible", {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
     .then((res) => {
@@ -162,7 +162,6 @@ const ScheduleInterviewModal = ({ onClose, onSaved }) => {
     applicationId: form.applicationId,
     scheduledDate: form.scheduledDate,
     scheduledTime: form.scheduledTime,
-    durationMinutes: form.durationMinutes,
     mode: "Online",
     locationOrLink: generatedRoomName,
     notes: form.notes,
@@ -287,43 +286,6 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!result) {
-    setError("Please select Selected or Rejected.");
-    return;
-  }
-
-  try {
-    setSubmitting(true);
-    setError("");
-
-    const token = localStorage.getItem("shnoor_token");
-
-    await axios.patch(
-      `http://localhost:5001/api/interviews/${interview.id}/result`,
-      {
-        result,
-        feedback,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    onSaved();
-
-  } catch (err) {
-    setError(
-      err.response?.data?.message || "Failed to release interview result."
-    );
-  } finally {
-    setSubmitting(false);
-  }
-};
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
@@ -392,117 +354,6 @@ const ReleaseResultModal = ({ interview, onClose, onSaved }) => {
     </div>
   );
 };
-const OfferLetterModal = ({ interview, onClose, onSent }) => {
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSend = async () => {
-    try {
-      setLoading(true);
-
-      const token = localStorage.getItem("shnoor_token");
-
-      await axios.post(
-        "http://localhost:5001/api/offer-letter/send",
-        {
-          applicationId: interview.application_id,
-          candidateId: interview.candidate_id,
-          message,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      alert("Offer Letter sent successfully.");
-
-      onSent();
-    } catch (err) {
-      console.error(err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to send Offer Letter."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl">
-
-        <div className="border-b px-6 py-5">
-          <h2 className="text-2xl font-bold text-[#3E3A74]">
-            Send Offer Letter
-          </h2>
-
-          <p className="text-sm text-gray-500 mt-1">
-            An official offer letter email will be generated and sent
-            automatically to the selected candidate.
-          </p>
-        </div>
-
-        <div className="px-6 py-5 space-y-5">
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Candidate
-            </label>
-
-            <div className="border rounded-xl p-3 bg-gray-50">
-              <p className="font-semibold">
-                {interview.candidate_name}
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {interview.job_title}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Additional Message (Optional)
-            </label>
-
-            <textarea
-              rows={5}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Add any additional information for the candidate..."
-              className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#7393D3]"
-            />
-          </div>
-
-        </div>
-
-        <div className="border-t px-6 py-4 flex justify-end gap-3">
-
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleSend}
-            disabled={loading}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-60"
-          >
-            {loading ? "Sending..." : "Send Offer Letter"}
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-  );
-};
 export default function Interviews() {
   const navigate = useNavigate();
   const [aiInterviews, setAiInterviews] = useState([]);
@@ -512,7 +363,6 @@ export default function Interviews() {
   const [error, setError] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [resultTarget, setResultTarget] = useState(null);
-  const [offerTarget, setOfferTarget] = useState(null);
  const loadAll = useCallback(async () => {
   setLoading(true);
   setError("");
@@ -599,63 +449,34 @@ const response = await axios.get(
     if (!tech) {
       return <span className="text-gray-300 text-sm">—</span>;
     }
-   if (
-  tech.status === "Scheduled" ||
-  tech.status === "In Progress" ||
-  tech.status === "Awaiting Result"
-) {
-  return (
-    <div className="flex gap-2">
-
-      {stageFilter !== "Awaiting Result" && (
+   if (tech.status === "Scheduled" || tech.status === "In Progress") {
+      return (
         <button
-          onClick={() => navigate(`/meeting/${tech.location_or_link}`)}
-          className="px-4 py-2 rounded-lg bg-[#7393D3] hover:bg-[#3E3A74] text-white text-sm"
+          onClick={() => navigate(`/meeting/${tech.location_or_link}`)} 
+          className="px-5 py-2 rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium transition"
         >
           Join
         </button>
-      )}
-
-      <button
-        onClick={() => setResultTarget(tech)}
-        className="px-4 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-bold"
-      >
-        Finalize Result
-      </button>
-
-    </div>
-  );
-}
+      );
+    }
     if (tech.status === "Awaiting Result") {
       return (
         <button
           onClick={() => setResultTarget(tech)}
-          className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-sm font-medium transition"
+          className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#2f2c5c] text-white text-sm font-medium transition"
         >
           Release Result
         </button>
       );
     }
     if (tech.status === "Completed") {
-  if (tech.result === "Selected") {
-    return (
-      <button
-       onClick={() => setOfferTarget(tech)}
-         
-        
-        className="px-5 py-2 rounded-lg bg-[#3E3A74] hover:bg-[#7393D3] text-white text-sm font-medium transition"
-      >
-        Send Offer Letter
-      </button>
-    );
-  }
-
-  return (
-    <span className="px-4 py-2 rounded-lg bg-red-100 text-red-300 font-medium text-sm inline-block">
-      Rejected
-    </span>
-  );
-
+      if (tech.result === "Selected") {
+        return (
+          <span className="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm inline-block">
+            Job Offer
+          </span>
+        );
+      }
       return <span className="text-gray-300 text-sm">—</span>;
     }
     return <span className="text-gray-300 text-sm">—</span>;
@@ -776,16 +597,6 @@ const response = await axios.get(
           }}
         />
       )}
-      {offerTarget && (
-      <OfferLetterModal
-        interview={offerTarget}
-        onClose={() => setOfferTarget(null)}
-        onSent={() => {
-          setOfferTarget(null);
-          loadAll();
-        }}
-      />
-    )}
     </RecruiterDashboardLayout>
   );
 }

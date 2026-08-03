@@ -1,3 +1,4 @@
+import { memo } from "react";
 const STATUS_STYLES = {
   Draft: "bg-gray-100 text-gray-700",
   Published: "bg-green-100 text-green-700",
@@ -12,12 +13,12 @@ const STATUS_STYLES = {
   Pass: "bg-green-100 text-green-700",
   Fail: "bg-red-100 text-red-600"
 };
-const StatusBadge = ({ status }) => {
+const StatusBadge = memo(({ status }) => {
   const style = STATUS_STYLES[status] || "bg-gray-100 text-gray-700";
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${style}`}>
       {status || "—"}
     </span>
   );
-};
+});
 export default StatusBadge;

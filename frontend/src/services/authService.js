@@ -19,9 +19,3 @@ export const deleteAccount = async (password) => {
   const { data } = await api.delete("/auth/account", { data: { password } });
   return data;
 };
-export const saveFcmToken = async (fcmToken) => {
-  const { data } = await api.put("/auth/fcm-token", {
-    fcmToken,
-  });
-  return data;
-};
