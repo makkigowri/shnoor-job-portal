@@ -5,7 +5,6 @@ import { LuArrowUpDown } from "react-icons/lu";
 const statusColor = (status) => {
   switch (status) {
     case "Shortlisted":
-    case "Interview Scheduled":
       return "bg-green-100 text-green-700";
     case "Rejected":
       return "bg-red-100 text-red-600";
@@ -30,8 +29,6 @@ const recruiterMessageFor = (item) => {
       return item.ats_score != null
         ? `ATS score was ${item.ats_score}% - below the required threshold`
         : "Profile does not match current requirements";
-    case "Interview Scheduled":
-      return "An interview has been scheduled for you";
     case "Withdrawn":
       return "You withdrew this application";
     default:

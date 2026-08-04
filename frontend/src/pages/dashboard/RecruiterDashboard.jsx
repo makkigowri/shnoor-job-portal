@@ -52,7 +52,7 @@ const RecruiterDashboard = () => {
             Recruiter Overview
           </h2>
           <p className="mt-2 text-[#111827] leading-7">
-            From this dashboard you can manage company information, create job openings, review applicants, schedule interviews and track recruitment progress.
+            From this dashboard you can manage company information, create job openings, review applicants, track shortlist decisions and configure assessment links.
           </p>
           <div className="mt-8 grid md:grid-cols-2 gap-5">
             <div className="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-5">
@@ -102,14 +102,7 @@ const RecruiterDashboard = () => {
                 24
               </span>
             </div>
-            <div className="flex justify-between border-b border-[#E5E7EB] pb-3">
-              <span className="text-[#111827]">
-                Interviews
-              </span>
-              <span className="font-semibold text-[#3E3A74]">
-                5
-              </span>
-            </div>
+
             <div className="flex justify-between border-b border-[#E5E7EB] pb-3">
               <span className="text-[#111827]">
                 Offers Sent

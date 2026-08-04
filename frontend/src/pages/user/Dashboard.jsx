@@ -5,8 +5,9 @@ import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import { getDashboardSummary } from "../../services/dashboardService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
+import { getMyResumes } from "../../services/resumeService";
 import useAuth from "../../hooks/useAuth";
-import SelectResumeModal from "../../components/user/SelectResumeModal";
+const API_ORIGIN = "http://localhost:5001";
 const MATCH_BADGES = {
   highly_matched: { label: "Highly Matched", Icon: Star },
   recommended: { label: "Recommended", Icon: CheckCircle2 }
@@ -61,8 +62,10 @@ const Dashboard = () => {
   const [actionError, setActionError] = useState("");
   const [savingJobId, setSavingJobId] = useState(null);
   const [applyingJobId, setApplyingJobId] = useState(null);
-  const [resumeModalJob, setResumeModalJob] = useState(null);
-  const [applySubmitError, setApplySubmitError] = useState("");
+  const [showResumePopup, setShowResumePopup] = useState(false);
+  const [resumeList, setResumeList] = useState([]);
+  const [selectedResume, setSelectedResume] = useState("");
+  const [pendingJob, setPendingJob] = useState(null);
   const loadDashboard = async () => {
     setLoading(true);
     setError("");
@@ -99,28 +102,42 @@ const Dashboard = () => {
       setSavingJobId(null);
     }
   };
-  const handleApply = (job) => {
+  const handleApply = async (job) => {
     if (job.application_status && job.application_status !== "Withdrawn") return;
+
     setActionError("");
-    setApplySubmitError("");
-    setResumeModalJob(job);
-  };
-  const handleConfirmApply = async (resumeId) => {
-    const job = resumeModalJob;
-    if (!job) return;
-    setApplySubmitError("");
-    setApplyingJobId(job.id);
     try {
-      const data = await applyToJob(job.id, resumeId);
+      const data = await getMyResumes();
+      setResumeList(data.resumes || []);
+      setSelectedResume("");
+      setPendingJob(job);
+      setShowResumePopup(true);
+    } catch (err) {
+      setActionError("Unable to load resumes.");
+    }
+  };
+  const handleConfirmApply = async () => {
+    if (!pendingJob) return;
+    if (!selectedResume) {
+      setActionError("Please select a resume.");
+      return;
+    }
+
+    setActionError("");
+    setApplyingJobId(pendingJob.id);
+    try {
+      const data = await applyToJob(pendingJob.id, selectedResume);
       setRecommendedJobs((prev) =>
         prev.map((item) =>
-          item.id === job.id ? { ...item, application_status: data.application.status } : item
+          item.id === pendingJob.id ? { ...item, application_status: data.application.status } : item
         )
       );
       setStats((prev) => ({ ...prev, jobsApplied: prev.jobsApplied + 1 }));
-      setResumeModalJob(null);
+      setShowResumePopup(false);
+      setPendingJob(null);
+      setSelectedResume("");
     } catch (err) {
-      setApplySubmitError(err?.response?.data?.message || "Unable to submit application right now");
+      setActionError(err?.response?.data?.message || "Unable to submit application right now");
     } finally {
       setApplyingJobId(null);
     }
@@ -172,103 +189,150 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
-      <div className="grid lg:grid-cols-3 gap-8 mt-10">
-        <div className="lg:col-span-1 bg-white rounded-3xl p-8 shadow-md border border-gray-200">
-          <h2 className="text-2xl font-bold text-[#3E3A74] mb-6">
-            Quick Actions
+      <div className="mt-10 bg-white rounded-3xl p-8 shadow-md border border-gray-200">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-[#3E3A74]">
+            Recommended Jobs
           </h2>
-          <div className="space-y-4">
-            <button
-              onClick={() => navigate("/user/profile")}
-              className="w-full rounded-xl bg-[#7393D3] text-white py-3 font-semibold hover:bg-[#5E84D6] transition"
-            >
-              Complete Profile
-            </button>
-            <button
-              onClick={() => navigate("/user/jobs")}
-              className="w-full rounded-xl border border-[#7393D3] py-3 font-semibold text-[#3E3A74] hover:bg-[#EEF2FF] transition"
-            >
-              Search Jobs
-            </button>
-            <button
-              onClick={() => navigate("/user/assessments")}
-              className="w-full rounded-xl border border-[#7393D3] py-3 font-semibold text-[#3E3A74] hover:bg-[#EEF2FF] transition"
-            >
-              My Assessments
-            </button>
-          </div>
+          <button
+            onClick={() => navigate("/user/jobs")}
+            className="text-[#7393D3] font-semibold"
+          >
+            View All →
+          </button>
         </div>
-        <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-md border border-gray-200">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-[#3E3A74]">
-              Recommended Jobs
-            </h2>
-            <button
-              onClick={() => navigate("/user/jobs")}
-              className="text-[#7393D3] font-semibold"
-            >
-              View All →
-            </button>
+        {loading && (
+          <p className="text-gray-500">Loading recommendations...</p>
+        )}
+        {!loading && recommendedJobs.length === 0 && (
+          <div className="text-center text-gray-500 py-10">
+            No new recommendations right now. Check back soon or explore all jobs.
           </div>
-          {loading && (
-            <p className="text-gray-500">Loading recommendations...</p>
-          )}
-          {!loading && recommendedJobs.length === 0 && (
-            <div className="text-center text-gray-500 py-10">
-              No new recommendations right now. Check back soon or explore all jobs.
-            </div>
-          )}
-          <div className="grid sm:grid-cols-2 gap-6">
-            {recommendedJobs.map((job) => (
-              <div
-                key={job.id}
-                className="relative border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col"
-              >
-                <MatchBadge matchType={job.matchType} />
-                <h3 className="text-xl font-bold text-[#3E3A74] pr-28">
-                  {job.title}
-                </h3>
-                <p className="text-gray-600 mt-2">
-                  {job.company_name || "SHNOOR Technologies"}
-                </p>
-                <div className="mt-5 space-y-2 text-gray-700">
-                  <p>{job.location}</p>
-                  <p>{job.salary}</p>
-                </div>
-                <div className="mt-auto pt-6 flex gap-3">
-                  <button
-                    onClick={() => handleApply(job)}
-                    disabled={applyingJobId === job.id || isApplied(job)}
-                    className="flex-1 rounded-xl bg-[#7393D3] py-3 text-white font-semibold hover:bg-[#5E84D6] transition disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                  {isApplied(job)
+        )}
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {recommendedJobs.map((job) => (
+            <div
+              key={job.id}
+              className="relative border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col"
+            >
+              <MatchBadge matchType={job.matchType} />
+              <h3 className="text-xl font-bold text-[#3E3A74] pr-28">
+                {job.title}
+              </h3>
+              <p className="text-gray-600 mt-2">
+                {job.company_name || "SHNOOR Technologies"}
+              </p>
+              <div className="mt-5 space-y-2 text-gray-700">
+                <p>{job.location}</p>
+                <p>{job.salary}</p>
+              </div>
+              <div className="mt-auto pt-6 flex gap-3">
+                <button
+                  onClick={() => handleApply(job)}
+                  disabled={applyingJobId === job.id || isApplied(job)}
+                  className="flex-1 rounded-xl bg-[#7393D3] py-3 text-white font-semibold hover:bg-[#5E84D6] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                {isApplied(job)
   ? job.application_status === "Applied"
     ? "Applied"
     : `Applied - ${job.application_status}`
   : applyingJobId === job.id
   ? "Applying..."
   : "Apply Now"}
-                  </button>
-                  <button
-                    onClick={() => handleToggleSave(job)}
-                    disabled={savingJobId === job.id}
-                    className="rounded-xl border border-[#7393D3] px-4 py-3 font-semibold text-[#3E3A74] hover:bg-[#EEF2FF] transition disabled:opacity-50"
-                  >
-                    {savingJobId === job.id ? "..." : job.is_saved ? "Saved" : "Save"}
-                  </button>
-                </div>
+                </button>
+                <button
+                  onClick={() => handleToggleSave(job)}
+                  disabled={savingJobId === job.id}
+                  className="rounded-xl border border-[#7393D3] px-4 py-3 font-semibold text-[#3E3A74] hover:bg-[#EEF2FF] transition disabled:opacity-50"
+                >
+                  {savingJobId === job.id ? "..." : job.is_saved ? "Saved" : "Save"}
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
-      {resumeModalJob && (
-        <SelectResumeModal
-          onClose={() => setResumeModalJob(null)}
-          onContinue={handleConfirmApply}
-          submitting={applyingJobId === resumeModalJob.id}
-          submitError={applySubmitError}
-        />
+      {showResumePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="border-b px-6 py-5">
+              <h2 className="text-2xl font-bold text-heading">Select Resume</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Choose the resume you want to submit with this application.
+              </p>
+            </div>
+            <div className="px-6 py-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">My Resumes</h3>
+                <span className="text-sm text-gray-500">
+                  {resumeList.length} Resume{resumeList.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              {resumeList.length === 0 ? (
+                <div className="border rounded-xl p-8 text-center text-gray-500">
+                  No resumes uploaded.
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-72 overflow-y-auto">
+                  {resumeList.map((resume) => (
+                    <label
+                      key={resume.id}
+                      className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
+                        selectedResume === resume.id
+                          ? "border-primary bg-blue-50 shadow-sm"
+                          : "border-gray-200 hover:border-primary hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="radio"
+                          name="resume"
+                          checked={selectedResume === resume.id}
+                          onChange={() => setSelectedResume(resume.id)}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-800">
+                            {resume.resume_filename || resume.resume_name}
+                          </h4>
+                          <p className="text-sm text-gray-500">Resume PDF</p>
+                        </div>
+                      </div>
+                      <a
+                        href={`${API_ORIGIN}${resume.resume_path}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-primary font-medium hover:underline"
+                      >
+                        View
+                      </a>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 border-t px-6 py-4 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowResumePopup(false);
+                  setPendingJob(null);
+                  setSelectedResume("");
+                }}
+                className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApply}
+                disabled={!selectedResume || applyingJobId === pendingJob?.id}
+                className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50"
+              >
+                {applyingJobId === pendingJob?.id ? "Submitting..." : "Apply Resume"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </UserDashboardLayout>
   );

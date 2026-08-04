@@ -12,9 +12,7 @@ const {
   searchInterviewsForRecruiter,
   searchTechnicalInterviewsForRecruiter
 } = require("../models/searchModel");
-
 const RESULT_LIMIT = 5;
-
 const buildCandidateResults = async (candidateId, pattern) => {
   const [availableJobs, appliedJobs, savedJobs, assessments, notifications, profile] = await Promise.all([
     searchAvailableJobsForCandidate(pattern, RESULT_LIMIT),

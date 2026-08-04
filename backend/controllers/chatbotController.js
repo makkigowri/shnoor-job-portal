@@ -9,7 +9,6 @@ const handleChatMessage = async (req, res, next) => {
   message,
   req.user ? req.user.id : null
 );
-
 return res.status(200).json({
   success: true,
   intent,

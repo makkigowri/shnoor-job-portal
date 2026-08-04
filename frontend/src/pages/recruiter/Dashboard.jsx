@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getRecruiterDashboardSummary } from "../../services/recruiterService";
 import { getAssessments } from "../../services/assessmentService";
-import StatusBadge from "../../components/recruiter/StatusBadge";
 const statCards = (stats) => [
   { title: "Active Jobs", value: stats.activeJobs, color: "text-[#3E3A74]" },
   { title: "Applications", value: stats.applications, color: "text-green-600" },
-  { title: "Shortlisted", value: stats.shortlisted, color: "text-orange-500" },
-  { title: "Interviews", value: stats.interviews, color: "text-blue-600" }
+  { title: "Shortlisted Candidates", value: stats.shortlisted, color: "text-orange-500" }
 ];
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -18,10 +16,8 @@ export default function Dashboard() {
     applications: 0,
     shortlisted: 0,
     pending: 0,
-    interviews: 0,
     unreadNotifications: 0
   });
-  const [recentApplications, setRecentApplications] = useState([]);
   const [jobPerformance, setJobPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,7 +30,6 @@ export default function Dashboard() {
       try {
         const data = await getRecruiterDashboardSummary();
         setStats(data.stats);
-        setRecentApplications(data.recentApplications || []);
         setJobPerformance(data.jobPerformance || []);
       } catch (err) {
         setError(err?.response?.data?.message || "Unable to load your dashboard right now");
@@ -104,12 +99,9 @@ export default function Dashboard() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-2xl font-semibold text-[#3E3A74]">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-4 mt-5">
+          <div className="grid grid-cols-3 gap-4 mt-5">
             <button onClick={() => navigate("/recruiter/post-job")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
               Post Job
-            </button>
-            <button onClick={() => navigate("/recruiter/interviews")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
-              Interviews
             </button>
             <button onClick={() => navigate("/recruiter/applicants")} className="rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white py-3 font-semibold transition">
               Applicants
@@ -149,45 +141,6 @@ export default function Dashboard() {
             </button>
           </p>
         )}
-        {!assessmentsLoading && assessments.length > 0 && (
-          <div className="mt-5 divide-y divide-gray-100">
-            {assessments.slice(0, 5).map((a) => (
-              <div key={a.id} className="flex items-center justify-between py-3">
-                <button
-                  onClick={() => navigate(`/recruiter/assessments/${a.id}`)}
-                  className="font-semibold text-gray-900 hover:text-[#7393D3] text-left"
-                >
-                  {a.title}
-                </button>
-                <StatusBadge status={a.status} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-[#3E3A74]">Recent Applications</h2>
-          <button onClick={() => navigate("/recruiter/applicants")} className="text-[#7393D3] font-semibold">
-            View All →
-          </button>
-        </div>
-        {!loading && recentApplications.length === 0 && (
-          <p className="mt-5 text-gray-500">No applications received yet.</p>
-        )}
-        <div className="mt-5 divide-y divide-gray-100">
-          {recentApplications.map((app) => (
-            <div key={app.id} className="flex items-center justify-between py-4">
-              <div>
-                <p className="font-semibold text-gray-900">{app.candidate_name}</p>
-                <p className="text-sm text-gray-500">{app.job_title}</p>
-              </div>
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                {app.status}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
     </RecruiterDashboardLayout>
   );

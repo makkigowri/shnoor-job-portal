@@ -63,13 +63,6 @@ const getAllAssessmentsHandler = async (req, res, next) => {
 };
 const publishAssessmentHandler = async (req, res, next) => {
   try {
-    const questionCount = await getQuestionCount(req.params.id);
-    if (questionCount === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot publish an assessment with no questions"
-      });
-    }
     const updated = await setAssessmentStatus(req.params.id, req.user.id, "Published");
     if (!updated) {
       return res.status(404).json({ success: false, message: "Assessment not found or you do not have permission to publish it" });

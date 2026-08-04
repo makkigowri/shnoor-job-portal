@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getMyJobs, deleteJob, exportMyJobs } from "../../services/jobService";
 import { LuArrowUpDown } from "react-icons/lu";
+import ActionMenu from "../../components/recruiter/ActionMenu";
 export default function MyJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -197,19 +198,22 @@ export default function MyJobs() {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={() => navigate(`/recruiter/edit-job/${job.id}`)}
-                        className="px-4 py-2 rounded-lg border border-[#7393D3] text-[#3E3A74] hover:bg-[#7393D3] hover:text-white transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(job.id)}
-                        className="px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition"
-                      >
-                        Delete
-                      </button>
+                    <div className="flex justify-center">
+                      <ActionMenu
+                        items={[
+                          {
+                            key: "edit",
+                            label: "Edit Job",
+                            onClick: () => navigate(`/recruiter/edit-job/${job.id}`)
+                          },
+                          {
+                            key: "delete",
+                            label: "Delete Job",
+                            danger: true,
+                            onClick: () => handleDelete(job.id)
+                          }
+                        ]}
+                      />
                     </div>
                   </td>
                 </tr>

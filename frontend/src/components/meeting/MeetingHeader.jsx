@@ -15,7 +15,7 @@ export default function MeetingHeader({
             SHNOOR Job Portal
           </h1>
           <p className="text-sm text-gray-500">
-            Technical Interview
+            Assessment Interview
           </p>
         </div>
       </div>

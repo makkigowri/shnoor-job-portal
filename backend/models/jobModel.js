@@ -5,8 +5,7 @@ const JOB_WITH_COMPANY_SELECT = `
     j.*,u.fullname AS recruiter_name,c.company_name,c.logo_path AS company_logo,c.website AS company_website,c.industry AS company_industry,c.headquarters AS company_headquarters,
     c.description AS company_description FROM jobs j JOIN users u ON u.id = j.recruiter_id LEFT JOIN companies c ON c.recruiter_id = j.recruiter_id `;
 const createJob = async (recruiterId, job) => {
-  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,atsThreshold
-  } = job;
+  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,atsThreshold} = job;
   const { min, max } = parseSalaryRange(salary);
   const query = `
     INSERT INTO jobs
@@ -23,7 +22,7 @@ const createJob = async (recruiterId, job) => {
   return result.rows[0];
 };
 const updateJob = async (jobId, recruiterId, job) => {
-  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,status,atsThreshold} = job;
+  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,status,atsThreshold,assessmentLink} = job;
   const { min, max } = parseSalaryRange(salary);
   const query = `UPDATE jobs SET
       title = $1,department = $2,employment_type = $3,experience = $4,salary = $5,salary_min = $6,salary_max = $7,location = $8,skills = $9,openings = $10,description = $11,
@@ -34,7 +33,31 @@ const updateJob = async (jobId, recruiterId, job) => {
     title,department || null,employmentType || "Full Time",experience || null,salary || null,min,max,location || null,skills || null,openings || 1,description || null,
     responsibilities || null,requirements || null,status || null,atsThreshold || null,jobId,recruiterId];
   const result = await pool.query(query, values);
-  return result.rows[0];
+  const updatedJob = result.rows[0];
+  if (!updatedJob) {
+    return null;
+  }
+  if (typeof assessmentLink !== "undefined") {
+    const existingAssessmentQuery = `
+      SELECT id FROM assessments
+      WHERE job_id = $1 AND recruiter_id = $2
+      ORDER BY updated_at DESC
+      LIMIT 1 `;
+    const existingAssessment = await pool.query(existingAssessmentQuery, [jobId, recruiterId]);
+    if (existingAssessment.rows[0]) {
+      await pool.query(
+        `UPDATE assessments SET description = $1, updated_at = NOW() WHERE id = $2 RETURNING id`,
+        [assessmentLink || null, existingAssessment.rows[0].id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO assessments (recruiter_id, job_id, title, description, instructions, duration_minutes, total_marks, passing_marks, status)
+         VALUES ($1, $2, $3, $4, NULL, 30, 0, 0, 'Published')`,
+        [recruiterId, jobId, updatedJob.title || title, assessmentLink || null]
+      );
+    }
+  }
+  return updatedJob;
 };
 const deleteJob = async (jobId, recruiterId) => {
   const query = `DELETE FROM jobs WHERE id = $1 AND recruiter_id = $2 RETURNING id`;
@@ -58,15 +81,31 @@ const findJobById = async (jobId, viewerId) => {
 };
 const findJobsByRecruiter = async (recruiterId) => {
   const query = `
-    SELECT j.*, COUNT(a.id)::int AS applications_count FROM jobs j LEFT JOIN applications a ON a.job_id = j.id WHERE j.recruiter_id = $1 GROUP BY j.id
-    ORDER BY j.created_at DESC `;
+    SELECT
+      j.*,
+      COALESCE(ass.description, '') AS assessment_link,
+      COUNT(a.id)::int AS applications_count,
+      COUNT(*) FILTER (WHERE a.status = 'Shortlisted')::int AS shortlisted_candidates_count
+    FROM jobs j
+    LEFT JOIN applications a ON a.job_id = j.id
+    LEFT JOIN LATERAL (
+      SELECT description
+      FROM assessments ass
+      WHERE ass.job_id = j.id
+        AND ass.recruiter_id = j.recruiter_id
+      ORDER BY ass.updated_at DESC
+      LIMIT 1
+    ) ass ON true
+    WHERE j.recruiter_id = $1
+    GROUP BY j.id, ass.description
+    ORDER BY j.updated_at DESC, j.created_at DESC `;
   try {
     const result = await pool.query(query, [recruiterId]);
     return result.rows;
   } catch (error) {
     const fallback = `SELECT * FROM jobs WHERE recruiter_id = $1 ORDER BY created_at DESC`;
     const result = await pool.query(fallback, [recruiterId]);
-    return result.rows.map((row) => ({ ...row, applications_count: 0 }));
+    return result.rows.map((row) => ({ ...row, assessment_link: "", applications_count: 0, shortlisted_candidates_count: 0 }));
   }
 };
 const searchJobs = async (filters, viewerId) => {

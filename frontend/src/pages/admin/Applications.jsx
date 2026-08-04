@@ -79,9 +79,7 @@ const AdminApplications = () => {
                 { value: "Applied", label: "Applied" },
                 { value: "Under Review", label: "Under Review" },
                 { value: "Shortlisted", label: "Shortlisted" },
-                { value: "Interview Scheduled", label: "Interview Scheduled" },
-                { value: "Rejected", label: "Rejected" },
-                { value: "Selected", label: "Selected" }
+                { value: "Rejected", label: "Rejected" }
               ]
             }
           ]}

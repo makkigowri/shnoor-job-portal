@@ -7,7 +7,6 @@ const STYLES = {
   "under review": "bg-amber-50 text-amber-700 border-amber-200",
   shortlisted: "bg-green-50 text-green-700 border-green-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
-  "interview scheduled": "bg-purple-50 text-purple-700 border-purple-200",
   default: "bg-gray-100 text-gray-600 border-gray-200"
 };
 const StatusBadge = memo(({ status }) => {

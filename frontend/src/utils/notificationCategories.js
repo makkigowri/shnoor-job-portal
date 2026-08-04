@@ -1,8 +1,7 @@
-export const NOTIFICATION_CATEGORIES = ["Applications", "Assessments", "Interviews", "Other"];
+export const NOTIFICATION_CATEGORIES = ["Applications", "Shortlisted", "Other"];
 const CATEGORY_KEYWORDS = [
-  { category: "Interviews", keywords: ["interview"] },
-  { category: "Assessments", keywords: ["assessment"] },
-  { category: "Applications", keywords: ["application", "applied", "shortlist", "resume"] }
+  { category: "Shortlisted", keywords: ["shortlist", "shortlisted"] },
+  { category: "Applications", keywords: ["application", "applied", "resume"] }
 ];
 export const categorizeNotification = (notification) => {
   const haystack = `${notification?.title || ""} ${notification?.message || ""}`.toLowerCase();

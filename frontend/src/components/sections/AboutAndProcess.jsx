@@ -13,9 +13,9 @@ const steps = [
   },
   {
     step: "03",
-    title: "Technical Interview",
+    title: "Assessment Link",
     description:
-      "Qualified candidates participate in technical and HR interview rounds."
+      "Shortlisted candidates receive the assessment link and continue through the external assessment portal."
   },
   {
     step: "04",

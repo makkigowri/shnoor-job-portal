@@ -2,8 +2,7 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 const cards = [
   { title: "Total Jobs", value: "18" },
   { title: "Applications", value: "482" },
-  { title: "Shortlisted", value: "96" },
-  { title: "Interviews", value: "31" }
+  { title: "Shortlisted Candidates", value: "96" }
 ];
 const jobs = [
   { title: "Frontend Developer", applicants: 132, shortlisted: 28, selected: 8 },
@@ -38,15 +37,7 @@ export default function Analytics() {
                 <div className="bg-[#7393D3] h-3 rounded-full" style={{ width: "75%" }} />
               </div>
             </div>
-            <div>
-              <div className="flex justify-between text-gray-900">
-                <span>Interview Completion</span>
-                <span>58%</span>
-              </div>
-              <div className="w-full h-3 rounded-full bg-gray-200 mt-2">
-                <div className="bg-green-500 h-3 rounded-full" style={{ width: "58%" }} />
-              </div>
-            </div>
+
             <div>
               <div className="flex justify-between text-gray-900">
                 <span>Offer Acceptance</span>

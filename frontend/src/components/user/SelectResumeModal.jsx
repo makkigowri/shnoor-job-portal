@@ -2,26 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { getMyResumes } from "../../services/resumeService";
-
 const formatResumeDate = (value) => {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
-
-/**
- * Step 1 of the Apply Job workflow: lets the candidate pick exactly one of
- * their uploaded resumes before the application is actually submitted.
- * The parent is responsible for the real submit (Step 2) via onContinue.
- */
 const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitError = "" }) => {
   const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-
   useEffect(() => {
     let active = true;
     const loadResumes = async () => {
@@ -46,17 +38,14 @@ const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitErro
       active = false;
     };
   }, []);
-
   const handleUploadResume = () => {
     onClose();
     navigate("/user/profile");
   };
-
   const handleContinue = () => {
     if (!selectedId || submitting) return;
     onContinue(selectedId);
   };
-
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl border-2 border-slate-200 shadow-2xl ring-1 ring-blue-100 max-w-lg w-full max-h-[90vh] overflow-hidden">
@@ -78,14 +67,12 @@ const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitErro
               &times;
             </button>
           </div>
-
           <div className="mt-5">
             {(submitError || loadError) && (
               <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-2.5 mb-4 text-sm">
                 {submitError || loadError}
               </div>
             )}
-
             {loading ? (
               <p className="text-sm text-body py-8 text-center">Loading your resumes...</p>
             ) : resumes.length === 0 ? (
@@ -151,7 +138,6 @@ const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitErro
               </div>
             )}
           </div>
-
           <div className="mt-7 flex flex-col sm:flex-row gap-3">
             {resumes.length > 0 && (
               <button
@@ -177,5 +163,4 @@ const SelectResumeModal = ({ onClose, onContinue, submitting = false, submitErro
     </div>
   );
 };
-
 export default SelectResumeModal;

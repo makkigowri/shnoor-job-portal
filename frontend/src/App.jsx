@@ -17,10 +17,8 @@ const Notifications = lazy(() => import("./pages/user/Notifications"));
 const Settings = lazy(() => import("./pages/user/Settings"));
 const MyAssessments = lazy(() => import("./pages/user/assessments/MyAssessments"));
 const CandidateAssessmentDetails = lazy(() => import("./pages/user/assessments/AssessmentDetails"));
-const TakeAssessment = lazy(() => import("./pages/user/assessments/TakeAssessment"));
-const AssessmentResult = lazy(() => import("./pages/user/assessments/AssessmentResult"));
-const AIInterview = lazy(() => import("./pages/user/interview/AIInterview"));
-const MeetingRoom = lazy(() => import("./pages/common/MeetingRoom"));
+const CandidateAssessmentInstructions = lazy(() => import("./pages/user/assessments/AssessmentInstructions"));
+
 const RecruiterDashboard = lazy(() => import("./pages/recruiter/Dashboard"));
 const CompanyProfile = lazy(() => import("./pages/recruiter/CompanyProfile"));
 const PostJob = lazy(() => import("./pages/recruiter/PostJob"));
@@ -28,7 +26,6 @@ const EditJob = lazy(() => import("./pages/recruiter/EditJob"));
 const MyJobs = lazy(() => import("./pages/recruiter/MyJobs"));
 const Applicants = lazy(() => import("./pages/recruiter/Applicants"));
 const ATSChecker = lazy(() => import("./pages/recruiter/ATSChecker"));
-const Interviews = lazy(() => import("./pages/recruiter/Interviews"));
 const Analytics = lazy(() => import("./pages/recruiter/Analytics"));
 const RecruiterNotifications = lazy(() => import("./pages/recruiter/Notifications"));
 const RecruiterSettings = lazy(() => import("./pages/recruiter/Settings"));
@@ -139,37 +136,14 @@ const App = () => {
         }
       />
       <Route
-        path="/user/assessments/:assignmentId/take"
+        path="/user/assessments/:assignmentId/instructions"
         element={
           <ProtectedRoute allowedRoles={["jobseeker"]}>
-            <TakeAssessment />
+            <CandidateAssessmentInstructions />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/user/assessments/result/:submissionId"
-        element={
-          <ProtectedRoute allowedRoles={["jobseeker"]}>
-            <AssessmentResult />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user/ai-interview/:interviewId"
-        element={
-          <ProtectedRoute allowedRoles={["jobseeker"]}>
-            <AIInterview />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/meeting/:roomName"
-        element={
-          <ProtectedRoute allowedRoles={["jobseeker", "recruiter"]}>
-            <MeetingRoom />
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/recruiter/dashboard"
         element={
@@ -226,14 +200,7 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/recruiter/interviews"
-        element={
-          <ProtectedRoute allowedRoles={["recruiter"]}>
-            <Interviews />
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/recruiter/analytics"
         element={

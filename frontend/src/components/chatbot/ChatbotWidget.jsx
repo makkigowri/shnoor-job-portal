@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { sendChatMessage } from "../../services/chatbotService";
 const SHNOOR_LOGO_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGzhluKdUf0IhxKsPrl1daQEZatX0_mJi8ITsuYsm8eQ&s=10";
-const WELCOME_MESSAGE = "Welcome to the SHNOOR Job Portal AI Assistant. I'm here to help you with job opportunities, applications, assessments, interviews, and other SHNOOR Job Portal related queries.";
+const WELCOME_MESSAGE = "Welcome to the SHNOOR Job Portal AI Assistant. I'm here to help you with job opportunities, applications, assessments, and other SHNOOR Job Portal related queries.";
 const FALLBACK_REPLY = "Sorry, I can only assist with SHNOOR Job Portal related queries. Please contact the administrator for further assistance.";
 const SUGGESTED_QUESTIONS = [
   "Tell me about SHNOOR",
@@ -10,8 +10,6 @@ const SUGGESTED_QUESTIONS = [
   "How do I apply for a job?",
   "How does ATS work?",
   "How do I attend an Assessment?",
-  "How does AI Interview work?",
-  "How does Technical Interview work?",
   "Track my application",
   "Contact Support"
 ];

@@ -11,10 +11,8 @@ const statusBadge = (status) => {
       return "bg-green-100 text-green-700";
     case "Rejected":
       return "bg-red-100 text-red-600";
-    case "Interview Scheduled":
+    case "Applied":
       return "bg-blue-100 text-blue-700";
-    case "Under Review":
-      return "bg-yellow-100 text-yellow-700";
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -297,11 +295,6 @@ const [showSortMenu, setShowSortMenu] = useState(false);
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge(candidate.status)}`}>
                       {candidate.status}
                     </span>
-                    {candidate.interview_date && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Interview: {candidate.interview_date} {candidate.interview_time}
-                      </div>
-                    )}
                   </td>
                 </tr>
               ))}

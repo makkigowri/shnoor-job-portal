@@ -1,21 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getMyInterviews } from "../../../services/interviewService";
 import UserDashboardLayout from "../../../layouts/UserDashboardLayout";
 import useAuth from "../../../hooks/useAuth";
-import { getMyApplications } from "../../../services/applicationService";
 import {
   getPendingAssessments,
   getUpcomingAssessments,
   getCompletedAssessments
 } from "../../../services/assessmentService";
-import { getMyAiInterviews } from "../../../services/aiInterviewService";
-const formatDate = (value) => {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-};
 const formatDateTime = (value) => {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -28,619 +19,27 @@ const formatDateTime = (value) => {
     minute: "2-digit"
   });
 };
-const roundScore = (value) => {
-  if (value == null || value === "") return null;
-  const num = Number(value);
-  if (Number.isNaN(num)) return null;
-  return Math.round(num);
-};
-const TONE = {
-  green: {
-    circle: "bg-[#7393D3] border-[#7393D3] text-white",
-    ring: "ring-[#7393D3]/20",
-    line: "bg-[#7393D3]",
-    label: "text-[#3E3A74]",
-    pill: "bg-blue-50 text-blue-700 border border-blue-200"
-  },
-  blue: {
-    circle: "bg-[#7393D3] border-[#7393D3] text-white",
-    ring: "ring-[#7393D3]/20",
-    line: "bg-gray-200",
-    label: "text-[#3E3A74]",
-    pill: "bg-blue-50 text-blue-700 border border-blue-200"
-  },
-  gray: {
-    circle: "bg-white border-gray-300 text-gray-300",
-    ring: "ring-transparent",
-    line: "bg-gray-200",
-    label: "text-gray-400",
-    pill: "bg-gray-100 text-gray-600 border border-gray-200"
-  },
-  red: {
-    circle: "bg-red-500 border-red-500 text-white",
-    ring: "ring-red-100",
-    line: "bg-red-300",
-    label: "text-red-600",
-    pill: "bg-red-50 text-red-600 border border-red-200"
-  },
-  amber: {
-    circle: "bg-amber-500 border-amber-500 text-white",
-    ring: "ring-amber-100",
-    line: "bg-amber-300",
-    label: "text-amber-700",
-    pill: "bg-amber-50 text-amber-700 border border-amber-200"
-  },
-  purple: {
-    pill: "bg-purple-50 text-purple-700 border border-purple-200"
-  }
-};
-const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const CrossIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const DotIcon = () => <span className="w-2.5 h-2.5 rounded-full bg-white block" />;
-const DashIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-    <path d="M6 12h12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
-);
-const StatusPill = ({ label, tone = "gray", large = false }) => (
-  <span
-    className={`inline-flex items-center rounded-full font-semibold ${TONE[tone].pill} ${
-      large ? "px-4 py-1.5 text-sm" : "px-3 py-1 text-xs"
-    }`}
-  >
-    {label}
-  </span>
-);
-const StageIcon = ({ state }) => {
-  if (state === "completed") return <CheckIcon />;
-  if (state === "rejected") return <CrossIcon />;
-  if (state === "skipped") return <DashIcon />;
-  if (state === "current") return <DotIcon />;
-  return <span className="w-2 h-2 rounded-full bg-gray-300 block" />;
-};
-const StageNode = ({ stage, isLast }) => {
-  const [open, setOpen] = useState(false);
-  const tone = TONE[stage.tone];
-  return (
-    <div className="relative flex md:flex-1 items-start md:items-center gap-4 md:gap-0">
-      <div className="flex md:flex-col items-center md:flex-1 gap-4 md:gap-3 relative">
-        <div
-          onClick={() => setOpen((prev) => !prev)}
-          className="relative cursor-pointer select-none"
-        >
-          <div
-            className={`w-11 h-11 rounded-full border-2 flex items-center justify-center shadow-sm transition-all duration-300 ring-4 ${tone.circle} ${tone.ring}`}
-          >
-            <StageIcon state={stage.state} />
-          </div>
-          {open && stage.popover && (
-            <div className="absolute z-30 top-14 left-1/2 -translate-x-1/2 md:top-14 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{stage.label}</p>
-              {stage.popover}
-            </div>
-          )}
-        </div>
-        <div className="md:text-center">
-          <p className={`text-sm font-semibold ${tone.label}`}>{stage.label}</p>
-          {stage.dateLabel && <p className="text-xs text-gray-400 mt-0.5">{stage.dateLabel}</p>}
-          {stage.subLabel && <p className={`text-xs mt-1 font-medium ${tone.label}`}>{stage.subLabel}</p>}
-        </div>
-      </div>
-      {!isLast && (
-        <>
-          <div className={`hidden md:block flex-1 h-0.5 mx-2 self-center rounded-full ${tone.line}`} />
-          <div className={`md:hidden absolute left-[21px] top-11 w-0.5 h-full ${tone.line}`} />
-        </>
-      )}
-    </div>
-  );
-};
-const Timeline = ({ stages }) => (
-  <div className="mt-10 flex flex-col md:flex-row gap-8 md:gap-0">
-    {stages.map((stage, index) => (
-      <StageNode key={stage.key} stage={stage} isLast={index === stages.length - 1} />
-    ))}
-  </div>
-);
-const buildJourney = (application, assessmentRow, aiInterview, technicalInterview) => {
-  const stages = [];
-  stages.push({
-    key: "applied",
-    label: "Applied",
-    tone: "green",
-    state: "completed",
-    dateLabel: formatDate(application.applied_at),
-    popover: (
-      <div>
-        <p className="text-sm text-gray-600">Application submitted</p>
-        <p className="text-xs text-gray-400 mt-1">{formatDate(application.applied_at) || "—"}</p>
-      </div>
-    )
-  });
-  let overallStatus = { label: "Assessment Pending", tone: "amber" };
-  if (!assessmentRow) {
-    if (application.status === "Rejected") {
-      stages.push({
-        key: "assessment",
-        label: "Assessment",
-        tone: "red",
-        state: "rejected",
-        subLabel: "Not Shortlisted",
-        popover: (
-          <div>
-            <p className="text-sm text-gray-600">Rejected in ATS Screening</p>
-            <p className="text-xs text-gray-400 mt-1">
-              This application did not proceed past the initial screening stage.
-            </p>
-          </div>
-        )
-      });
-      overallStatus = { label: "Rejected in ATS Screening", tone: "red" };
-      stages.push({
-        key: "ai_interview",
-        label: "AI Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    stages.push({
-      key: "assessment",
-      label: "Assessment",
-      tone: "gray",
-      state: "upcoming",
-      popover: <p className="text-sm text-gray-500">Not assigned yet</p>
-    });
-    overallStatus = { label: "Assessment Pending", tone: "amber" };
-  } else if (assessmentRow.stage !== "completed") {
-    const isPending = assessmentRow.stage === "pending";
-    stages.push({
-      key: "assessment",
-      label: "Assessment",
-      tone: isPending ? "blue" : "gray",
-      state: isPending ? "current" : "upcoming",
-      subLabel: isPending ? "Assigned" : "Scheduled",
-      popover: (
-        <div>
-          <p className="text-sm text-gray-600">{isPending ? "Assessment Assigned" : "Assessment scheduled"}</p>
-          {isPending && assessmentRow.item.scheduled_end && (
-            <p className="text-xs text-gray-400 mt-1">
-              Available until {formatDateTime(assessmentRow.item.scheduled_end)}
-            </p>
-          )}
-          {!isPending && (
-            <p className="text-xs text-gray-400 mt-1">Opens {formatDateTime(assessmentRow.item.scheduled_start)}</p>
-          )}
-          {isPending && (
-            <Link
-              to={`/user/assessments/${assessmentRow.item.id}/take`}
-              onClick={(event) => event.stopPropagation()}
-              className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2 transition"
-            >
-              Start Assessment
-            </Link>
-          )}
-        </div>
-      )
-    });
-    overallStatus = isPending
-      ? { label: "Assessment Pending", tone: "amber" }
-      : { label: "Assessment Scheduled", tone: "amber" };
-  } else {
-    const item = assessmentRow.item;
-    const pass = item.result === "Pass";
-    const score = roundScore(item.percentage != null ? item.percentage : item.total_score);
-    stages.push({
-      key: "assessment",
-      label: "Assessment",
-      tone: pass ? "green" : "red",
-      state: pass ? "completed" : "rejected",
-      dateLabel: formatDate(item.submitted_at),
-      popover: (
-        <div>
-          <p className="text-sm text-gray-600 mb-2">Assessment Completed</p>
-          <p className="text-2xl font-bold text-[#3E3A74]">{score != null ? score : "—"}</p>
-          <div className="mt-2">
-            <StatusPill label={pass ? "PASS" : "FAIL"} tone={pass ? "green" : "red"} />
-          </div>
-        </div>
-      )
-    });
-    if (!pass) {
-      overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
-      stages.push({
-        key: "ai_interview",
-        label: "AI Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (!aiInterview || aiInterview.status === "Available") {
-      stages.push({
-        key: "ai_interview",
-        label: "AI Interview",
-        tone: "blue",
-        state: "current",
-        subLabel: "Ready",
-        popover: aiInterview ? (
-          <div>
-            <p className="text-sm text-gray-600">AI Interview Ready</p>
-            <Link
-              to={`/user/ai-interview/${aiInterview.id}`}
-              onClick={(event) => event.stopPropagation()}
-              className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2 transition"
-            >
-              Start AI Interview
-            </Link>
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">Unlocking after assessment result is processed</p>
-        )
-      });
-      overallStatus = { label: "AI Interview Pending", tone: "amber" };
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (aiInterview.status === "In Progress") {
-      stages.push({
-        key: "ai_interview",
-        label: "AI Interview",
-        tone: "blue",
-        state: "current",
-        subLabel: "In Progress",
-        popover: <p className="text-sm text-gray-500">Interview in progress</p>
-      });
-      overallStatus = { label: "AI Interview In Progress", tone: "blue" };
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    const aiPass = aiInterview.result === "Pass";
-    const aiScore = roundScore(aiInterview.overall_score);
-    stages.push({
-      key: "ai_interview",
-      label: "AI Interview",
-      tone: aiPass ? "green" : "red",
-      state: aiPass ? "completed" : "rejected",
-      dateLabel: formatDate(aiInterview.completed_at),
-      popover: (
-        <div>
-          <p className="text-sm text-gray-600 mb-2">AI Interview Completed</p>
-          <p className="text-2xl font-bold text-[#3E3A74]">{aiScore != null ? `${aiScore}%` : "—"}</p>
-          <div className="mt-2">
-            <StatusPill label={aiPass ? "PASS" : "FAIL"} tone={aiPass ? "green" : "red"} />
-          </div>
-        </div>
-      )
-    });
-    if (!aiPass || aiInterview.decision === "Rejected") {
-      overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (aiInterview.decision === "Selected") {
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "gray",
-        state: "skipped",
-        subLabel: "Skipped",
-        popover: <p className="text-sm text-gray-500">Not required for this offer</p>
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "green",
-        state: "completed",
-        dateLabel: formatDate(aiInterview.completed_at),
-        subLabel: "Offer Released",
-        popover: (
-          <div>
-            <p className="text-sm text-gray-600">Offer Released</p>
-            <p className="text-xs text-gray-400 mt-1">Check your email for the formal offer letter.</p>
-          </div>
-        )
-      });
-      overallStatus = { label: "Offer Released", tone: "green" };
-      return { stages, overallStatus };
-    }
-    if (!technicalInterview) {
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "blue",
-        state: "current",
-        subLabel: "Waiting for Recruiter Schedule",
-        popover: <p className="text-sm text-gray-500">Your recruiter will schedule this shortly</p>
-      });
-      overallStatus = { label: "Waiting for Recruiter Schedule", tone: "amber" };
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (["Scheduled", "In Progress"].includes(technicalInterview.status)) {
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "blue",
-        state: "current",
-        subLabel: technicalInterview.status,
-        popover: (
-          <div>
-            <p className="text-sm text-gray-600">{formatDate(technicalInterview.scheduled_date)}</p>
-            <p className="text-sm text-gray-600">{technicalInterview.scheduled_time}</p>
-            {technicalInterview.recruiter_name && (
-              <p className="text-xs text-gray-400 mt-1">Recruiter: {technicalInterview.recruiter_name}</p>
-            )}
-           <Link
-  to={`/meeting/${technicalInterview.location_or_link}`}
-  onClick={(e) => e.stopPropagation()}
-  className="inline-flex items-center justify-center mt-3 w-full rounded-lg bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium px-4 py-2"
->
-  Join Interview
-</Link>
-          </div>
-        )
-      });
-      overallStatus = { label: "Technical Interview Scheduled", tone: "blue" };
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (technicalInterview.status === "Awaiting Result") {
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "purple",
-        state: "current",
-        subLabel: "Awaiting Result",
-        popover: <p className="text-sm text-gray-500">Interview completed, result pending</p>
-      });
-      overallStatus = { label: "Technical Interview Completed - Awaiting Result", tone: "purple" };
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "gray",
-        state: "upcoming",
-        popover: <p className="text-sm text-gray-500">Not reached</p>
-      });
-      return { stages, overallStatus };
-    }
-    if (technicalInterview.result === "Selected") {
-      stages.push({
-        key: "technical_interview",
-        label: "Technical Interview",
-        tone: "green",
-        state: "completed",
-        dateLabel: formatDate(technicalInterview.scheduled_date),
-        popover: (
-          <div>
-            <p className="text-sm text-gray-600">Interview completed</p>
-            <StatusPill label="SELECTED" tone="green" />
-          </div>
-        )
-      });
-      stages.push({
-        key: "offer",
-        label: "Offer Letter",
-        tone: "green",
-        state: "completed",
-        subLabel: "Offer Released",
-        popover: (
-          <div>
-            <p className="text-sm text-gray-600">Offer Released</p>
-            <p className="text-xs text-gray-400 mt-1">Check your email for the formal offer letter.</p>
-          </div>
-        )
-      });
-      overallStatus = { label: "Offer Released", tone: "green" };
-      return { stages, overallStatus };
-    }
-    stages.push({
-      key: "technical_interview",
-      label: "Technical Interview",
-      tone: "red",
-      state: "rejected",
-      dateLabel: formatDate(technicalInterview.scheduled_date),
-      popover: (
-        <div>
-          <p className="text-sm text-gray-600">Interview completed</p>
-          <StatusPill label="NOT SELECTED" tone="red" />
-        </div>
-      )
-    });
-    stages.push({
-      key: "offer",
-      label: "Offer Letter",
-      tone: "gray",
-      state: "upcoming",
-      popover: <p className="text-sm text-gray-500">Not reached</p>
-    });
-    overallStatus = { label: "Application Closed - Not Selected", tone: "red" };
-    return { stages, overallStatus };
-  }
-  stages.push({
-    key: "ai_interview",
-    label: "AI Interview",
-    tone: "gray",
-    state: "upcoming",
-    popover: <p className="text-sm text-gray-500">Not reached</p>
-  });
-  stages.push({
-    key: "technical_interview",
-    label: "Technical Interview",
-    tone: "gray",
-    state: "upcoming",
-    popover: <p className="text-sm text-gray-500">Not reached</p>
-  });
-  stages.push({
-    key: "offer",
-    label: "Offer Letter",
-    tone: "gray",
-    state: "upcoming",
-    popover: <p className="text-sm text-gray-500">Not reached</p>
-  });
-  return { stages, overallStatus };
-};
-const JourneyCard = ({ candidateName, application, journey }) => (
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
-    <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-gray-100">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Candidate</p>
-        <h2 className="text-xl font-bold text-[#3E3A74] mt-1">{candidateName}</h2>
-        <p className="text-gray-600 mt-3 font-medium">{application.job_title}</p>
-        {application.company_name && <p className="text-sm text-gray-500 mt-0.5">{application.company_name}</p>}
-        {formatDate(application.applied_at) && (
-          <p className="text-xs text-gray-400 mt-2">Applied on {formatDate(application.applied_at)}</p>
-        )}
-      </div>
-      <div className="flex flex-col items-start gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Application Status</span>
-        <StatusPill label={journey.overallStatus.label} tone={journey.overallStatus.tone} large />
-      </div>
-    </div>
-    <Timeline stages={journey.stages} />
-  </div>
-);
+const candidateCardTitle = (item) => item.job_title || item.assessment_title || "Assessment";
 export default function MyAssessments() {
   const { user } = useAuth();
-  const [journeys, setJourneys] = useState([]);
+  const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-     const [
-  applicationsRes,
-  pendingRes,
-  upcomingRes,
-  completedRes,
-  aiRes,
-  tiRes
-] = await Promise.all([
-  getMyApplications(),
-  getPendingAssessments(),
-  getUpcomingAssessments(),
-  getCompletedAssessments(),
-  getMyAiInterviews().catch(() => ({ interviews: [] })),
-  getMyInterviews().catch(() => ({ interviews: [] }))
-]);
-      const assessmentByApplication = new Map();
-      (upcomingRes.assessments || []).forEach((item) => {
-        assessmentByApplication.set(item.application_id, { stage: "upcoming", item });
-      });
-      (pendingRes.assessments || []).forEach((item) => {
-        assessmentByApplication.set(item.application_id, { stage: "pending", item });
-      });
-      (completedRes.assessments || []).forEach((item) => {
-        const existing = assessmentByApplication.get(item.application_id);
-        if (!existing || existing.stage !== "completed") {
-          assessmentByApplication.set(item.application_id, { stage: "completed", item });
-        }
-      });
-      const aiByApplication = new Map((aiRes.interviews || []).map((iv) => [iv.application_id, iv]));
-      const tiByApplication = new Map((tiRes.interviews || []).map((iv) => [iv.application_id, iv]));
-      const applications = applicationsRes.applications || [];
-      const built = applications
-        .filter((app) => app.status !== "Withdrawn")
-        .map((app) => ({
-          application: app,
-          journey: buildJourney(
-          app,
-          assessmentByApplication.get(app.id),
-          aiByApplication.get(app.id),
-          tiByApplication.get(app.id)
-        ) 
-        }));
-      setJourneys(built);
+      const [pendingRes, upcomingRes, completedRes] = await Promise.all([
+        getPendingAssessments(),
+        getUpcomingAssessments(),
+        getCompletedAssessments()
+      ]);
+      const items = [
+        ...(pendingRes.assessments || []),
+        ...(upcomingRes.assessments || []),
+        ...(completedRes.assessments || [])
+      ];
+      setAssessments(items);
     } catch (err) {
       setError(err?.response?.data?.message || "Unable to load your assessments right now");
     } finally {
@@ -656,27 +55,46 @@ export default function MyAssessments() {
       <div>
         <h1 className="text-4xl font-bold text-[#3E3A74]">My Assessments</h1>
         <p className="mt-2 text-gray-500">
-          Track your complete application journey, from assessment to offer, in one place.
+          Only shortlisted jobs appear here. Open the assessment link after reviewing the instructions.
         </p>
       </div>
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>
       )}
       {loading && <p className="mt-8 text-gray-500">Loading your assessments...</p>}
-      {!loading && journeys.length === 0 && !error && (
+      {!loading && assessments.length === 0 && !error && (
         <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-500">
-          You have not applied to any jobs yet.
+          No shortlisted assessments are available right now.
         </div>
       )}
-      {!loading && journeys.length > 0 && (
-        <div className="mt-8 space-y-8">
-          {journeys.map(({ application, journey }) => (
-            <JourneyCard
-              key={application.id}
-              candidateName={candidateName}
-              application={application}
-              journey={journey}
-            />
+      {!loading && assessments.length > 0 && (
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          {assessments.map((item) => (
+            <div key={item.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Candidate</p>
+                  <h2 className="text-xl font-bold text-[#3E3A74] mt-1">{candidateName}</h2>
+                  <p className="text-gray-600 mt-4 font-semibold">{candidateCardTitle(item)}</p>
+                  {item.company_name && <p className="text-sm text-gray-500 mt-1">{item.company_name}</p>}
+                  {item.scheduled_end && (
+                    <p className="text-xs text-gray-400 mt-2">Available until {formatDateTime(item.scheduled_end)}</p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-6 rounded-xl bg-[#F7F9FF] border border-[#DCE6FF] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Assessment Link</p>
+                <p className="mt-2 text-sm text-[#3E3A74] break-all">{item.assessment_description || "No link configured yet."}</p>
+              </div>
+              <div className="mt-6">
+                <Link
+                  to={`/user/assessments/${item.id}`}
+                  className="inline-flex items-center justify-center rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white px-6 py-3 font-semibold transition"
+                >
+                  Open Assessment
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}

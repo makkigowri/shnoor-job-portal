@@ -16,9 +16,9 @@ const faqs = [
       "After logging in, visit the Applied Jobs section to view the latest status of your applications."
   },
   {
-    question: "Will i receive interview notifications?",
+    question: "Will I receive assessment updates?",
     answer:
-      "Yes. Interview schedules and recruitment updates will appear in your Notifications section and will also be sent to your registered email."
+      "Yes. Assessment link availability and recruitment updates will appear in your Notifications section and will also be sent to your registered email."
   },
   {
     question: "Can i update my profile and resume later?",

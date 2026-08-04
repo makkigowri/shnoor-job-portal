@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import RecruiterDashboardLayout from "../../../layouts/RecruiterDashboardLayout";
 import StatusBadge from "../../../components/recruiter/StatusBadge";
-import QuestionCard from "../../../components/recruiter/QuestionCard";
 import {
   getAssessmentById,
   publishAssessment,
@@ -82,7 +81,6 @@ export default function AssessmentDetails() {
       </RecruiterDashboardLayout>
     );
   }
-  const questions = assessment.questions || [];
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -108,12 +106,6 @@ export default function AssessmentDetails() {
           >
             Edit
           </Link>
-          <Link
-            to={`/recruiter/assessments/${id}/results`}
-            className="px-5 py-2.5 rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white transition"
-          >
-            View Results
-          </Link>
         </div>
       </div>
       {error && (
@@ -121,55 +113,20 @@ export default function AssessmentDetails() {
       )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <p className="text-gray-500">Questions</p>
-          <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{questions.length}</h2>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <p className="text-gray-500">Total Marks</p>
-          <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{assessment.total_marks}</h2>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <p className="text-gray-500">Duration</p>
-          <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{assessment.duration_minutes}m</h2>
+          <p className="text-gray-500">Assessment Link</p>
+          <h2 className="text-lg font-bold mt-2 text-[#3E3A74] break-all">{assessment.description || "—"}</h2>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <p className="text-gray-500">Assigned</p>
           <h2 className="text-3xl font-bold mt-2 text-[#3E3A74]">{assessment.assigned_count ?? 0}</h2>
         </div>
-      </div>
-      <div className="grid lg:grid-cols-2 gap-6 mt-8">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-[#3E3A74]">Description</h2>
-          <p className="mt-3 text-gray-700 whitespace-pre-line">{assessment.description || "No description provided."}</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <p className="text-gray-500">Status</p>
+          <h2 className="text-2xl font-bold mt-2 text-[#3E3A74]">{assessment.status}</h2>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-[#3E3A74]">Instructions for Candidates</h2>
-          <p className="mt-3 text-gray-700 whitespace-pre-line">{assessment.instructions || "No instructions provided."}</p>
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-8">
-        <h2 className="text-xl font-semibold text-[#3E3A74]">Passing Criteria</h2>
-        <p className="mt-3 text-gray-700">
-          Candidates need at least <span className="font-semibold">{assessment.passing_marks}</span> out of{" "}
-          <span className="font-semibold">{assessment.total_marks}</span> marks to pass.
-        </p>
-      </div>
-      <div className="mt-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h2 className="text-2xl font-semibold text-[#3E3A74]">Questions Preview</h2>
-          <Link to={`/recruiter/assessments/${id}/edit`} className="text-[#7393D3] font-semibold">
-            Manage Questions →
-          </Link>
-        </div>
-        <div className="mt-5 space-y-4">
-          {questions.length === 0 && (
-            <div className="border border-dashed border-gray-300 rounded-2xl p-10 text-center text-gray-500">
-              No questions added yet.
-            </div>
-          )}
-          {questions.map((q, i) => (
-            <QuestionCard key={q.id || i} question={q} index={i} />
-          ))}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <p className="text-gray-500">Linked Job</p>
+          <h2 className="text-lg font-bold mt-2 text-[#3E3A74]">{assessment.job_title || "General"}</h2>
         </div>
       </div>
       <div className="mt-10 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-wrap gap-4">

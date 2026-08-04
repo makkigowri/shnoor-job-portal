@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   responsibilities TEXT,
   requirements TEXT,
   ats_threshold INTEGER,
+  assessment_link TEXT,
   status VARCHAR(20) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Closed')),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
