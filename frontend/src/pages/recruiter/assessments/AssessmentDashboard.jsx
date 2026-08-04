@@ -32,7 +32,7 @@ export default function AssessmentDashboard() {
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-[#3E3A74]">Job Assessment Configuration</h1>
+          <h1 className="text-4xl font-bold text-[#3E3A74]">Job Assessment </h1>
           <p className="mt-2 text-gray-500">Configure one external assessment link per job. Shortlisted candidates will inherit it automatically.</p>
         </div>
       </div>
