@@ -35,6 +35,7 @@ const Profile = () => {
     location: "",
     qualification: "",
     specialization: "",
+    gender: "",
     skills: "",
     github: "",
     linkedin: "",
@@ -70,6 +71,7 @@ const Profile = () => {
           location: data.profile?.location || "",
           qualification: data.profile?.qualification || "",
           specialization: data.profile?.specialization || "",
+          gender: data.profile?.gender || "",
           skills: data.profile?.skills || "",
           github: data.profile?.github || "",
           linkedin: data.profile?.linkedin || "",
@@ -130,6 +132,7 @@ const Profile = () => {
         location: form.location,
         qualification: form.qualification,
         specialization: form.specialization,
+        gender: form.gender,
         skills: form.skills,
         github: form.github,
         linkedin: form.linkedin,
@@ -404,6 +407,19 @@ const Profile = () => {
                     onChange={handleChange}
                   />
                 </ProfileField>
+                <ProfileField label="Gender" value={form.gender} editing={editing}>
+                  <select
+                    className="w-full border border-border rounded-lg px-4 py-3"
+                    name="gender" id="gender"
+                    value={form.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </ProfileField>
                 <ProfileField label="Skills" value={form.skills} editing={editing} span>
                   <input
                     className="w-full border border-border rounded-lg px-4 py-3"
@@ -508,7 +524,11 @@ const Profile = () => {
                           <p className="text-sm font-semibold text-heading truncate" title={resume.resume_name}>
                             {resume.resume_name}
                           </p>
-                          
+                          {resume.is_default && (
+                            <span className="inline-flex items-center bg-primary/10 text-primary text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0">
+                              Default
+                            </span>
+                          )}
                         </div>
                         {formatResumeDate(resume.uploaded_at) && (
                           <p className="text-xs text-body mt-0.5">
