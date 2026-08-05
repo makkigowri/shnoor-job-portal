@@ -508,11 +508,7 @@ const Profile = () => {
                           <p className="text-sm font-semibold text-heading truncate" title={resume.resume_name}>
                             {resume.resume_name}
                           </p>
-                          {resume.is_default && (
-                            <span className="inline-flex items-center bg-primary/10 text-primary text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0">
-                              Default
-                            </span>
-                          )}
+                          
                         </div>
                         {formatResumeDate(resume.uploaded_at) && (
                           <p className="text-xs text-body mt-0.5">
