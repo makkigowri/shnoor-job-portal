@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const bcrypt = require("bcryptjs");
 const getDashboardStats = async () => {
   const query = `
     SELECT
@@ -405,8 +406,35 @@ const getAllJobsAdminExport = async () => {
   const result = await pool.query(query);
   return result.rows;
 };
+const createRecruiterAdmin = async ({ fullname, email, password }) => {
+  const existing = await pool.query(
+    "SELECT id FROM users WHERE email = $1",
+    [email]
+  );
+
+  if (existing.rows.length > 0) {
+    throw new Error("Recruiter with this email already exists.");
+  }
+  const phone = "0000000000";
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const result = await pool.query(
+    `INSERT INTO users (fullname, email, phone, password, role)
+     VALUES ($1, $2, $3, $4, 'recruiter')
+     RETURNING id, fullname, email, role, created_at`,
+    [fullname, email, phone, hashedPassword]
+  );
+
+  const recruiter = result.rows[0];
+  await pool.query(
+    `INSERT INTO companies (recruiter_id, company_name)
+     VALUES ($1, $2)`,
+    [recruiter.id, "SHNOOR INTERNATIONAL LLC"]
+  );
+
+  return recruiter;
+};
 module.exports = {
   getDashboardStats,getLatestUsers,getLatestRecruiters,getRecentJobPosts,getRecentApplicationsAdmin,listUsersAdmin,getUserByIdAdmin,listRecruitersAdmin,getRecruiterByIdAdmin,
   setUserBlockedStatus,deleteUserAdminById,listJobsAdmin,getJobByIdAdmin,setJobStatusAdmin,deleteJobAdminById,listApplicationsAdmin,getApplicationByIdAdmin,deleteApplicationAdminById,getTopRecruiters,
-  getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics,listAssessmentsAdmin,getAssessmentByIdAdmin,deleteAssessmentAdminById,getAssessmentStatisticsAdmin,getAllJobsAdminExport
+  getTopAppliedJobs,getMostActiveUsers,getRecentRegistrations,getRecentActivities,getSystemStatistics,listAssessmentsAdmin,getAssessmentByIdAdmin,deleteAssessmentAdminById,getAssessmentStatisticsAdmin,getAllJobsAdminExport,createRecruiterAdmin
 };

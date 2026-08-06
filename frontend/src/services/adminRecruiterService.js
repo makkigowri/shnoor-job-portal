@@ -19,3 +19,7 @@ export const deleteRecruiter = async (id) => {
   const { data } = await adminApi.delete(`/admin/recruiters/${id}`);
   return data;
 };
+export const createRecruiter = async (payload) => {
+  const { data } = await adminApi.post("/admin/recruiters", payload);
+  return data;
+};
