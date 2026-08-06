@@ -245,21 +245,33 @@ const Profile = () => {
     }
   };
   const handleView = (resume) => {
-    window.open(`${API_ORIGIN}${resume.resume_path}`, "_blank", "noreferrer");
+    if (!resume?.resume_path) {
+      setResumeActionError("Unable to view resume");
+      return;
+    }
+    const viewUrl = `${API_ORIGIN}${resume.resume_path}`;
+    const link = document.createElement("a");
+    link.href = viewUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
   const handleDownload = async (resume) => {
     setBusyResumeId(resume.id);
     clearResumeMessages();
     try {
       const response = await downloadResumeById(resume.id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = resume.resume_filename || resume.resume_name || "resume";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (err) {
       setResumeActionError(err?.response?.data?.message || "Unable to download resume");
     } finally {
