@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { createJob } from "../../services/jobService";
-const initialState = {title: "", department: "", employmentType: "Full Time",experience: "",salary: "",location: "",skills: "",openings: 1,description: "",responsibilities: "",requirements: "",atsThreshold: ""};
+const initialState = {title: "", department: "", employmentType: "Full Time",experience: "",salary: "",location: "",skills: "",openings: 1,description: "",responsibilities: "",requirements: "",atsThreshold: "",application_deadline: ""};
 export default function PostJob() {
   const [job, setJob] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
@@ -79,6 +79,29 @@ export default function PostJob() {
             <label htmlFor="atsThreshold" className="font-medium text-gray-900">ATS Threshold</label>
             <input type="number" id="atsThreshold" min="0" max="100" name="atsThreshold" value={job.atsThreshold} onChange={handleChange} className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none" placeholder="80" />
           </div>
+          <div>
+  <label
+    htmlFor="application_deadline"
+    className="font-medium text-gray-900"
+  >
+    Application Closing Date
+  </label>
+
+  <input
+    type="date"
+    id="application_deadline"
+    name="application_deadline"
+    value={job.application_deadline}
+    onChange={handleChange}
+    min={new Date().toISOString().split("T")[0]}
+    required
+    className="w-full mt-2 border border-gray-300 rounded-xl p-3 focus:border-[#7393D3] focus:outline-none"
+  />
+
+  <p className="mt-1 text-xs text-gray-500">
+    Candidates can apply until this date.
+  </p>
+</div>
         </div>
         <div className="mt-6">
           <label htmlFor="description" className="font-medium text-gray-900">Job Description</label>

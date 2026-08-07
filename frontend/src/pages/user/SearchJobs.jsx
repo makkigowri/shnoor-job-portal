@@ -151,8 +151,56 @@ const confirmApply = async () => {
     setApplyingJobId(null);
   }
 };
-  const isApplied = (job) => Boolean(job.application_status && job.application_status !== "Withdrawn");
-  const sortedJobs = useMemo(() => {
+ const isApplied = (job) =>
+  Boolean(job.application_status && job.application_status !== "Withdrawn");
+
+const getDeadlineBadge = (deadline) => {
+  if (!deadline) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const end = new Date(deadline);
+  end.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.ceil(
+    (end - today) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays < 0) return null;
+
+  if (diffDays === 0) {
+    return {
+      text: "Closes Today",
+      className: "bg-red-100 text-red-700 border border-red-200"
+    };
+  }
+
+  if (diffDays === 1) {
+    return {
+      text: "Last Day",
+      className: "bg-red-100 text-red-700 border border-red-200"
+    };
+  }
+
+  if (diffDays <= 3) {
+    return {
+      text: `${diffDays} Days Left`,
+      className: "bg-orange-100 text-orange-700 border border-orange-200"
+    };
+  }
+
+  if (diffDays <= 7) {
+    return {
+      text: `${diffDays} Days Left`,
+      className: "bg-yellow-100 text-yellow-700 border border-yellow-200"
+    };
+  }
+
+  return null;
+};
+
+const sortedJobs = useMemo(() => {
   const sorted = [...jobs];
 
   switch (sortBy) {
@@ -334,7 +382,7 @@ const confirmApply = async () => {
                   {savingJobId === job.id ? "..." : job.is_saved ? "Saved" : "Save"}
                 </button>
               </div>
-              <div className="grid md:grid-cols-4 gap-4 mt-6">
+              <div className="grid md:grid-cols-5 gap-4 mt-6">
                 <div>
                   <p className="text-sm text-body">
                     Location
@@ -365,6 +413,34 @@ const confirmApply = async () => {
                   </p>
                   <h4 className="font-semibold">
                     {job.employment_type}
+                  </h4>
+                </div>
+                <div>
+                  <p className="text-sm text-body">
+                    Deadline
+                  </p>
+                  <h4 className="font-semibold">
+                     <p className="mt-1 text-sm font-semibold text-gray-900">
+    {job.application_deadline
+      ? new Date(job.application_deadline).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "--"}
+  </p>
+
+  {(() => {
+    const badge = getDeadlineBadge(job.application_deadline);
+
+    return badge ? (
+      <span
+        className={`inline-flex mt-2 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
+      >
+        {badge.text}
+      </span>
+    ) : null;
+  })()}
                   </h4>
                 </div>
               </div>

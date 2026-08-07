@@ -1,16 +1,22 @@
 const { sendEmail } = require("../services/emailService");
 const pool = require("../config/db");
-const {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs} = require("../models/jobModel");
+const {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs,updateExpiredJobs} = require("../models/jobModel");
 const { buildExportFilename, formatDate, sendExcelFile } = require("../utils/exportUtils");
 const postJob = async (req, res, next) => {
   try {
-    const { title, location } = req.body;
+    const { title, location,  application_deadline } = req.body;
     if (!title || !title.trim()) {
       return res.status(400).json({ success: false, message: "Job title is required" });
     }
     if (!location || !location.trim()) {
       return res.status(400).json({ success: false, message: "Job location is required" });
     }
+    if (!application_deadline) {
+  return res.status(400).json({
+    success: false,
+    message: "Application closing date is required"
+  });
+}
     const job = await createJob(req.user.id, req.body);
     const users = await pool.query(
       "SELECT fullname, email FROM users WHERE role = 'jobseeker'"
@@ -114,8 +120,16 @@ const getJob = async (req, res, next) => {
 };
 const getMyJobs = async (req, res, next) => {
   try {
+
+    await updateExpiredJobs();
+
     const jobs = await findJobsByRecruiter(req.user.id);
-    res.status(200).json({ success: true, jobs });
+
+    res.status(200).json({
+      success: true,
+      jobs
+    });
+
   } catch (error) {
     next(error);
   }
@@ -123,6 +137,7 @@ const getMyJobs = async (req, res, next) => {
 const searchJobsHandler = async (req, res, next) => {
   try {
     const { title, location, experience, employmentType, salaryMin, salaryMax, page, limit } = req.query;
+    await updateExpiredJobs();
     const result = await searchJobs(
       {
         title,

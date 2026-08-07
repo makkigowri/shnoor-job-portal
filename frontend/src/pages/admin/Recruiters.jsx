@@ -667,7 +667,7 @@ const [creating, setCreating] = useState(false);
                 fullname: e.target.value
               })
             }
-            placeholder="Enter recruiter name"
+           
             className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#3E3A74] focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
 
@@ -688,7 +688,7 @@ const [creating, setCreating] = useState(false);
                 email: e.target.value
               })
             }
-            placeholder="example@shnoor.com"
+           
             className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#3E3A74] focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
 
@@ -711,7 +711,7 @@ const [creating, setCreating] = useState(false);
                   password: e.target.value
                 })
               }
-              placeholder="Enter password"
+            
               className="flex-1 rounded-xl border border-gray-300 px-4 py-3 focus:border-[#3E3A74] focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
 
