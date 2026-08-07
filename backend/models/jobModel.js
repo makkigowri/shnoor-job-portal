@@ -5,18 +5,18 @@ const JOB_WITH_COMPANY_SELECT = `
     j.*,u.fullname AS recruiter_name,c.company_name,c.logo_path AS company_logo,c.website AS company_website,c.industry AS company_industry,c.headquarters AS company_headquarters,
     c.description AS company_description FROM jobs j JOIN users u ON u.id = j.recruiter_id LEFT JOIN companies c ON c.recruiter_id = j.recruiter_id `;
 const createJob = async (recruiterId, job) => {
-  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,atsThreshold} = job;
+  const {title,department,employmentType,experience,salary,location,skills,openings,description,responsibilities,requirements,atsThreshold,application_deadline} = job;
   const { min, max } = parseSalaryRange(salary);
   const query = `
     INSERT INTO jobs
       (recruiter_id, title, department, employment_type, experience, salary, salary_min, salary_max,
-       location, skills, openings, description, responsibilities, requirements, ats_threshold)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       location, skills, openings, description, responsibilities, requirements, ats_threshold, application_deadline)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
     RETURNING *`;
   const values = [
     recruiterId,
     title,department || null,employmentType || "Full Time",experience || null,salary || null,min,max,location || null,skills || null,openings || 1,description || null,responsibilities || null,
-    requirements || null,atsThreshold || null
+    requirements || null,atsThreshold || null,application_deadline || null
   ];
   const result = await pool.query(query, values);
   return result.rows[0];
@@ -168,4 +168,13 @@ const searchJobs = async (filters, viewerId) => {
     jobs: dataResult.rows,total,page: Number(page),limit: Number(limit),totalPages: Math.max(Math.ceil(total / limit), 1)
   };
 };
-module.exports = {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs};
+const updateExpiredJobs = async () => {
+  await pool.query(`
+    UPDATE jobs
+    SET status = 'Closed'
+    WHERE application_deadline < CURRENT_DATE
+      AND status = 'Active'
+      AND application_deadline IS NOT NULL
+  `);
+};
+module.exports = {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs,updateExpiredJobs};
