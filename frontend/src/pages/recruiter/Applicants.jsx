@@ -4,7 +4,7 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
-import { LuArrowUpDown } from "react-icons/lu";
+import { LuArrowUpDown, LuEllipsisVertical, LuFileText } from "react-icons/lu";
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -37,6 +37,7 @@ export default function Applicants() {
   const [exportError, setExportError] = useState("");
   const [sortBy, setSortBy] = useState("latest");
 const [showSortMenu, setShowSortMenu] = useState(false);
+const [openActionMenu, setOpenActionMenu] = useState(null);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -125,6 +126,22 @@ const [showSortMenu, setShowSortMenu] = useState(false);
     }
   };
   const selectedJobTitle = jobs.find((job) => String(job.id) === String(jobFilter))?.title;
+  const handleViewResume = (candidate) => {
+  if (!candidate.resume_path) {
+    return;
+  }
+
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+
+  const serverUrl = apiBaseUrl.replace(/\/api\/?$/, "");
+
+  const resumeUrl = `${serverUrl}${candidate.resume_path}`;
+
+  window.open(resumeUrl, "_blank", "noopener,noreferrer");
+
+  setOpenActionMenu(null);
+};
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -260,6 +277,7 @@ const [showSortMenu, setShowSortMenu] = useState(false);
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Skills</th>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">ATS Score</th>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
+                <th className="text-center px-6 py-4 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -295,6 +313,36 @@ const [showSortMenu, setShowSortMenu] = useState(false);
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge(candidate.status)}`}>
                       {candidate.status}
                     </span>
+                  </td>
+                 <td className="px-6 py-5 text-center">
+                    <div className="relative inline-block">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenActionMenu(
+                            openActionMenu === candidate.id ? null : candidate.id
+                          )
+                        }
+                        className="p-2 rounded-lg text-gray-500 hover:text-[#3E3A74] hover:bg-gray-100 transition"
+                        title="Actions"
+                      >
+                        <LuEllipsisVertical size={20} />
+                      </button>
+
+                      {openActionMenu === candidate.id && (
+                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden text-left">
+                          <button
+                            type="button"
+                            onClick={() => handleViewResume(candidate)}
+                            disabled={!candidate.resume_path}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+                          >
+                            <LuFileText size={17} />
+                            <span>View Resume</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
