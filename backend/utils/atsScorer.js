@@ -79,4 +79,30 @@ const scoreResumeAgainstJob = (resumeText, skillsCsv, requiredExperienceText) =>
     skillsScore,experienceScore,candidateExperienceYears,requiredExperienceYears
   };
 };
-module.exports = { scoreResumeAgainstJob };
+const scoreSkillsOnly = (candidateSkillsCsv, jobSkillsCsv) => {
+  const requiredSkills = (jobSkillsCsv || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (requiredSkills.length === 0) {
+    return { score: null, matchedSkills: [], missingSkills: [], totalSkills: 0 };
+  }
+  const candidateSkillSet = new Set(
+    (candidateSkillsCsv || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const matchedSkills = [];
+  const missingSkills = [];
+  requiredSkills.forEach((skill) => {
+    if (candidateSkillSet.has(skill.toLowerCase())) {
+      matchedSkills.push(skill);
+    } else {
+      missingSkills.push(skill);
+    }
+  });
+  const score = Math.round((matchedSkills.length / requiredSkills.length) * 100);
+  return { score, matchedSkills, missingSkills, totalSkills: requiredSkills.length };
+};
+module.exports = { scoreResumeAgainstJob, scoreSkillsOnly };

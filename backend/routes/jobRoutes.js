@@ -1,7 +1,8 @@
 const express = require("express");
-const {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler,exportMyJobsHandler} = require("../controllers/jobController");
+const {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler,exportMyJobsHandler,getPublicJobs} = require("../controllers/jobController");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 const router = express.Router();
+router.get("/public", getPublicJobs);
 router.get("/search", protect, searchJobsHandler);
 router.post("/", protect, authorizeRoles("recruiter"), postJob);
 router.get("/my-jobs", protect, authorizeRoles("recruiter"), getMyJobs);

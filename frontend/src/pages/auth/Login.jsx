@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Input from "../../components/common/Input";
 import Checkbox from "../../components/common/Checkbox";
@@ -57,10 +58,19 @@ const Login = () => {
     }
   };
   return (
-    <AuthLayout
-      title="Welcome Back"
-      subtitle="Login to continue your SHNOOR career journey."
-    >
+    <>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="fixed top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+      <AuthLayout
+        title="Welcome Back"
+        subtitle="Login to continue your SHNOOR career journey."
+      >
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 text-red-600 px-4 py-3 text-sm">
@@ -129,7 +139,8 @@ const Login = () => {
           </Link>
         </p>
       </form>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 };
 export default Login;

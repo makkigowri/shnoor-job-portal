@@ -45,4 +45,8 @@ const deleteNotificationHistoryEntry = async (id) => {
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
-module.exports = { sendBroadcastNotification, getNotificationHistory, deleteNotificationHistoryEntry };
+module.exports = {
+  sendBroadcastNotification,
+  getNotificationHistory,
+  deleteNotificationHistoryEntry
+};
