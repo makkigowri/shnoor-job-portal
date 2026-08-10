@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import NotificationTabs from "../../components/notifications/NotificationTabs";
 import NotificationCard from "../../components/notifications/NotificationCard";
 import { useNotificationInbox } from "../../hooks/useNotificationInbox";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const badgeColor = (type) => {
   switch (type) {
     case "success":
@@ -39,6 +42,13 @@ export default function Notifications() {
     markingAll,
     markAllRead
   } = useNotificationInbox();
+  const { page, setPage, totalPages, paginatedItems: pagedNotifications } = usePagination(
+    activeNotifications,
+    8
+  );
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory]);
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between">
@@ -72,10 +82,15 @@ export default function Notifications() {
         </div>
       )}
       <div className="space-y-5 mt-8">
-        {activeNotifications.map((item) => (
+        {pagedNotifications.map((item) => (
           <NotificationCard key={item.id} item={item} theme={theme} />
         ))}
       </div>
+      {activeNotifications.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-2">
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        </div>
+      )}
     </RecruiterDashboardLayout>
   );
 }

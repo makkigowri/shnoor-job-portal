@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import NotificationTabs from "../../components/notifications/NotificationTabs";
 import NotificationCard from "../../components/notifications/NotificationCard";
 import { useNotificationInbox } from "../../hooks/useNotificationInbox";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const badgeColor = (type) => {
   switch (type) {
     case "success":
@@ -39,6 +42,13 @@ const Notifications = () => {
     markingAll,
     markAllRead
   } = useNotificationInbox();
+  const { page, setPage, totalPages, paginatedItems: pagedNotifications } = usePagination(
+    activeNotifications,
+    8
+  );
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory]);
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
@@ -72,10 +82,15 @@ const Notifications = () => {
           </div>
         )}
         <div className="space-y-5">
-          {activeNotifications.map((item) => (
+          {pagedNotifications.map((item) => (
             <NotificationCard key={item.id} item={item} theme={theme} />
           ))}
         </div>
+        {activeNotifications.length > 0 && (
+          <div className="bg-white border border-border rounded-xl shadow-sm">
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          </div>
+        )}
       </div>
     </UserDashboardLayout>
   );

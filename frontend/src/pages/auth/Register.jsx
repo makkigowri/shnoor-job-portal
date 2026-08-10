@@ -14,8 +14,7 @@ const initialState = {
   password: "",
   confirmPassword: "",
   role: "jobseeker",
-  acceptPrivacyPolicy: false,
-  acceptTerms: false,
+  acceptPolicyAndTerms: false,
 };
 const Register = () => {
   const { register } = useAuth();
@@ -37,7 +36,7 @@ const Register = () => {
       setError("Passwords do not match.");
       return;
     }
-    if (!form.acceptPrivacyPolicy || !form.acceptTerms) {
+    if (!form.acceptPolicyAndTerms) {
       setError("Please accept the Privacy Policy and Terms & Conditions.");
       return;
     }
@@ -45,8 +44,8 @@ const Register = () => {
     try {
       const user = await register({
         ...form,
-        acceptPrivacyPolicy: String(form.acceptPrivacyPolicy),
-        acceptTerms: String(form.acceptTerms),
+        acceptPrivacyPolicy: String(form.acceptPolicyAndTerms),
+        acceptTerms: String(form.acceptPolicyAndTerms),
       });
       navigate(
         user.role === "recruiter"
@@ -152,16 +151,31 @@ const Register = () => {
         />
         <div className="space-y-3">
           <Checkbox
-            name="acceptPrivacyPolicy"
-            checked={form.acceptPrivacyPolicy}
+            name="acceptPolicyAndTerms"
+            checked={form.acceptPolicyAndTerms}
             onChange={handleChange}
-            label="I agree to the Privacy Policy"
-          />
-          <Checkbox
-            name="acceptTerms"
-            checked={form.acceptTerms}
-            onChange={handleChange}
-            label="I agree to the Terms & Conditions"
+            label={
+              <>
+                I agree to the{" "}
+                <Link
+                  to="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#7393D3] hover:text-[#5E84D6]"
+                >
+                  Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/terms-and-conditions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#7393D3] hover:text-[#5E84D6]"
+                >
+                  Terms & Conditions
+                </Link>
+              </>
+            }
           />
         </div>
         <Button

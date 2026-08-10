@@ -4,7 +4,9 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
-import { LuArrowUpDown, LuEllipsisVertical, LuFileText } from "react-icons/lu";
+import { LuArrowUpDown } from "react-icons/lu";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -98,6 +100,13 @@ const [openActionMenu, setOpenActionMenu] = useState(null);
 
   return sorted;
 }, [applicants, sortBy]);
+  const { page, setPage, totalPages, paginatedItems: pagedApplicants } = usePagination(
+    sortedApplicants,
+    10
+  );
+  useEffect(() => {
+    setPage(1);
+  }, [jobFilter, nameSearch]);
   const handleRunAts = async () => {
     if (!jobFilter) return;
     setRunning(true);
@@ -281,7 +290,7 @@ const [openActionMenu, setOpenActionMenu] = useState(null);
               </tr>
             </thead>
             <tbody>
-              {sortedApplicants.map((candidate) => (
+              {pagedApplicants.map((candidate) => (
                 <tr key={candidate.id} className="border-t border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-5">
                     <div className="font-semibold text-gray-900">{candidate.candidate_name}</div>
@@ -348,6 +357,7 @@ const [openActionMenu, setOpenActionMenu] = useState(null);
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
     </RecruiterDashboardLayout>

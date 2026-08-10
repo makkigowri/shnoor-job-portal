@@ -4,6 +4,8 @@ import JobDetailsModal from "../../components/user/JobDetailsModal";
 import { getSavedJobs, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import SelectResumeModal from "../../components/user/SelectResumeModal";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const SavedJobs = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ const SavedJobs = () => {
       setRemovingJobId(null);
     }
   };
+  const { page, setPage, totalPages, paginatedItems: pagedSavedJobs } = usePagination(savedJobs, 6);
   const isApplied = (job) => Boolean(job.application_status && job.application_status !== "Withdrawn");
   const handleApply = (job) => {
     if (isApplied(job)) return;
@@ -105,7 +108,7 @@ const SavedJobs = () => {
           </div>
         ) : (
           <div className="space-y-5">
-            {savedJobs.map((job) => (
+            {pagedSavedJobs.map((job) => (
               <div
                 key={job.id}
                 className="bg-white border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition"
@@ -161,6 +164,9 @@ const SavedJobs = () => {
                 </div>
               </div>
             ))}
+            <div className="bg-white border border-border rounded-xl shadow-sm">
+              <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+            </div>
           </div>
         )}
       </div>

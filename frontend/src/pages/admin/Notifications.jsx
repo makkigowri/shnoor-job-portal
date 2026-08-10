@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import ActionMenu from "../../components/admin/ActionMenu";
+import Pagination from "../../components/admin/Pagination";
+import usePagination from "../../hooks/usePagination";
 import {
   sendAdminNotification,
   fetchNotificationHistory,
@@ -82,6 +84,21 @@ const AdminNotifications = () => {
     if (activeCategory === "All") return history;
     return history.filter((item) => categorizeNotification(item) === activeCategory);
   }, [history, activeCategory]);
+  const {
+    page: historyPage,
+    setPage: setHistoryPage,
+    totalPages: historyTotalPages,
+    paginatedItems: pagedHistory
+  } = usePagination(filteredHistory, 10);
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [activeCategory]);
+  const {
+    page: contactPage,
+    setPage: setContactPage,
+    totalPages: contactTotalPages,
+    paginatedItems: pagedContactRequests
+  } = usePagination(contactRequests, 10);
   return (
     <AdminLayout title="Notifications" subtitle="Send announcements to users and recruiters, and review what has been sent.">
       {error && (
@@ -194,7 +211,7 @@ const AdminNotifications = () => {
             {!loading && filteredHistory.length === 0 && (
               <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No notifications in this category yet</td></tr>
             )}
-            {!loading && filteredHistory.map((item) => (
+            {!loading && pagedHistory.map((item) => (
               <tr key={item.id} className="border-t border-gray-100">
                 <td className="px-6 py-3 text-gray-800">{item.title}</td>
                 <td className="px-6 py-3 text-gray-600 capitalize">{item.audience}</td>
@@ -218,6 +235,7 @@ const AdminNotifications = () => {
             ))}
           </tbody>
         </table>
+        <Pagination page={historyPage} totalPages={historyTotalPages} onChange={setHistoryPage} />
       </div>
       <ConfirmDialog
         open={Boolean(confirmDelete)}
@@ -249,7 +267,7 @@ const AdminNotifications = () => {
             {!contactRequestsLoading && contactRequests.length === 0 && (
               <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400">No contact requests yet</td></tr>
             )}
-            {!contactRequestsLoading && contactRequests.map((item) => (
+            {!contactRequestsLoading && pagedContactRequests.map((item) => (
               <tr key={item.id} className="border-t border-gray-100">
                 <td className="px-6 py-3 text-gray-800">{item.mobile_number}</td>
                 <td className="px-6 py-3 text-gray-600">{formatDateTime(item.submitted_at)}</td>
@@ -257,6 +275,7 @@ const AdminNotifications = () => {
             ))}
           </tbody>
         </table>
+        <Pagination page={contactPage} totalPages={contactTotalPages} onChange={setContactPage} />
       </div>
     </AdminLayout>
   );
