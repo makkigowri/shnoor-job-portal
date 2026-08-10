@@ -24,8 +24,8 @@ Thumbs.db
 # VS Code
 .vscode/
 
-# Uploaded files (optional)
-backend/uploads/
+
+
 
 # Cache
 .cache/
