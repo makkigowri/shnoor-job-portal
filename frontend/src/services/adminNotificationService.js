@@ -11,3 +11,7 @@ export const deleteAdminNotification = async (id) => {
   const { data } = await adminApi.delete(`/admin/notifications/${id}`);
   return data;
 };
+export const fetchContactRequests = async () => {
+  const { data } = await adminApi.get("/admin/notifications/contact-requests");
+  return data;
+};

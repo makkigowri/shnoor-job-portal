@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getRecruiterAiInterviews } from "../../services/aiInterviewService";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const techStatusBadge = (status) => {
   switch (status) {
     case "Scheduled":
@@ -430,6 +432,10 @@ const response = await axios.get(
     if (!stageFilter) return merged;
     return merged.filter((row) => getRowInfo(row).stage === stageFilter);
   }, [aiInterviews, technicalInterviews, stageFilter]);
+  const { page, setPage, totalPages, paginatedItems: pagedRows } = usePagination(rows, 10);
+  useEffect(() => {
+    setPage(1);
+  }, [stageFilter]);
   const renderActions = (row) => {
     const iv = row.aiInterview;
     const tech = row.technicalInterview;
@@ -535,7 +541,7 @@ const response = await axios.get(
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {pagedRows.map((row) => {
                 const iv = row.aiInterview;
                 const info = getRowInfo(row);
                 return (
@@ -576,6 +582,7 @@ const response = await axios.get(
               })}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
       {scheduleOpen && (

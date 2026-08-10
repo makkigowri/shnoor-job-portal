@@ -4,6 +4,8 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getMyJobs, deleteJob, exportMyJobs } from "../../services/jobService";
 import { LuArrowUpDown } from "react-icons/lu";
 import ActionMenu from "../../components/recruiter/ActionMenu";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 export default function MyJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,7 @@ export default function MyJobs() {
     }
     return sorted;
   }, [jobs, sortBy]);
+  const { page, setPage, totalPages, paginatedItems: pagedJobs } = usePagination(sortedJobs, 10);
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -182,7 +185,7 @@ export default function MyJobs() {
               </tr>
             </thead>
             <tbody>
-              {sortedJobs.map((job) => (
+              {pagedJobs.map((job) => (
                 <tr key={job.id} className="border-t border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-5 font-semibold text-gray-900">{job.title}</td>
                   <td className="px-6 py-5 text-gray-900">{job.department}</td>
@@ -220,6 +223,7 @@ export default function MyJobs() {
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
     </RecruiterDashboardLayout>

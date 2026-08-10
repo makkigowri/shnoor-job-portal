@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const { findAdminByEmail, findAdminByIdWithPassword, updateAdminPassword } = require("../models/adminModel");
+const { findAdminByEmail, findAdminByIdWithPassword, updateAdminPassword, deleteAdminById } = require("../models/adminModel");
 const generateToken = require("../utils/generateToken");
 const SALT_ROUNDS = 10;
 const adminLogin = async (req, res, next) => {
@@ -56,4 +56,21 @@ const changeAdminPassword = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { adminLogin, getAdminProfile, changeAdminPassword };
+const deleteAdminAccount = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password is required to delete your account" });
+    }
+    const admin = await findAdminByIdWithPassword(req.admin.id);
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Incorrect password" });
+    }
+    await deleteAdminById(req.admin.id);
+    res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { adminLogin, getAdminProfile, changeAdminPassword, deleteAdminAccount };

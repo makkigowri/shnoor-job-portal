@@ -124,9 +124,11 @@ const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, 
 const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
   const query = `
     SELECT ap.id, ap.user_id, ap.job_id, ap.resume_path, ap.resume_filename,
-      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status
+      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status,
+      jp.skills AS candidate_skills
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
+    LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id
     WHERE j.recruiter_id = $1 AND ap.job_id = $2 AND ap.status = 'Applied'
     ORDER BY ap.applied_at ASC `;
   const result = await pool.query(query, [recruiterId, jobId]);
@@ -135,9 +137,11 @@ const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
 const getProcessableApplicationsForUser = async (userId) => {
   const query = `
     SELECT ap.id, ap.user_id, ap.job_id, ap.status,
-      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status
+      j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status,
+      jp.skills AS candidate_skills
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
+    LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id
     WHERE ap.user_id = $1
       AND ap.status IN ('Applied', 'Under Review')
       AND j.status = 'Active'
@@ -169,7 +173,7 @@ const getRecentApplicationsForRecruiter = async (recruiterId, limit = 5) => {
 };
 const EXPORT_APPLICANTS_SELECT = `
   SELECT
-    ap.id AS application_id,ap.status AS application_status,ap.resume_path,ap.resume_filename,ap.applied_at,
+    ap.id AS application_id,ap.status AS application_status,ap.ats_score,ap.resume_path,ap.resume_filename,ap.applied_at,
     u.fullname AS applicant_name,u.email AS applicant_email,u.phone AS applicant_phone,
     j.id AS job_id,j.title AS job_title,j.recruiter_id,
     COALESCE(aa.status, 'Not Assigned') AS assessment_status,

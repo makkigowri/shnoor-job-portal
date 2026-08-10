@@ -323,10 +323,10 @@ const exportApplicantsHandler = async (req, res, next) => {
     }
     const applicants = await getApplicantsForExport(jobId, req.user.id);
     const columns = [
-      "Applicant Name","Email","Phone Number","Resume","Application Status","Assessment Status","AI Interview Status","Technical Interview Status","Applied Date"
+      "Applicant Name","Email","Phone Number","Resume","ATS Score","Application Status","Assessment Status","AI Interview Status","Technical Interview Status","Applied Date"
     ];
     const rows = applicants.map((a) => [
-      a.applicant_name,a.applicant_email,a.applicant_phone || "",a.resume_filename || "",a.application_status,a.assessment_status,a.ai_interview_status,a.technical_interview_status,formatDate(a.applied_at)
+      a.applicant_name,a.applicant_email,a.applicant_phone || "",a.resume_filename || "",a.ats_score != null ? `${a.ats_score}%` : "Pending",a.application_status,a.assessment_status,a.ai_interview_status,a.technical_interview_status,formatDate(a.applied_at)
     ]);
     const filename = buildExportFilename("Applicants", job.title);
     await sendExcelFile(res, filename, columns, rows);

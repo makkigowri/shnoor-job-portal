@@ -4,7 +4,9 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
-import { LuArrowUpDown } from "react-icons/lu";
+import { LuArrowUpDown, LuEllipsisVertical, LuFileText } from "react-icons/lu";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -36,7 +38,8 @@ export default function Applicants() {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
   const [sortBy, setSortBy] = useState("latest");
-const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [openActionMenu, setOpenActionMenu] = useState(null);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -68,35 +71,36 @@ const [showSortMenu, setShowSortMenu] = useState(false);
     setExportError("");
   }, [jobFilter]);
   const sortedApplicants = useMemo(() => {
-  const sorted = [...applicants];
-
-  switch (sortBy) {
-    case "latest":
-      sorted.sort((a, b) => b.id - a.id);
-      break;
-
-    case "oldest":
-      sorted.sort((a, b) => a.id - b.id);
-      break;
-
-    case "az":
-      sorted.sort((a, b) =>
-        (a.candidate_name || "").localeCompare(b.candidate_name || "")
-      );
-      break;
-
-    case "za":
-      sorted.sort((a, b) =>
-        (b.candidate_name || "").localeCompare(a.candidate_name || "")
-      );
-      break;
-
-    default:
-      break;
-  }
-
-  return sorted;
-}, [applicants, sortBy]);
+    const sorted = [...applicants];
+    switch (sortBy) {
+      case "latest":
+        sorted.sort((a, b) => b.id - a.id);
+        break;
+      case "oldest":
+        sorted.sort((a, b) => a.id - b.id);
+        break;
+      case "az":
+        sorted.sort((a, b) =>
+          (a.candidate_name || "").localeCompare(b.candidate_name || "")
+        );
+        break;
+      case "za":
+        sorted.sort((a, b) =>
+          (b.candidate_name || "").localeCompare(a.candidate_name || "")
+        );
+        break;
+      default:
+        break;
+    }
+    return sorted;
+  }, [applicants, sortBy]);
+  const { page, setPage, totalPages, paginatedItems: pagedApplicants } = usePagination(
+    sortedApplicants,
+    10
+  );
+  useEffect(() => {
+    setPage(1);
+  }, [jobFilter, nameSearch]);
   const handleRunAts = async () => {
     if (!jobFilter) return;
     setRunning(true);
@@ -125,6 +129,17 @@ const [showSortMenu, setShowSortMenu] = useState(false);
     }
   };
   const selectedJobTitle = jobs.find((job) => String(job.id) === String(jobFilter))?.title;
+  const handleViewResume = (candidate) => {
+    if (!candidate.resume_path) {
+      return;
+    }
+    const apiBaseUrl =
+      import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+    const serverUrl = apiBaseUrl.replace(/\/api\/?$/, "");
+    const resumeUrl = `${serverUrl}${candidate.resume_path}`;
+    window.open(resumeUrl, "_blank", "noopener,noreferrer");
+    setOpenActionMenu(null);
+  };
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -162,58 +177,54 @@ const [showSortMenu, setShowSortMenu] = useState(false);
             {exporting ? "Exporting..." : "Export Applications"}
           </button>
           <div className="relative">
-  <button
-    type="button"
-    onClick={() => setShowSortMenu(!showSortMenu)}
-    className="border border-gray-300 bg-white hover:bg-gray-100 p-2.5 rounded-xl transition"
-  >
-    <LuArrowUpDown size={20} />
-  </button>
-
-  {showSortMenu && (
-    <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-      <button
-        onClick={() => {
-          setSortBy("latest");
-          setShowSortMenu(false);
-        }}
-        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
-      >
-        Latest 
-      </button>
-
-      <button
-        onClick={() => {
-          setSortBy("oldest");
-          setShowSortMenu(false);
-        }}
-        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
-      >
-        Oldest 
-      </button>
-
-      <button
-        onClick={() => {
-          setSortBy("az");
-          setShowSortMenu(false);
-        }}
-        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
-      >
-        A → Z
-      </button>
-
-      <button
-        onClick={() => {
-          setSortBy("za");
-          setShowSortMenu(false);
-        }}
-        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
-      >
-        Z → A
-      </button>
-    </div>
-  )}
-</div>
+            <button
+              type="button"
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className="border border-gray-300 bg-white hover:bg-gray-100 p-2.5 rounded-xl transition"
+            >
+              <LuArrowUpDown size={20} />
+            </button>
+            {showSortMenu && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                <button
+                  onClick={() => {
+                    setSortBy("latest");
+                    setShowSortMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+                >
+                  Latest
+                </button>
+                <button
+                  onClick={() => {
+                    setSortBy("oldest");
+                    setShowSortMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+                >
+                  Oldest
+                </button>
+                <button
+                  onClick={() => {
+                    setSortBy("az");
+                    setShowSortMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+                >
+                  A → Z
+                </button>
+                <button
+                  onClick={() => {
+                    setSortBy("za");
+                    setShowSortMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+                >
+                  Z → A
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {!jobFilter && (
@@ -260,10 +271,11 @@ const [showSortMenu, setShowSortMenu] = useState(false);
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Skills</th>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">ATS Score</th>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Status</th>
+                <th className="text-center px-6 py-4 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {sortedApplicants.map((candidate) => (
+              {pagedApplicants.map((candidate) => (
                 <tr key={candidate.id} className="border-t border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-5">
                     <div className="font-semibold text-gray-900">{candidate.candidate_name}</div>
@@ -296,10 +308,40 @@ const [showSortMenu, setShowSortMenu] = useState(false);
                       {candidate.status}
                     </span>
                   </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="relative inline-block">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenActionMenu(
+                            openActionMenu === candidate.id ? null : candidate.id
+                          )
+                        }
+                        className="p-2 rounded-lg text-gray-500 hover:text-[#3E3A74] hover:bg-gray-100 transition"
+                        title="Actions"
+                      >
+                        <LuEllipsisVertical size={20} />
+                      </button>
+                      {openActionMenu === candidate.id && (
+                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden text-left">
+                          <button
+                            type="button"
+                            onClick={() => handleViewResume(candidate)}
+                            disabled={!candidate.resume_path}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+                          >
+                            <LuFileText size={17} />
+                            <span>View Resume</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
     </RecruiterDashboardLayout>

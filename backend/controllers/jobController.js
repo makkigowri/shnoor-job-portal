@@ -1,6 +1,15 @@
 const { sendEmail } = require("../services/emailService");
 const pool = require("../config/db");
-const {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs,updateExpiredJobs} = require("../models/jobModel");
+const {
+  createJob,
+  updateJob,
+  deleteJob,
+  findJobById,
+  findJobsByRecruiter,
+  searchJobs,
+  updateExpiredJobs,
+  getPublicJobs: fetchPublicJobs
+} = require("../models/jobModel");
 const { buildExportFilename, formatDate, sendExcelFile } = require("../utils/exportUtils");
 const postJob = async (req, res, next) => {
   try {
@@ -171,4 +180,13 @@ const exportMyJobsHandler = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler,exportMyJobsHandler};
+const getPublicJobs = async (req, res, next) => {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : 6;
+    const jobs = await fetchPublicJobs(limit);
+    res.status(200).json({ success: true, jobs });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = {postJob,editJob,removeJob,getJob,getMyJobs,searchJobsHandler,exportMyJobsHandler,getPublicJobs};

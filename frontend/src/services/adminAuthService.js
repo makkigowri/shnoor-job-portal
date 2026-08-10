@@ -11,3 +11,7 @@ export const changeAdminPassword = async (payload) => {
   const { data } = await adminApi.put("/admin/auth/change-password", payload);
   return data;
 };
+export const deleteAdminAccount = async (password) => {
+  const { data } = await adminApi.delete("/admin/auth/account", { data: { password } });
+  return data;
+};

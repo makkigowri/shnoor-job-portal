@@ -1,12 +1,9 @@
-const fs = require("fs");
-const path = require("path");
-const extractResumeText = require("../utils/extractResumeText");
-const { scoreResumeAgainstJob } = require("../utils/atsScorer");
-const { uploadDir } = require("../middleware/upload");
+const { scoreSkillsOnly } = require("../utils/atsScorer");
 const { createNotification } = require("../models/notificationModel");
 const { getCompanyByRecruiterId } = require("../models/companyModel");
 const { sendEmail } = require("./emailService");
 const { findUserById } = require("../models/userModel");
+const { getProfileByUserId } = require("../models/profileModel");
 const {
   applyAtsResult,
   getProcessableApplicationsForUser,
@@ -19,33 +16,11 @@ const getAtsThreshold = () => {
   const configured = Number(process.env.ATS_AUTO_SHORTLIST_THRESHOLD);
   return Number.isFinite(configured) && configured > 0 ? configured : 80;
 };
-const MIME_BY_EXTENSION = {
-  ".pdf": "application/pdf",
-  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ".doc": "application/msword"
-};
-const resolveResumeText = async (resume) => {
-  if (resume && resume.resume_text && resume.resume_text.trim()) {
-    return resume.resume_text;
-  }
-  if (!resume || !resume.resume_path) return null;
-  const filename = path.basename(resume.resume_path);
-  const fullPath = path.join(uploadDir, filename);
-  if (!fs.existsSync(fullPath)) return null;
-  const mimetype = MIME_BY_EXTENSION[path.extname(filename).toLowerCase()];
-  if (!mimetype) return null;
-  try {
-    return await extractResumeText(fullPath, mimetype);
-  } catch (error) {
-    console.error("Failed to re-extract resume text for ATS automation:", error.message);
-    return null;
-  }
-};
-const evaluateApplicationAts = async ({ application, job, resumeText }) => {
-  if (!resumeText || !resumeText.trim()) {
-    return { skipped: true, reason: "no_resume_text" };
-  }
-  const result = scoreResumeAgainstJob(resumeText, job.job_skills || job.skills, job.job_experience || job.experience);
+// ATS scoring compares ONLY the candidate's profile Skills against the
+// job's Required Skills. Qualification, experience, resume text, and any
+// other fields are intentionally never used in this calculation.
+const evaluateApplicationAts = async ({ application, job, candidateSkills }) => {
+  const result = scoreSkillsOnly(candidateSkills, job.job_skills || job.skills);
   if (result.score === null) {
     return { skipped: true, reason: "no_job_skills" };
   }
@@ -157,15 +132,15 @@ const evaluateApplicationAts = async ({ application, job, resumeText }) => {
     application: updatedApplication
   };
 };
-const runAtsForNewApplication = async (application, job, resume) => {
-  const resumeText = await resolveResumeText(resume);
-  return evaluateApplicationAts({ application, job, resumeText });
+const runAtsForNewApplication = async (application, job) => {
+  const profile = await getProfileByUserId(application.user_id);
+  const candidateSkills = profile ? profile.skills : null;
+  return evaluateApplicationAts({ application, job, candidateSkills });
 };
-const rerunAtsForPendingApplications = async (userId, resumeText) => {
+const rerunAtsForPendingApplications = async (userId) => {
   const summary = { processed: 0, shortlisted: 0, rejected: 0, skipped: 0 };
-  if (!resumeText || !resumeText.trim()) {
-    return summary;
-  }
+  const profile = await getProfileByUserId(userId);
+  const candidateSkills = profile ? profile.skills : null;
   const pending = await getProcessableApplicationsForUser(userId);
   for (const row of pending) {
     const application = { id: row.id, user_id: row.user_id, job_id: row.job_id };
@@ -174,11 +149,10 @@ const rerunAtsForPendingApplications = async (userId, resumeText) => {
       job_id: row.job_id,
       job_title: row.job_title,
       job_skills: row.job_skills,
-      job_experience: row.job_experience,
       job_ats_threshold: row.job_ats_threshold,
       recruiter_id: row.recruiter_id
     };
-    const outcome = await evaluateApplicationAts({ application, job, resumeText });
+    const outcome = await evaluateApplicationAts({ application, job, candidateSkills });
     if (outcome.skipped) {
       summary.skipped += 1;
       continue;
@@ -199,12 +173,10 @@ const runAtsForJobApplicants = async (recruiterId, jobId) => {
       job_id: row.job_id,
       job_title: row.job_title,
       job_skills: row.job_skills,
-      job_experience: row.job_experience,
       job_ats_threshold: row.job_ats_threshold,
       recruiter_id: row.recruiter_id
     };
-    const resumeText = await resolveResumeText({ resume_path: row.resume_path });
-    const outcome = await evaluateApplicationAts({ application, job, resumeText });
+    const outcome = await evaluateApplicationAts({ application, job, candidateSkills: row.candidate_skills });
     if (outcome.skipped) {
       summary.skipped += 1;
       continue;
@@ -217,7 +189,6 @@ const runAtsForJobApplicants = async (recruiterId, jobId) => {
 };
 module.exports = {
   getAtsThreshold,
-  resolveResumeText,
   evaluateApplicationAts,
   runAtsForNewApplication,
   rerunAtsForPendingApplications,

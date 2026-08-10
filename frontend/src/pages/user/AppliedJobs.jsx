@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import { getMyApplications, withdrawApplication } from "../../services/applicationService";
 import { LuArrowUpDown } from "react-icons/lu";
+import Pagination from "../../components/common/Pagination";
+import usePagination from "../../hooks/usePagination";
 const statusColor = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -123,6 +125,10 @@ const sortMenuRef = useRef(null);
 
   return sorted;
 }, [applications, sortBy]);
+  const { page, setPage, totalPages, paginatedItems: pagedApplications } = usePagination(
+    sortedApplications,
+    10
+  );
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
@@ -244,7 +250,7 @@ const sortMenuRef = useRef(null);
                 </tr>
               </thead>
               <tbody>
-               {sortedApplications.map((item) => (
+               {pagedApplications.map((item) => (
                   <tr
                     key={item.id}
                     className="border-t border-border hover:bg-gray-50"
@@ -299,6 +305,7 @@ const sortMenuRef = useRef(null);
                 ))}
               </tbody>
             </table>
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminAuthProvider from "../context/AdminAuthContext";
+import AdminThemeProvider from "../context/AdminThemeContext";
 import AdminProtectedRoute from "./AdminProtectedRoute";
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("../pages/admin/Users"));
@@ -20,6 +21,7 @@ const AdminPageLoader = () => (
 const AdminRoutes = () => {
   return (
     <AdminAuthProvider>
+    <AdminThemeProvider>
       <Suspense fallback={<AdminPageLoader />}>
       <Routes>
         <Route
@@ -105,6 +107,7 @@ const AdminRoutes = () => {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       </Suspense>
+    </AdminThemeProvider>
     </AdminAuthProvider>
   );
 };

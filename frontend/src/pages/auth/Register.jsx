@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import AuthLayout from "../../layouts/AuthLayout";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
@@ -13,8 +14,7 @@ const initialState = {
   password: "",
   confirmPassword: "",
   role: "jobseeker",
-  acceptPrivacyPolicy: false,
-  acceptTerms: false,
+  acceptPolicyAndTerms: false,
 };
 const Register = () => {
   const { register } = useAuth();
@@ -36,7 +36,7 @@ const Register = () => {
       setError("Passwords do not match.");
       return;
     }
-    if (!form.acceptPrivacyPolicy || !form.acceptTerms) {
+    if (!form.acceptPolicyAndTerms) {
       setError("Please accept the Privacy Policy and Terms & Conditions.");
       return;
     }
@@ -44,8 +44,8 @@ const Register = () => {
     try {
       const user = await register({
         ...form,
-        acceptPrivacyPolicy: String(form.acceptPrivacyPolicy),
-        acceptTerms: String(form.acceptTerms),
+        acceptPrivacyPolicy: String(form.acceptPolicyAndTerms),
+        acceptTerms: String(form.acceptPolicyAndTerms),
       });
       navigate(
         user.role === "recruiter"
@@ -62,10 +62,19 @@ const Register = () => {
     }
   };
   return (
-    <AuthLayout
-      title="Create Your Account"
-      subtitle="Join SHNOOR as a Job Seeker or Recruiter."
-    >
+    <>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="fixed top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+      <AuthLayout
+        title="Create Your Account"
+        subtitle="Join SHNOOR as a Job Seeker or Recruiter."
+      >
       <form
         onSubmit={handleSubmit}
         className="space-y-6"
@@ -142,16 +151,31 @@ const Register = () => {
         />
         <div className="space-y-3">
           <Checkbox
-            name="acceptPrivacyPolicy"
-            checked={form.acceptPrivacyPolicy}
+            name="acceptPolicyAndTerms"
+            checked={form.acceptPolicyAndTerms}
             onChange={handleChange}
-            label="I agree to the Privacy Policy"
-          />
-          <Checkbox
-            name="acceptTerms"
-            checked={form.acceptTerms}
-            onChange={handleChange}
-            label="I agree to the Terms & Conditions"
+            label={
+              <>
+                I agree to the{" "}
+                <Link
+                  to="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#7393D3] hover:text-[#5E84D6]"
+                >
+                  Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/terms-and-conditions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#7393D3] hover:text-[#5E84D6]"
+                >
+                  Terms & Conditions
+                </Link>
+              </>
+            }
           />
         </div>
         <Button
@@ -178,7 +202,8 @@ const Register = () => {
           </Link>
         </p>
       </form>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 };
 export default Register;

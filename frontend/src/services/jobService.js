@@ -1,5 +1,9 @@
 import api from "./api";
 import { downloadFileFromResponse } from "./exportService";
+export const getPublicJobs = async (limit) => {
+  const { data } = await api.get("/jobs/public", { params: limit ? { limit } : {} });
+  return data;
+};
 export const searchJobs = async (params) => {
   const { data } = await api.get("/jobs/search", { params });
   return data;

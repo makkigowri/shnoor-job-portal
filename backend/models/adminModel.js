@@ -21,4 +21,9 @@ const updateAdminPassword = async (id, hashedPassword) => {
   const result = await pool.query(query, [hashedPassword, id]);
   return result.rows[0];
 };
-module.exports = { findAdminByEmail, findAdminById, findAdminByIdWithPassword, updateAdminPassword };
+const deleteAdminById = async (id) => {
+  const query = "DELETE FROM admins WHERE id = $1 RETURNING id";
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
+};
+module.exports = { findAdminByEmail, findAdminById, findAdminByIdWithPassword, updateAdminPassword, deleteAdminById };

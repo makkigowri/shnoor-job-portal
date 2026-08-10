@@ -1,76 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 import AdminLayout from "../../layouts/AdminLayout";
-import {
-  fetchAdminSettings,
-  saveAdminSettings,
-  uploadAdminLogo,
-  changeSettingsPassword
-} from "../../services/adminSettingsService";
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace(/\/api\/?$/, "");
+import { changeSettingsPassword } from "../../services/adminSettingsService";
+import { deleteAdminAccount } from "../../services/adminAuthService";
+import useAdminAuth from "../../hooks/useAdminAuth";
+import useAdminTheme from "../../hooks/useAdminTheme";
 const AdminSettings = () => {
-  const [settings, setSettings] = useState({ applicationName: "", supportEmail: "", theme: "light" });
-  const [logoPath, setLogoPath] = useState("");
-  const [logoFile, setLogoFile] = useState(null);
+  const navigate = useNavigate();
+  const { logout } = useAdminAuth();
+  const { darkMode, toggleDarkMode } = useAdminTheme();
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const result = await fetchAdminSettings();
-        if (result.settings) {
-          setSettings({
-            applicationName: result.settings.application_name || "",
-            supportEmail: result.settings.support_email || "",
-            theme: result.settings.theme || "light"
-          });
-          setLogoPath(result.settings.logo_path || "");
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || "Unable to load settings.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSettings((prev) => ({ ...prev, [name]: value }));
-  };
+  const [deletePassword, setDeletePassword] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
-  const handleSaveSettings = async (e) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    setSaving(true);
-    try {
-      await saveAdminSettings(settings);
-      setMessage("Settings updated successfully.");
-    } catch (err) {
-      setError(err.response?.data?.message || "Unable to update settings.");
-    } finally {
-      setSaving(false);
-    }
-  };
-  const handleLogoUpload = async () => {
-    if (!logoFile) return;
-    setError("");
-    setMessage("");
-    try {
-      const formData = new FormData();
-      formData.append("companyLogo", logoFile);
-      const result = await uploadAdminLogo(formData);
-      setLogoPath(result.settings.logo_path);
-      setLogoFile(null);
-      setMessage("Logo updated successfully.");
-    } catch (err) {
-      setError(err.response?.data?.message || "Unable to upload logo.");
-    }
-  };
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,15 +34,42 @@ const AdminSettings = () => {
       setChangingPassword(false);
     }
   };
-  if (loading) {
-    return (
-      <AdminLayout title="Settings" subtitle="Configure the application.">
-        <p className="text-gray-500">Loading settings...</p>
-      </AdminLayout>
-    );
-  }
+  const handleDeleteAccount = async () => {
+    setDeleteError("");
+    if (!deletePassword) {
+      setDeleteError("Please enter your password to confirm");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAdminAccount(deletePassword);
+      logout();
+      navigate("/login");
+    } catch (err) {
+      setDeleteError(err?.response?.data?.message || "Unable to delete your account right now");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <AdminLayout title="Settings" subtitle="Configure application-wide preferences and your admin account.">
+    <AdminLayout title="Settings" subtitle="Configure your admin account.">
+      <div className="flex justify-end mb-4">
+        <button
+          type="button"
+          onClick={toggleDarkMode}
+          aria-label="Toggle dark mode"
+          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className={`h-11 w-11 inline-flex items-center justify-center rounded-xl border transition ${
+            darkMode
+              ? "border-gray-600 bg-gray-800 text-yellow-300 hover:bg-gray-700"
+              : "border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
@@ -102,73 +77,7 @@ const AdminSettings = () => {
         <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h3 className="font-bold text-[#3E3A74] mb-4">Application Settings</h3>
-          <form onSubmit={handleSaveSettings} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Application Name</label>
-              <input
-                type="text"
-                name="applicationName"
-                value={settings.applicationName}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Support Email</label>
-              <input
-                type="email"
-                name="supportEmail"
-                value={settings.supportEmail}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Theme</label>
-              <select
-                name="theme"
-                value={settings.theme}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-[#7393D3] text-white font-medium hover:bg-[#5E84D6] disabled:opacity-60"
-            >
-              {saving ? "Saving..." : "Save Settings"}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Application Logo</label>
-            {logoPath && (
-              <img src={`${API_ORIGIN}${logoPath}`} alt="Application Logo" className="w-16 h-16 object-contain rounded-lg border border-gray-200 mb-3" />
-            )}
-            <div className="flex gap-3">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setLogoFile(e.target.files[0])}
-                className="flex-1 text-sm"
-              />
-              <button
-                onClick={handleLogoUpload}
-                disabled={!logoFile}
-                className="px-4 py-2 rounded-xl bg-[#3E3A74] text-white font-medium hover:bg-[#2f2c5a] disabled:opacity-50"
-              >
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-2xl space-y-6">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <h3 className="font-bold text-[#3E3A74] mb-4">Change Password</h3>
           <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -201,6 +110,59 @@ const AdminSettings = () => {
               {changingPassword ? "Updating..." : "Change Password"}
             </button>
           </form>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-6">
+          <h3 className="font-bold text-red-700 mb-1">Delete Account</h3>
+          <p className="text-gray-600 text-sm">
+            Permanently delete your SHNOOR admin account. This action cannot be undone.
+          </p>
+          {!confirmingDelete ? (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="mt-6 border border-red-700 text-red-700 px-6 py-3 rounded-xl hover:bg-red-700 hover:text-white transition"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {deleteError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm">
+                  {deleteError}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Enter your password to confirm
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="w-full md:w-2/3 rounded-xl border border-gray-300 px-4 py-2.5 focus:border-[#7393D3] focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="bg-red-700 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition disabled:opacity-60"
+                >
+                  {deleting ? "Deleting..." : "Confirm Delete"}
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    setDeletePassword("");
+                    setDeleteError("");
+                  }}
+                  className="border border-gray-300 px-6 py-3 rounded-xl hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>

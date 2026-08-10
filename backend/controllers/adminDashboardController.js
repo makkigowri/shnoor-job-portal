@@ -31,7 +31,7 @@ const getAdminAnalytics = async (req, res, next) => {
   try {
     const [topRecruiters, topAppliedJobs, recentActivities, mostActiveUsers, recentRegistrations, systemStatistics] =
       await Promise.all([
-        getTopRecruiters(10),getTopAppliedJobs(10),getRecentActivities(15),getMostActiveUsers(10),getRecentRegistrations(10),getSystemStatistics()
+        getTopRecruiters(10),getTopAppliedJobs(10),getRecentActivities(100),getMostActiveUsers(10),getRecentRegistrations(10),getSystemStatistics()
       ]);
     res.status(200).json({
       success: true,

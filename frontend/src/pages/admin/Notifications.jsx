@@ -2,10 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import ActionMenu from "../../components/admin/ActionMenu";
+import Pagination from "../../components/admin/Pagination";
+import usePagination from "../../hooks/usePagination";
 import {
   sendAdminNotification,
   fetchNotificationHistory,
-  deleteAdminNotification
+  deleteAdminNotification,
+  fetchContactRequests
 } from "../../services/adminNotificationService";
 import { NOTIFICATION_CATEGORIES, categorizeNotification } from "../../utils/notificationCategories";
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : "—");
@@ -18,6 +21,8 @@ const AdminNotifications = () => {
   const [success, setSuccess] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [contactRequests, setContactRequests] = useState([]);
+  const [contactRequestsLoading, setContactRequestsLoading] = useState(true);
   const loadHistory = async () => {
     setLoading(true);
     try {
@@ -29,8 +34,20 @@ const AdminNotifications = () => {
       setLoading(false);
     }
   };
+  const loadContactRequests = async () => {
+    setContactRequestsLoading(true);
+    try {
+      const result = await fetchContactRequests();
+      setContactRequests(result.requests || []);
+    } catch (err) {
+      setContactRequests([]);
+    } finally {
+      setContactRequestsLoading(false);
+    }
+  };
   useEffect(() => {
     loadHistory();
+    loadContactRequests();
   }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,6 +84,21 @@ const AdminNotifications = () => {
     if (activeCategory === "All") return history;
     return history.filter((item) => categorizeNotification(item) === activeCategory);
   }, [history, activeCategory]);
+  const {
+    page: historyPage,
+    setPage: setHistoryPage,
+    totalPages: historyTotalPages,
+    paginatedItems: pagedHistory
+  } = usePagination(filteredHistory, 10);
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [activeCategory]);
+  const {
+    page: contactPage,
+    setPage: setContactPage,
+    totalPages: contactTotalPages,
+    paginatedItems: pagedContactRequests
+  } = usePagination(contactRequests, 10);
   return (
     <AdminLayout title="Notifications" subtitle="Send announcements to users and recruiters, and review what has been sent.">
       {error && (
@@ -179,7 +211,7 @@ const AdminNotifications = () => {
             {!loading && filteredHistory.length === 0 && (
               <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">No notifications in this category yet</td></tr>
             )}
-            {!loading && filteredHistory.map((item) => (
+            {!loading && pagedHistory.map((item) => (
               <tr key={item.id} className="border-t border-gray-100">
                 <td className="px-6 py-3 text-gray-800">{item.title}</td>
                 <td className="px-6 py-3 text-gray-600 capitalize">{item.audience}</td>
@@ -203,6 +235,7 @@ const AdminNotifications = () => {
             ))}
           </tbody>
         </table>
+        <Pagination page={historyPage} totalPages={historyTotalPages} onChange={setHistoryPage} />
       </div>
       <ConfirmDialog
         open={Boolean(confirmDelete)}
@@ -213,6 +246,37 @@ const AdminNotifications = () => {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
       />
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-[#3E3A74]">Contact Requests</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Requests submitted by visitors from the landing page footer.
+          </p>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-gray-500 bg-gray-50">
+              <th className="px-6 py-3 font-medium">Mobile Number</th>
+              <th className="px-6 py-3 font-medium">Submitted Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contactRequestsLoading && (
+              <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400">Loading contact requests...</td></tr>
+            )}
+            {!contactRequestsLoading && contactRequests.length === 0 && (
+              <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400">No contact requests yet</td></tr>
+            )}
+            {!contactRequestsLoading && pagedContactRequests.map((item) => (
+              <tr key={item.id} className="border-t border-gray-100">
+                <td className="px-6 py-3 text-gray-800">{item.mobile_number}</td>
+                <td className="px-6 py-3 text-gray-600">{formatDateTime(item.submitted_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Pagination page={contactPage} totalPages={contactTotalPages} onChange={setContactPage} />
+      </div>
     </AdminLayout>
   );
 };
