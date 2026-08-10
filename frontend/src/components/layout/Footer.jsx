@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../common/Logo";
+import { submitContactRequest } from "../../services/contactRequestService";
 const scrollToSection = (id) => {
   if (window.location.pathname !== "/") {
     window.location.href = id === "top" ? "/" : `/#${id}`;
@@ -17,6 +19,30 @@ const scrollToSection = (id) => {
   });
 };
 const Footer = () => {
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
+  const handleSubscribeSubmit = async (e) => {
+    e.preventDefault();
+    setStatus(null);
+    if (!mobileNumber.trim()) {
+      setStatus({ type: "error", message: "Please enter your mobile number." });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const data = await submitContactRequest(mobileNumber.trim());
+      setStatus({ type: "success", message: data.message || "Request submitted successfully." });
+      setMobileNumber("");
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.response?.data?.message || "Unable to submit your request. Please try again."
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
   return (
     <footer id="footer" className="bg-[#3E3A74] mt-15">
       <div className="max-w-[1400px] mx-auto px-10 lg:px-14 py-12">
@@ -89,14 +115,31 @@ const Footer = () => {
             <p className="text-gray-300 leading-7 mb-5">
               Follow to receive updates about the latest career opportunities at SHNOOR.
             </p>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full rounded-xl border border-transparent px-4 py-3 text-[#111827] mb-3"
-            />
-            <button className="w-full rounded-xl bg-[#7393D3] py-3 text-white font-semibold hover:bg-[#5E84D6] transition-all duration-300">
-              Mobile Number
-            </button>
+            <form onSubmit={handleSubscribeSubmit}>
+              <input
+                type="tel"
+                placeholder="Enter your Mobile Number"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
+                className="w-full rounded-xl border border-transparent px-4 py-3 text-[#111827] mb-3"
+              />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-xl bg-[#7393D3] py-3 text-white font-semibold hover:bg-[#5E84D6] transition-all duration-300 disabled:opacity-60"
+              >
+                {submitting ? "Sending..." : "Send"}
+              </button>
+              {status && (
+                <p
+                  className={`mt-3 text-sm ${
+                    status.type === "success" ? "text-green-300" : "text-red-300"
+                  }`}
+                >
+                  {status.message}
+                </p>
+              )}
+            </form>
           </div>
         </div>
         <div className="border-t border-white/10 mt-12 pt-7 flex flex-col md:flex-row items-center justify-between gap-4">

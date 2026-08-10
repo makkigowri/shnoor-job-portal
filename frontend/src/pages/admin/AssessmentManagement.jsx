@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/admin/StatusBadge";
 import Pagination from "../../components/admin/Pagination";
@@ -86,22 +85,6 @@ const AdminAssessmentManagement = () => {
               ]
             }
           ]}
-          actions={
-            <>
-              <Link
-                to="/admin/assessments/analytics"
-                className="h-11 inline-flex items-center px-5 rounded-xl border border-gray-300 hover:bg-gray-100 text-sm font-medium transition"
-              >
-                Analytics
-              </Link>
-              <Link
-                to="/admin/assessments/reports"
-                className="h-11 inline-flex items-center px-5 rounded-xl bg-[#7393D3] hover:bg-[#5E84D6] text-white text-sm font-medium transition"
-              >
-                Reports
-              </Link>
-            </>
-          }
         />
         <table className="w-full text-sm">
           <thead>

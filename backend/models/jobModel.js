@@ -168,4 +168,17 @@ const searchJobs = async (filters, viewerId) => {
     jobs: dataResult.rows,total,page: Number(page),limit: Number(limit),totalPages: Math.max(Math.ceil(total / limit), 1)
   };
 };
-module.exports = {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs};
+const getPublicJobs = async (limit = 6) => {
+  const query = `
+    SELECT
+      j.id,j.title,j.location,j.experience,j.employment_type,j.salary,j.created_at,
+      COALESCE(c.company_name, 'SHNOOR Technologies') AS company_name
+    FROM jobs j
+    LEFT JOIN companies c ON c.recruiter_id = j.recruiter_id
+    WHERE j.status = 'Active'
+    ORDER BY j.created_at DESC
+    LIMIT $1`;
+  const result = await pool.query(query, [limit]);
+  return result.rows;
+};
+module.exports = {createJob,updateJob,deleteJob,findJobById,findJobsByRecruiter,searchJobs,getPublicJobs};

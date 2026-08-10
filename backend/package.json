@@ -16,7 +16,8 @@
     "migrate:technical-interview": "node scripts/runTechnicalInterviewMigration.js",
     "migrate:ats-threshold": "node scripts/runAtsThresholdMigration.js",
     "migrate:multi-resume": "node scripts/runMultiResumeMigration.js",
-    "migrate:application-resume": "node scripts/runApplicationResumeMigration.js"
+    "migrate:application-resume": "node scripts/runApplicationResumeMigration.js",
+    "migrate:contact-requests": "node scripts/runContactRequestsMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
