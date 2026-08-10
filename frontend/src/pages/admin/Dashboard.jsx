@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import { fetchAdminAnalytics } from "../../services/adminDashboardService";
+import Pagination from "../../components/admin/Pagination";
+import usePagination from "../../hooks/usePagination";
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : "—");
 const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -20,6 +22,7 @@ const AdminDashboard = () => {
     load();
   }, []);
   const activities = analytics?.recentActivities || [];
+  const { page, setPage, totalPages, paginatedItems: pagedActivities } = usePagination(activities, 10);
   return (
     <AdminLayout title="Admin Dashboard" subtitle="Recent activity across the Shnoor Job Portal application.">
       {loading && <p className="text-gray-500">Loading dashboard...</p>}
@@ -41,7 +44,7 @@ const AdminDashboard = () => {
             {activities.length === 0 && (
               <div className="px-6 py-24 text-center text-gray-400">No activity yet</div>
             )}
-            {activities.map((activity, index) => (
+            {pagedActivities.map((activity, index) => (
               <div
                 key={index}
                 className="px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:justify-between hover:bg-gray-50/70 transition"
@@ -64,6 +67,7 @@ const AdminDashboard = () => {
               </div>
             ))}
           </div>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
     </AdminLayout>
