@@ -16,6 +16,22 @@ const {
 const { uploadDir } = require("../middleware/upload");
 const { createNotification } = require("../models/notificationModel");
 const extractResumeText = require("../utils/extractResumeText");
+const { saveResumeFile, getResumeFile, deleteResumeFile } = require("../models/resumeFileModel");
+
+// Persists the just-uploaded file's bytes into Postgres so it remains
+// accessible after the Render instance sleeps/restarts and the local
+// /uploads copy is gone. Failure here is logged but does not fail the
+// upload request, since the local copy still works until the instance
+// restarts and the existing flow should not start rejecting uploads.
+const persistResumeFile = async (file) => {
+  try {
+    const buffer = fs.readFileSync(file.path);
+    await saveResumeFile(file.filename, buffer, file.mimetype);
+  } catch (err) {
+    console.error("Failed to persist resume file to database:", err.message);
+  }
+};
+
 const removeFileIfExists = (resumePath) => {
   if (!resumePath) return;
   const filename = path.basename(resumePath);
@@ -25,6 +41,9 @@ const removeFileIfExists = (resumePath) => {
       console.error("Failed to remove old resume file:", err.message);
     }
   });
+  deleteResumeFile(filename).catch((err) =>
+    console.error("Failed to remove old resume file from database:", err.message)
+  );
 };
 
 // Keeps the legacy job_seeker_profiles resume columns pointed at whichever
@@ -79,6 +98,7 @@ const uploadMyResume = async (req, res, next) => {
       extractionError = err.message;
       console.error("Resume text extraction failed during upload:", err.message);
     }
+    await persistResumeFile(req.file);
     const resume = await upsertResume(req.user.id, resumePath, req.file.originalname, resumeText);
 
     if (existing && existing.resume_path && existing.resume_path !== resumePath) {
@@ -127,6 +147,8 @@ const uploadAdditionalResume = async (req, res, next) => {
       extractionError = err.message;
       console.error("Resume text extraction failed during upload:", err.message);
     }
+
+    await persistResumeFile(req.file);
 
     // The very first resume a user uploads automatically becomes the default.
     const existingCount = await countUserResumes(req.user.id);
@@ -183,6 +205,8 @@ const replaceResume = async (req, res, next) => {
       console.error("Resume text extraction failed during replace:", err.message);
     }
 
+    await persistResumeFile(req.file);
+
     const resume = await replaceUserResume(req.params.id, req.user.id, {
       resumePath,
       resumeFilename: req.file.originalname,
@@ -236,11 +260,22 @@ const downloadResume = async (req, res, next) => {
 
     const filename = path.basename(existing.resume_path);
     const fullPath = path.join(uploadDir, filename);
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ success: false, message: "Resume file not found on server" });
+    if (fs.existsSync(fullPath)) {
+      return res.download(fullPath, existing.resume_filename);
     }
 
-    res.download(fullPath, existing.resume_filename);
+    // Local /uploads copy is gone (Render instance slept/restarted since
+    // upload) - serve the persisted bytes from Postgres instead.
+    const persisted = await getResumeFile(filename);
+    if (!persisted) {
+      return res.status(404).json({ success: false, message: "Resume file not found on server" });
+    }
+    res.setHeader("Content-Type", persisted.mimetype || "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${existing.resume_filename.replace(/"/g, "")}"`
+    );
+    res.send(persisted.data);
   } catch (error) {
     next(error);
   }

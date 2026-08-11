@@ -17,7 +17,9 @@
     "migrate:ats-threshold": "node scripts/runAtsThresholdMigration.js",
     "migrate:multi-resume": "node scripts/runMultiResumeMigration.js",
     "migrate:application-resume": "node scripts/runApplicationResumeMigration.js",
-    "migrate:contact-requests": "node scripts/runContactRequestsMigration.js"
+    "migrate:contact-requests": "node scripts/runContactRequestsMigration.js",
+    "migrate:resume-files": "node scripts/runResumeFilesMigration.js",
+    "backfill:resume-files": "node scripts/backfillResumeFiles.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
