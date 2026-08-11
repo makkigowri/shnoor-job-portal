@@ -105,4 +105,29 @@ const scoreSkillsOnly = (candidateSkillsCsv, jobSkillsCsv) => {
   const score = Math.round((matchedSkills.length / requiredSkills.length) * 100);
   return { score, matchedSkills, missingSkills, totalSkills: requiredSkills.length };
 };
-module.exports = { scoreResumeAgainstJob, scoreSkillsOnly };
+// ATS automation scoring: checks the job's required skills directly against
+// the candidate's resume text (same substring/word matching used by the
+// manual ATS checker), instead of the candidate's separate profile Skills
+// field. This is what "Run ATS Score" on the Applicants page uses.
+const scoreSkillsFromResumeText = (resumeText, jobSkillsCsv) => {
+  const requiredSkills = (jobSkillsCsv || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (requiredSkills.length === 0) {
+    return { score: null, matchedSkills: [], missingSkills: [], totalSkills: 0 };
+  }
+  const normalizedText = (resumeText || "").toLowerCase();
+  const matchedSkills = [];
+  const missingSkills = [];
+  requiredSkills.forEach((skill) => {
+    if (skillAppearsInText(skill, normalizedText)) {
+      matchedSkills.push(skill);
+    } else {
+      missingSkills.push(skill);
+    }
+  });
+  const score = Math.round((matchedSkills.length / requiredSkills.length) * 100);
+  return { score, matchedSkills, missingSkills, totalSkills: requiredSkills.length };
+};
+module.exports = { scoreResumeAgainstJob, scoreSkillsOnly, scoreSkillsFromResumeText };
