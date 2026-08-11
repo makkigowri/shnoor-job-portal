@@ -25,6 +25,7 @@ const offerLetterRoutes = require("./routes/offerLetterRoutes");
 const contactRequestRoutes = require("./routes/contactRequestRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const { sendEmail } = require("./services/emailService");
+const { getResumeFile } = require("./models/resumeFileModel");
 const app = express();
 app.use(
   cors({
@@ -34,6 +35,27 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// The frontend's "View Resume" links (user profile, recruiter applicants,
+// admin applications, dashboard, search jobs) all open
+// `${backendOrigin}/uploads/<filename>` directly in the browser rather than
+// calling an /api route. Resumes are persisted in Postgres (see
+// models/resumeFileModel.js) so they survive the Render instance
+// sleeping/restarting; this route serves them from there first, and only
+// falls back to the local disk copy (profile photos, company logos, or a
+// resume uploaded moments ago in this same still-awake instance).
+app.get("/uploads/:filename", async (req, res, next) => {
+  try {
+    const file = await getResumeFile(req.params.filename);
+    if (file) {
+      res.setHeader("Content-Type", file.mimetype || "application/octet-stream");
+      res.setHeader("Content-Disposition", `inline; filename="${req.params.filename}"`);
+      return res.send(file.data);
+    }
+  } catch (err) {
+    console.error("Failed to serve persisted resume file:", err.message);
+  }
+  next();
+});
 app.use("/uploads", express.static("uploads"));
 app.get("/api/health", (req, res) => {res.status(200).json({ success: true, message: "Shnoor Job Portal API is running" });});
 app.use("/api/auth", authRoutes);
