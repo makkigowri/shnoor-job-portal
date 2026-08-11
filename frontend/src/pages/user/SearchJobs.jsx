@@ -7,7 +7,9 @@ import { getMyResumes } from "../../services/resumeService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import { LuArrowUpDown } from "react-icons/lu";
-const API_ORIGIN = "http://localhost:5001";
+const API_ORIGIN = (
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+).replace(/\/api\/?$/, "");
 const SearchJobs = () => {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("title") || "");
