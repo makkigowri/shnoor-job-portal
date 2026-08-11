@@ -121,14 +121,28 @@ const applyAtsResult = async (applicationId, { status, atsScore, matchedSkills, 
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+const CANDIDATE_RESUME_TEXT_JOIN = `
+    LEFT JOIN user_resumes ur_by_id
+      ON ur_by_id.id = ap.resume_id
+    LEFT JOIN user_resumes ur_by_path
+      ON ur_by_path.user_id = ap.user_id
+      AND ap.resume_id IS NULL
+      AND ap.resume_path IS NOT NULL
+      AND (
+        ur_by_path.resume_path = ap.resume_path
+        OR ur_by_path.resume_filename = ap.resume_filename
+      )
+    LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id `;
+const CANDIDATE_RESUME_TEXT_SELECT = `
+      COALESCE(ur_by_id.resume_text, ur_by_path.resume_text, jp.resume_text) AS candidate_resume_text `;
 const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
   const query = `
-    SELECT ap.id, ap.user_id, ap.job_id, ap.resume_path, ap.resume_filename,
+    SELECT ap.id, ap.user_id, ap.job_id, ap.resume_id, ap.resume_path, ap.resume_filename,
       j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status,
-      jp.resume_text AS candidate_resume_text
+      ${CANDIDATE_RESUME_TEXT_SELECT}
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
-    LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id
+    ${CANDIDATE_RESUME_TEXT_JOIN}
     WHERE j.recruiter_id = $1 AND ap.job_id = $2 AND ap.status = 'Applied'
     ORDER BY ap.applied_at ASC `;
   const result = await pool.query(query, [recruiterId, jobId]);
@@ -136,12 +150,12 @@ const getAppliedApplicantsForJob = async (recruiterId, jobId) => {
 };
 const getProcessableApplicationsForUser = async (userId) => {
   const query = `
-    SELECT ap.id, ap.user_id, ap.job_id, ap.status,
+    SELECT ap.id, ap.user_id, ap.job_id, ap.status, ap.resume_id, ap.resume_path, ap.resume_filename,
       j.title AS job_title, j.skills AS job_skills, j.experience AS job_experience, j.ats_threshold AS job_ats_threshold, j.recruiter_id, j.status AS job_status,
-      jp.resume_text AS candidate_resume_text
+      ${CANDIDATE_RESUME_TEXT_SELECT}
     FROM applications ap
     JOIN jobs j ON j.id = ap.job_id
-    LEFT JOIN job_seeker_profiles jp ON jp.user_id = ap.user_id
+    ${CANDIDATE_RESUME_TEXT_JOIN}
     WHERE ap.user_id = $1
       AND ap.status IN ('Applied', 'Under Review')
       AND j.status = 'Active'
