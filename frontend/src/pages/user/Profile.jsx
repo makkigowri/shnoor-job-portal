@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FileText, Plus, X } from "lucide-react";
+import { Document, Page, pdfjs } from "react-pdf";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import useAuth from "../../hooks/useAuth";
 import { getMyProfile, saveMyProfile, uploadProfilePhoto, removeProfilePhoto } from "../../services/profileService";
@@ -15,6 +16,10 @@ import ProfileField from "../../components/common/ProfileField";
 import ProfileActionButtons from "../../components/common/ProfileActionButtons";
 import ActionMenu from "../../components/admin/ActionMenu";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 const formatResumeDate = (value) => {
   if (!value) return null;
   const date = new Date(value);
@@ -54,6 +59,9 @@ const Profile = () => {
   const [photoRemoveConfirmOpen, setPhotoRemoveConfirmOpen] = useState(false);
   const [resumes, setResumes] = useState([]);
   const [resumesLoading, setResumesLoading] = useState(true);
+  const [showResume, setShowResume] = useState(false);
+const [resumeUrl, setResumeUrl] = useState("");
+const [numPages, setNumPages] = useState(null);
   const [addingResume, setAddingResume] = useState(false);
   const [busyResumeId, setBusyResumeId] = useState(null);
   const [resumeActionError, setResumeActionError] = useState("");
@@ -245,8 +253,9 @@ const Profile = () => {
     }
   };
   const handleView = (resume) => {
-    window.open(`${API_ORIGIN}${resume.resume_path}`, "_blank", "noreferrer");
-  };
+  setResumeUrl(`${API_ORIGIN}${resume.resume_path}`);
+  setShowResume(true);
+};
   const handleDownload = async (resume) => {
     setBusyResumeId(resume.id);
     clearResumeMessages();
@@ -609,6 +618,64 @@ const Profile = () => {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
       />
+      {showResume && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-heading">
+          Resume
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowResume(false);
+            setResumeUrl("");
+            setNumPages(null);
+          }}
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+        >
+          Close
+        </button>
+      </div>
+
+      {/* PDF */}
+      <div className="flex-1 bg-gray-100 overflow-auto p-6">
+        <Document
+          file={resumeUrl}
+          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+          loading={
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Loading resume...
+            </div>
+          }
+          error={
+            <div className="flex items-center justify-center h-full text-red-500">
+              Unable to load resume.
+            </div>
+          }
+        >
+          {Array.from(new Array(numPages), (_, index) => (
+            <div
+              key={`page_${index + 1}`}
+              className="flex justify-center mb-6"
+            >
+              <Page
+                pageNumber={index + 1}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                className="shadow-lg"
+              />
+            </div>
+          ))}
+        </Document>
+      </div>
+
+    </div>
+  </div>
+)}
     </UserDashboardLayout>
   );
 };
