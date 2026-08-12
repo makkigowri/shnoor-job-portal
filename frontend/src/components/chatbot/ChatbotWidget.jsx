@@ -160,7 +160,7 @@ const ForwardedMessage = ({ text, onViewSupport, showButton }) => (
 const ChatbotWidget = () => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState("chat"); 
+  const [view, setView] = useState("chat"); // "chat" | "support"
   const [messages, setMessages] = useState([{ sender: "bot", text: WELCOME_MESSAGE }]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -174,10 +174,12 @@ const ChatbotWidget = () => {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackThanksMessageId, setFeedbackThanksMessageId] = useState(null);
   const [hasUnreadSupportReply, setHasUnreadSupportReply] = useState(false);
+
   const scrollRef = useRef(null);
   const supportScrollRef = useRef(null);
   const socketRef = useRef(null);
   const joinedRoomRef = useRef(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -210,7 +212,10 @@ const ChatbotWidget = () => {
       active = false;
     };
   }, [user?.id]);
-      useEffect(() => {
+
+
+  useEffect(() => {
+
     const ticketId = supportConversation?.id;
 
     if (!user?.id || !ticketId) return undefined;
