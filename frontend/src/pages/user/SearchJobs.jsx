@@ -7,7 +7,10 @@ import { getMyResumes } from "../../services/resumeService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import { LuArrowUpDown } from "react-icons/lu";
-const API_ORIGIN = "http://localhost:5001";
+import { Document, Page, pdfjs } from "react-pdf";
+const API_ORIGIN = (
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+).replace(/\/api\/?$/, "");
 const SearchJobs = () => {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("title") || "");
@@ -27,6 +30,9 @@ const SearchJobs = () => {
   const [showResumePopup, setShowResumePopup] = useState(false);
 const [resumeList, setResumeList] = useState([]);
 const [selectedResume, setSelectedResume] = useState("");
+const [showResumeViewer, setShowResumeViewer] = useState(false);
+const [resumeViewerUrl, setResumeViewerUrl] = useState("");
+const [numPages, setNumPages] = useState(null);
 const [pendingJob, setPendingJob] = useState(null);
   const [sortBy, setSortBy] = useState("latest");
 const [showSortMenu, setShowSortMenu] = useState(false);
@@ -576,20 +582,79 @@ const sortedJobs = useMemo(() => {
 
                 </div>
 
-                <a
-                  href={`${API_ORIGIN}${resume.resume_path}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-primary font-medium hover:underline"
-                >
-                  View
-                </a>
-
+             <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setResumeViewerUrl(`${API_ORIGIN}${resume.resume_path}`);
+                  setShowResumeViewer(true);
+                }}
+                className="text-primary font-medium hover:underline">
+                View
+              </button>
+                
               </label>
 
             ))}
+            {showResumeViewer && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
+        <h2 className="text-lg font-semibold text-heading">
+          Resume
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowResumeViewer(false);
+            setResumeViewerUrl("");
+            setNumPages(null);
+          }}
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+        >
+          Close
+        </button>
+      </div>
+
+      {/* Resume PDF */}
+      <div className="flex-1 bg-gray-100 overflow-auto p-6">
+        <Document
+          file={resumeViewerUrl}
+          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+          loading={
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Loading resume...
+            </div>
+          }
+          error={
+            <div className="flex items-center justify-center h-full text-red-500">
+              Unable to load resume.
+            </div>
+          }
+        >
+          {numPages &&
+            Array.from(new Array(numPages), (_, index) => (
+              <div
+                key={`page_${index + 1}`}
+                className="flex justify-center mb-6"
+              >
+                <Page
+                  pageNumber={index + 1}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="shadow-lg"
+                />
+              </div>
+            ))}
+        </Document>
+      </div>
+
+    </div>
+  </div>
+)}
           </div>
         )}
 

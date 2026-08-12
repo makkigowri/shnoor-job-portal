@@ -7,6 +7,11 @@ import { getMyJobs } from "../../services/jobService";
 import { LuArrowUpDown, LuEllipsisVertical, LuFileText } from "react-icons/lu";
 import Pagination from "../../components/common/Pagination";
 import usePagination from "../../hooks/usePagination";
+import { Document, Page, pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 const statusBadge = (status) => {
   switch (status) {
     case "Shortlisted":
@@ -40,6 +45,9 @@ export default function Applicants() {
   const [sortBy, setSortBy] = useState("latest");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [openActionMenu, setOpenActionMenu] = useState(null);
+  const [showResume, setShowResume] = useState(false);
+const [resumeUrl, setResumeUrl] = useState("");
+const [numPages, setNumPages] = useState(null);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -129,17 +137,21 @@ export default function Applicants() {
     }
   };
   const selectedJobTitle = jobs.find((job) => String(job.id) === String(jobFilter))?.title;
-  const handleViewResume = (candidate) => {
-    if (!candidate.resume_path) {
-      return;
-    }
-    const apiBaseUrl =
-      import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-    const serverUrl = apiBaseUrl.replace(/\/api\/?$/, "");
-    const resumeUrl = `${serverUrl}${candidate.resume_path}`;
-    window.open(resumeUrl, "_blank", "noopener,noreferrer");
-    setOpenActionMenu(null);
-  };
+ const handleViewResume = (candidate) => {
+  if (!candidate.resume_path) {
+    return;
+  }
+
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+
+  const serverUrl = apiBaseUrl.replace(/\/api\/?$/, "");
+  const resumeUrl = `${serverUrl}${candidate.resume_path}`;
+
+  setResumeUrl(resumeUrl);
+  setShowResume(true);
+  setOpenActionMenu(null);
+};
   return (
     <RecruiterDashboardLayout>
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -344,6 +356,61 @@ export default function Applicants() {
           <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
+      {showResume && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Candidate Resume
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowResume(false);
+            setResumeUrl("");
+          }}
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+        >
+          Close
+        </button>
+      </div>
+
+     <div className="flex-1 bg-gray-100 overflow-auto p-6">
+  <Document
+    file={resumeUrl}
+    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+    loading={
+      <div className="flex items-center justify-center h-full text-gray-500">
+        Loading resume...
+      </div>
+    }
+    error={
+      <div className="flex items-center justify-center h-full text-red-500">
+        Unable to load resume.
+      </div>
+    }
+  >
+    {Array.from(new Array(numPages), (_, index) => (
+      <div
+        key={`page_${index + 1}`}
+        className="flex justify-center mb-6"
+      >
+        <Page
+          pageNumber={index + 1}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+          className="shadow-lg"
+        />
+      </div>
+    ))}
+  </Document>
+</div>
+
+    </div>
+  </div>
+)}
     </RecruiterDashboardLayout>
   );
 }
