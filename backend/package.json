@@ -20,7 +20,8 @@
     "migrate:contact-requests": "node scripts/runContactRequestsMigration.js",
     "migrate:resume-files": "node scripts/runResumeFilesMigration.js",
     "backfill:resume-files": "node scripts/backfillResumeFiles.js",
-    "migrate:user-resumes-text": "node scripts/runUserResumesResumeTextMigration.js"
+    "migrate:user-resumes-text": "node scripts/runUserResumesResumeTextMigration.js",
+    "migrate:support-resolution-feedback": "node scripts/runSupportResolutionFeedbackMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -200,6 +200,49 @@ const resolveSupportConversation = async (conversationId) => {
   );
   return result.rows[0];
 };
+const deleteTicket = async (ticketId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `DELETE FROM support_feedback WHERE ticket_id = $1;`,
+      [ticketId]
+    );
+    await client.query(
+      `DELETE FROM support_messages WHERE ticket_id = $1;`,
+      [ticketId]
+    );
+    const { rows } = await client.query(
+      `DELETE FROM support_tickets WHERE id = $1 RETURNING *;`,
+      [ticketId]
+    );
+    await client.query("COMMIT");
+    return rows[0];
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+const saveResolutionFeedback = async (ticketId, userId, resolutionFeedback) => {
+  const query = `
+    UPDATE support_tickets
+    SET
+      resolution_feedback = $1,
+      resolution_feedback_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $2
+    AND user_id = $3
+    RETURNING *;
+  `;
+  const { rows } = await pool.query(query, [
+    resolutionFeedback,
+    ticketId,
+    userId,
+  ]);
+  return rows[0];
+};
 module.exports = {
   createTicket,
   getActiveTicket,
@@ -211,5 +254,7 @@ module.exports = {
   updateTicketStatus,
   submitFeedback,
   getAnalytics,
-  resolveSupportConversation
+  resolveSupportConversation,
+  deleteTicket,
+  saveResolutionFeedback
 };
