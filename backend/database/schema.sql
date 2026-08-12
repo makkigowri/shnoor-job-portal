@@ -320,7 +320,6 @@ CREATE TRIGGER trg_assessment_submissions_updated_at
 BEFORE UPDATE ON assessment_submissions
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
-
 CREATE TABLE IF NOT EXISTS assessment_answers (
   id SERIAL PRIMARY KEY,
   submission_id INTEGER NOT NULL REFERENCES assessment_submissions(id) ON DELETE CASCADE,

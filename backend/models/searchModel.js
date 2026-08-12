@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-
 const searchAvailableJobsForCandidate = async (keywordPattern, limit) => {
   const query = `
     SELECT j.id, j.title, j.location, j.employment_type
@@ -11,7 +10,6 @@ const searchAvailableJobsForCandidate = async (keywordPattern, limit) => {
   const result = await pool.query(query, [keywordPattern, limit]);
   return result.rows;
 };
-
 const searchAppliedJobsForCandidate = async (candidateId, keywordPattern, limit) => {
   const query = `
     SELECT ap.id, j.id AS job_id, j.title, ap.status
@@ -24,7 +22,6 @@ const searchAppliedJobsForCandidate = async (candidateId, keywordPattern, limit)
   const result = await pool.query(query, [candidateId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchSavedJobsForCandidate = async (candidateId, keywordPattern, limit) => {
   const query = `
     SELECT sj.id, j.id AS job_id, j.title, j.location
@@ -36,7 +33,6 @@ const searchSavedJobsForCandidate = async (candidateId, keywordPattern, limit) =
   const result = await pool.query(query, [candidateId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchAssessmentsForCandidate = async (candidateId, keywordPattern, limit) => {
   const query = `
     SELECT aa.id AS assignment_id, a.title, aa.status
@@ -48,7 +44,6 @@ const searchAssessmentsForCandidate = async (candidateId, keywordPattern, limit)
   const result = await pool.query(query, [candidateId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchProfileForCandidate = async (candidateId, keywordPattern) => {
   const query = `
     SELECT user_id, location, qualification, specialization, skills, about
@@ -59,7 +54,6 @@ const searchProfileForCandidate = async (candidateId, keywordPattern) => {
   const result = await pool.query(query, [candidateId, keywordPattern]);
   return result.rows;
 };
-
 const searchNotificationsForUser = async (userId, keywordPattern, limit) => {
   const query = `
     SELECT id, title, message, type, created_at
@@ -70,7 +64,6 @@ const searchNotificationsForUser = async (userId, keywordPattern, limit) => {
   const result = await pool.query(query, [userId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchPostedJobsForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT id, title, location, status
@@ -82,7 +75,6 @@ const searchPostedJobsForRecruiter = async (recruiterId, keywordPattern, limit) 
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchApplicationsForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT ap.id, j.title AS job_title, u.fullname AS candidate_name, ap.status
@@ -96,7 +88,6 @@ const searchApplicationsForRecruiter = async (recruiterId, keywordPattern, limit
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchCandidatesForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT DISTINCT u.id, u.fullname, u.email
@@ -110,7 +101,6 @@ const searchCandidatesForRecruiter = async (recruiterId, keywordPattern, limit) 
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchAssessmentsForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT id, title, status
@@ -121,7 +111,6 @@ const searchAssessmentsForRecruiter = async (recruiterId, keywordPattern, limit)
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchInterviewsForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT iv.id, j.title AS job_title, u.fullname AS candidate_name, iv.status, iv.scheduled_date
@@ -135,7 +124,6 @@ const searchInterviewsForRecruiter = async (recruiterId, keywordPattern, limit) 
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchTechnicalInterviewsForRecruiter = async (recruiterId, keywordPattern, limit) => {
   const query = `
     SELECT ti.id, j.title AS job_title, u.fullname AS candidate_name, ti.status, ti.scheduled_date
@@ -149,7 +137,6 @@ const searchTechnicalInterviewsForRecruiter = async (recruiterId, keywordPattern
   const result = await pool.query(query, [recruiterId, keywordPattern, limit]);
   return result.rows;
 };
-
 const searchAiInterviewsAdmin = async (keywordPattern, limit) => {
   const query = `
     SELECT ai.id, j.title AS job_title, u.fullname AS candidate_name, ai.status
@@ -162,7 +149,6 @@ const searchAiInterviewsAdmin = async (keywordPattern, limit) => {
   const result = await pool.query(query, [keywordPattern, limit]);
   return result.rows;
 };
-
 const searchTechnicalInterviewsAdmin = async (keywordPattern, limit) => {
   const query = `
     SELECT ti.id, j.title AS job_title, u.fullname AS candidate_name, ti.status
@@ -175,7 +161,6 @@ const searchTechnicalInterviewsAdmin = async (keywordPattern, limit) => {
   const result = await pool.query(query, [keywordPattern, limit]);
   return result.rows;
 };
-
 module.exports = {
   searchAvailableJobsForCandidate,
   searchAppliedJobsForCandidate,
