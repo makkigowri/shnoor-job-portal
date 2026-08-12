@@ -49,6 +49,8 @@ export default function Applicants() {
   const [showResume, setShowResume] = useState(false);
 const [resumeUrl, setResumeUrl] = useState("");
 const [numPages, setNumPages] = useState(null);
+const actionButtonRefs = useRef({});
+const [menuPosition, setMenuPosition] = useState(null);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -321,34 +323,60 @@ const [numPages, setNumPages] = useState(null);
                       {candidate.status}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <div className="relative inline-block">
-                      <button
-                        type="button"
-                        ref={(el) => (actionButtonRefs.current[candidate.id] = el)}
-                        onClick={() => {
-                          if (openActionMenu === candidate.id) {
-                            setOpenActionMenu(null);
-                            setMenuPosition(null);
-                            return;
-                          }
-                          const btn = actionButtonRefs.current[candidate.id];
-                          if (btn) {
-                            const rect = btn.getBoundingClientRect();
-                            setMenuPosition({
-                              top: rect.bottom + 8,
-                              left: rect.right - 176
-                            });
-                          }
-                          setOpenActionMenu(candidate.id);
-                        }}
-                        className="p-2 rounded-lg text-gray-500 hover:text-[#3E3A74] hover:bg-gray-100 transition"
-                        title="Actions"
-                      >
-                        <LuEllipsisVertical size={20} />
-                      </button>
-                    </div>
-                  </td>
+                 <td className="px-6 py-5 text-center">
+  <div className="relative inline-block">
+    <button
+      type="button"
+      ref={(el) => (actionButtonRefs.current[candidate.id] = el)}
+      onClick={() => {
+        if (openActionMenu === candidate.id) {
+          setOpenActionMenu(null);
+          setMenuPosition(null);
+          return;
+        }
+
+        const btn = actionButtonRefs.current[candidate.id];
+
+        if (btn) {
+          const rect = btn.getBoundingClientRect();
+
+          setMenuPosition({
+            top: rect.bottom + 8,
+            left: rect.right - 176,
+          });
+        }
+
+        setOpenActionMenu(candidate.id);
+      }}
+      className="p-2 rounded-lg text-gray-500 hover:text-[#3E3A74] hover:bg-gray-100 transition"
+      title="Actions"
+    >
+      <LuEllipsisVertical size={20} />
+    </button>
+  </div>
+
+  {openActionMenu === candidate.id &&
+    menuPosition &&
+    createPortal(
+      <div
+        className="fixed z-[9999] w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+        style={{
+          top: menuPosition.top,
+          left: menuPosition.left,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => handleViewResume(candidate)}
+          disabled={!candidate.resume_path}
+          className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+        >
+          View Resume
+        </button>
+      </div>,
+      document.body
+    )}
+</td>
                 </tr>
               ))}
             </tbody>

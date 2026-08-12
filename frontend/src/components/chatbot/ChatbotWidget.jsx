@@ -210,46 +210,80 @@ const ChatbotWidget = () => {
       active = false;
     };
   }, [user?.id]);
+      useEffect(() => {
     const ticketId = supportConversation?.id;
+
     if (!user?.id || !ticketId) return undefined;
+
     if (!socketRef.current) {
-      socketRef.current = io(SOCKET_URL, { transports: ["websocket", "polling"] });
-      socketRef.current.emit("register", { userId: user.id, role: "user" });
+      socketRef.current = io(SOCKET_URL, {
+        transports: ["websocket", "polling"],
+      });
+
+      socketRef.current.emit("register", {
+        userId: user.id,
+        role: "user",
+      });
     }
+
     const socket = socketRef.current;
+
     if (joinedRoomRef.current !== ticketId) {
       socket.emit("join-conversation", ticketId);
       joinedRoomRef.current = ticketId;
     }
+
     const handleSupportMessage = (payload) => {
       if (payload.ticketId !== ticketId) return;
+
       setSupportMessages((prev) => {
-        if (prev.some((m) => getMessageId(m) === payload.id)) return prev;
+        if (prev.some((m) => getMessageId(m) === payload.id)) {
+          return prev;
+        }
+
         return [...prev, payload];
       });
+
       if (payload.sender === "admin") {
-        setHasUnreadSupportReply((prevUnread) => (view === "support" && open ? prevUnread : true));
+        setHasUnreadSupportReply((prevUnread) =>
+          view === "support" && open ? prevUnread : true
+        );
       }
     };
+
     const handleStatusUpdated = (payload) => {
       if (payload.ticketId !== ticketId) return;
-      setSupportConversation((prev) => (prev ? { ...prev, status: payload.status } : prev));
+
+      setSupportConversation((prev) =>
+        prev ? { ...prev, status: payload.status } : prev
+      );
     };
+
     const handleResolved = (payload) => {
       if (payload.ticketId !== ticketId) return;
-      setSupportConversation((prev) => (prev ? { ...prev, status: "Resolved" } : prev));
+
+      setSupportConversation((prev) =>
+        prev ? { ...prev, status: "Resolved" } : prev
+      );
     };
+
     const handleDeleted = (payload) => {
       if (payload.ticketId !== ticketId) return;
+
       setSupportConversation(null);
       setSupportMessages([]);
       joinedRoomRef.current = null;
-      if (view === "support") setView("chat");
+
+      if (view === "support") {
+        setView("chat");
+      }
     };
+
     socket.on("support-message", handleSupportMessage);
     socket.on("support-status-updated", handleStatusUpdated);
     socket.on("conversation-resolved", handleResolved);
     socket.on("conversation-deleted", handleDeleted);
+
     return () => {
       socket.off("support-message", handleSupportMessage);
       socket.off("support-status-updated", handleStatusUpdated);
