@@ -13,6 +13,7 @@ const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminAssessmentManagement = lazy(() => import("../pages/admin/AssessmentManagement"));
 const AdminAssessmentAnalytics = lazy(() => import("../pages/admin/AssessmentAnalytics"));
 const AdminAssessmentReports = lazy(() => import("../pages/admin/AssessmentReports"));
+const AdminSupport = lazy(() => import("../pages/admin/Support"));
 const AdminPageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="h-10 w-10 rounded-full border-4 border-gray-200 border-t-indigo-600 animate-spin" />
@@ -101,6 +102,14 @@ const AdminRoutes = () => {
           element={
             <AdminProtectedRoute>
               <AdminSettings />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="support"
+          element={
+            <AdminProtectedRoute>
+              <AdminSupport />
             </AdminProtectedRoute>
           }
         />

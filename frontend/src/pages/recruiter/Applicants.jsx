@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
@@ -40,6 +41,21 @@ export default function Applicants() {
   const [sortBy, setSortBy] = useState("latest");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [openActionMenu, setOpenActionMenu] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const actionButtonRefs = useRef({});
+  useEffect(() => {
+    if (!openActionMenu) return;
+    const closeMenu = () => {
+      setOpenActionMenu(null);
+      setMenuPosition(null);
+    };
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, [openActionMenu]);
   useEffect(() => {
     getMyJobs()
       .then((data) => setJobs(data.jobs || []))
@@ -312,29 +328,28 @@ export default function Applicants() {
                     <div className="relative inline-block">
                       <button
                         type="button"
-                        onClick={() =>
-                          setOpenActionMenu(
-                            openActionMenu === candidate.id ? null : candidate.id
-                          )
-                        }
+                        ref={(el) => (actionButtonRefs.current[candidate.id] = el)}
+                        onClick={() => {
+                          if (openActionMenu === candidate.id) {
+                            setOpenActionMenu(null);
+                            setMenuPosition(null);
+                            return;
+                          }
+                          const btn = actionButtonRefs.current[candidate.id];
+                          if (btn) {
+                            const rect = btn.getBoundingClientRect();
+                            setMenuPosition({
+                              top: rect.bottom + 8,
+                              left: rect.right - 176
+                            });
+                          }
+                          setOpenActionMenu(candidate.id);
+                        }}
                         className="p-2 rounded-lg text-gray-500 hover:text-[#3E3A74] hover:bg-gray-100 transition"
                         title="Actions"
                       >
                         <LuEllipsisVertical size={20} />
                       </button>
-                      {openActionMenu === candidate.id && (
-                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden text-left">
-                          <button
-                            type="button"
-                            onClick={() => handleViewResume(candidate)}
-                            disabled={!candidate.resume_path}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition"
-                          >
-                            <LuFileText size={17} />
-                            <span>View Resume</span>
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -343,6 +358,29 @@ export default function Applicants() {
           </table>
           <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
+      )}
+      {openActionMenu && menuPosition && createPortal(
+        (() => {
+          const activeCandidate = pagedApplicants.find((c) => c.id === openActionMenu);
+          if (!activeCandidate) return null;
+          return (
+            <div
+              className="fixed w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden text-left"
+              style={{ top: menuPosition.top, left: menuPosition.left }}
+            >
+              <button
+                type="button"
+                onClick={() => handleViewResume(activeCandidate)}
+                disabled={!activeCandidate.resume_path}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+              >
+                <LuFileText size={17} />
+                <span>View Resume</span>
+              </button>
+            </div>
+          );
+        })(),
+        document.body
       )}
     </RecruiterDashboardLayout>
   );

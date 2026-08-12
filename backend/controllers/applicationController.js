@@ -19,9 +19,6 @@ const applyToJobHandler = async (req, res, next) => {
     if (job.status !== "Active") {
       return res.status(400).json({ success: false, message: "This job is no longer accepting applications" });
     }
-    // Candidate selects one resume from the "Select Resume" modal before
-    // continuing; older clients that don't send resumeId keep working by
-    // falling back to whichever resume is marked default.
     const { resumeId } = req.body || {};
     let selectedResume = null;
     if (resumeId) {
@@ -63,7 +60,6 @@ const applyToJobHandler = async (req, res, next) => {
   type: "success",
   relatedJobId: job.id
 });
-
 await sendPushNotification(
   req.user.id,
   "Application Submitted",
@@ -80,13 +76,11 @@ await sendPushNotification(
           Thank you for applying through <strong>SHNOOR Job Portal</strong>.
         </p>
         <p>Your application has been successfully received.</p>
-
         <table style="width:100%;border-collapse:collapse">
           <tr>
             <td><strong>Job Title</strong></td>
             <td>${job.title}</td>
           </tr>
-
           <tr>
             <td><strong>Location</strong></td>
             <td>${job.location}</td>
@@ -115,7 +109,6 @@ await sendPushNotification(
   type: "info",
   relatedJobId: job.id
 });
-
 await sendPushNotification(
   job.recruiter_id,
   "New Application Received",

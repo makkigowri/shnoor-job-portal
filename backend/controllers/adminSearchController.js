@@ -6,9 +6,7 @@ const {
   listAssessmentsAdmin
 } = require("../models/adminStatsModel");
 const { searchAiInterviewsAdmin, searchTechnicalInterviewsAdmin } = require("../models/searchModel");
-
 const RESULT_LIMIT = 5;
-
 const globalSearchAdmin = async (req, res, next) => {
   try {
     const keyword = (req.query.q || "").trim();
@@ -95,5 +93,4 @@ const globalSearchAdmin = async (req, res, next) => {
     next(error);
   }
 };
-
 module.exports = { globalSearchAdmin };

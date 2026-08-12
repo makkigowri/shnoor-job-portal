@@ -1,0 +1,1 @@
+ALTER TABLE user_resumes ADD COLUMN IF NOT EXISTS resume_text TEXT;
