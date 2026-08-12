@@ -76,9 +76,7 @@ const sortMenuRef = useRef(null);
       setShowSortMenu(false);
     }
   };
-
   document.addEventListener("mousedown", handleClickOutside);
-
   return () =>
     document.removeEventListener("mousedown", handleClickOutside);
 }, []);
@@ -113,16 +111,11 @@ const sortMenuRef = useRef(null);
   };
   const handleApply = async (job) => {
   if (job.application_status && job.application_status !== "Withdrawn") return;
-
   try {
     const data = await getMyResumes();
-
     setResumeList(data.resumes || []);
-
     setPendingJob(job);
-
     setShowResumePopup(true);
-
   } catch (err) {
     setActionError("Unable to load resumes.");
   }
@@ -132,19 +125,15 @@ const confirmApply = async () => {
     setActionError("Please select a resume.");
     return;
   }
-
   setApplyingJobId(pendingJob.id);
-
   try {
     const data = await applyToJob(
       pendingJob.id,
       selectedResume
     );
-
     updateJobInList(pendingJob.id, {
       application_status: data.application.status,
     });
-
     setShowResumePopup(false);
     setPendingJob(null);
     setSelectedResume("");
@@ -159,81 +148,64 @@ const confirmApply = async () => {
 };
  const isApplied = (job) =>
   Boolean(job.application_status && job.application_status !== "Withdrawn");
-
 const getDeadlineBadge = (deadline) => {
   if (!deadline) return null;
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const end = new Date(deadline);
   end.setHours(0, 0, 0, 0);
-
   const diffDays = Math.ceil(
     (end - today) / (1000 * 60 * 60 * 24)
   );
-
   if (diffDays < 0) return null;
-
   if (diffDays === 0) {
     return {
       text: "Closes Today",
       className: "bg-red-100 text-red-700 border border-red-200"
     };
   }
-
   if (diffDays === 1) {
     return {
       text: "Last Day",
       className: "bg-red-100 text-red-700 border border-red-200"
     };
   }
-
   if (diffDays <= 3) {
     return {
       text: `${diffDays} Days Left`,
       className: "bg-orange-100 text-orange-700 border border-orange-200"
     };
   }
-
   if (diffDays <= 7) {
     return {
       text: `${diffDays} Days Left`,
       className: "bg-yellow-100 text-yellow-700 border border-yellow-200"
     };
   }
-
   return null;
 };
-
 const sortedJobs = useMemo(() => {
   const sorted = [...jobs];
-
   switch (sortBy) {
     case "latest":
       sorted.sort((a, b) => b.id - a.id);
       break;
-
     case "oldest":
       sorted.sort((a, b) => a.id - b.id);
       break;
-
     case "az":
       sorted.sort((a, b) =>
         (a.title || "").localeCompare(b.title || "")
       );
       break;
-
     case "za":
       sorted.sort((a, b) =>
         (b.title || "").localeCompare(a.title || "")
       );
       break;
-
     default:
       break;
   }
-
   return sorted;
 }, [jobs, sortBy]);
   return (
@@ -278,7 +250,6 @@ const sortedJobs = useMemo(() => {
             </select>
             
             <div className="flex items-center gap-3">
-
   <button
   type="submit"
   className="w-full h-12 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition"
@@ -286,7 +257,6 @@ const sortedJobs = useMemo(() => {
   Search
 </button>
   <div className="relative" ref={sortMenuRef}>
-
     <button
       type="button"
       onClick={() => setShowSortMenu(!showSortMenu)}
@@ -294,7 +264,6 @@ const sortedJobs = useMemo(() => {
     >
       <LuArrowUpDown size={20} />
     </button>
-
     {showSortMenu && (
       <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
 
@@ -438,7 +407,6 @@ const sortedJobs = useMemo(() => {
 
   {(() => {
     const badge = getDeadlineBadge(job.application_deadline);
-
     return badge ? (
       <span
         className={`inline-flex mt-2 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
@@ -516,40 +484,30 @@ const sortedJobs = useMemo(() => {
       {showResumePopup && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-
-      {/* Header */}
       <div className="border-b px-6 py-5">
         <h2 className="text-2xl font-bold text-heading">
           Select Resume
         </h2>
-
         <p className="mt-1 text-sm text-gray-500">
           Choose the resume you want to submit with this application.
         </p>
       </div>
-
-      {/* Body */}
       <div className="px-6 py-5">
-
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg">
             My Resumes
           </h3>
-
           <span className="text-sm text-gray-500">
             {resumeList.length} Resume{resumeList.length > 1 ? "s" : ""}
           </span>
         </div>
-
         {resumeList.length === 0 ? (
           <div className="border rounded-xl p-8 text-center text-gray-500">
             No resumes uploaded.
           </div>
         ) : (
           <div className="space-y-3 max-h-72 overflow-y-auto">
-
             {resumeList.map((resume) => (
-
               <label
                 key={resume.id}
                 className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all duration-200
@@ -559,9 +517,7 @@ const sortedJobs = useMemo(() => {
                     : "border-gray-200 hover:border-primary hover:bg-gray-50"
                 }`}
               >
-
                 <div className="flex items-center gap-4">
-
                   <input
                     type="radio"
                     name="resume"
@@ -569,17 +525,14 @@ const sortedJobs = useMemo(() => {
                     onChange={() => setSelectedResume(resume.id)}
                     className="w-4 h-4"
                   />
-
                   <div>
                     <h4 className="font-semibold text-gray-800">
                       {resume.resume_filename}
                     </h4>
-
                     <p className="text-sm text-gray-500">
                       Resume PDF
                     </p>
                   </div>
-
                 </div>
 
              <button
@@ -594,7 +547,6 @@ const sortedJobs = useMemo(() => {
               </button>
                 
               </label>
-
             ))}
             {showResumeViewer && (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
@@ -657,12 +609,8 @@ const sortedJobs = useMemo(() => {
 )}
           </div>
         )}
-
       </div>
-
-      {/* Footer */}
       <div className="flex justify-end gap-3 border-t px-6 py-4 bg-gray-50">
-
         <button
           onClick={() => {
             setShowResumePopup(false);

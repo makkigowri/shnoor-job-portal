@@ -14,7 +14,6 @@ BEGIN
     RAISE NOTICE 'Dropped legacy status check constraint % on applications', rec.conname;
   END LOOP;
 END $$;
-
 ALTER TABLE applications
   ADD CONSTRAINT applications_status_check
   CHECK (status IN (
