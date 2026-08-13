@@ -5,7 +5,14 @@ import RecruiterDashboardLayout from "../../layouts/RecruiterDashboardLayout";
 import { getApplicants, exportApplicants } from "../../services/recruiterService";
 import { runAtsForJob } from "../../services/atsService";
 import { getMyJobs } from "../../services/jobService";
-import { LuArrowUpDown, LuEllipsisVertical, LuFileText } from "react-icons/lu";
+import {
+  LuArrowUpDown,
+  LuEllipsisVertical,
+  LuFileText,
+  LuZoomIn,
+  LuZoomOut,
+  LuDownload,
+} from "react-icons/lu";
 import Pagination from "../../components/common/Pagination";
 import usePagination from "../../hooks/usePagination";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -49,6 +56,7 @@ export default function Applicants() {
   const [showResume, setShowResume] = useState(false);
 const [resumeUrl, setResumeUrl] = useState("");
 const [numPages, setNumPages] = useState(null);
+const [resumeScale, setResumeScale] = useState(1);
 const actionButtonRefs = useRef({});
 const [menuPosition, setMenuPosition] = useState(null);
   useEffect(() => {
@@ -152,8 +160,34 @@ const [menuPosition, setMenuPosition] = useState(null);
   const resumeUrl = `${serverUrl}${candidate.resume_path}`;
 
   setResumeUrl(resumeUrl);
-  setShowResume(true);
-  setOpenActionMenu(null);
+setResumeScale(1);
+setShowResume(true);
+setOpenActionMenu(null);
+};
+const handleDownloadResume = async () => {
+  try {
+    const response = await fetch(resumeUrl);
+
+    if (!response.ok) {
+      throw new Error("Failed to download resume");
+    }
+
+    const blob = await response.blob();
+
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "resume.pdf";
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Resume download failed:", error);
+  }
 };
   return (
     <RecruiterDashboardLayout>
@@ -387,55 +421,102 @@ const [menuPosition, setMenuPosition] = useState(null);
       {showResume && (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-      
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+
+     
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
+
         <h2 className="text-lg font-semibold text-gray-900">
           Candidate Resume
         </h2>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowResume(false);
-            setResumeUrl("");
-          }}
-          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-        >
-          Close
-        </button>
+        <div className="flex items-center gap-2">
+
+         
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.max(0.5, prev - 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-[#3E3A74] hover:bg-gray-100 rounded-lg transition"
+            title="Zoom out"
+          >
+            <LuZoomOut size={20} />
+          </button>
+
+          
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.min(2, prev + 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-[#3E3A74] hover:bg-gray-100 rounded-lg transition"
+            title="Zoom in"
+          >
+            <LuZoomIn size={20} />
+          </button>
+
+          
+         <button
+  type="button"
+  onClick={handleDownloadResume}
+  className="p-2 text-gray-600 hover:text-[#3E3A74] hover:bg-gray-100 rounded-lg transition"
+  title="Download resume"
+>
+  <LuDownload size={20} />
+</button>
+
+         
+          <button
+            type="button"
+            onClick={() => {
+              setShowResume(false);
+              setResumeUrl("");
+              setNumPages(null);
+              setResumeScale(1);
+            }}
+            className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+          >
+            Close
+          </button>
+
+        </div>
       </div>
 
-     <div className="flex-1 bg-gray-100 overflow-auto p-6">
-  <Document
-    file={resumeUrl}
-    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-    loading={
-      <div className="flex items-center justify-center h-full text-gray-500">
-        Loading resume...
+     
+      <div className="flex-1 bg-gray-100 overflow-auto p-6">
+
+        <Document
+          file={resumeUrl}
+          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+          loading={
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Loading resume...
+            </div>
+          }
+          error={
+            <div className="flex items-center justify-center h-full text-red-500">
+              Unable to load resume.
+            </div>
+          }
+        >
+          {numPages &&
+            Array.from(new Array(numPages), (_, index) => (
+              <div
+                key={`page_${index + 1}`}
+                className="flex justify-center mb-6"
+              >
+                <Page
+                  pageNumber={index + 1}
+                  scale={resumeScale}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="shadow-lg"
+                />
+              </div>
+            ))}
+        </Document>
+
       </div>
-    }
-    error={
-      <div className="flex items-center justify-center h-full text-red-500">
-        Unable to load resume.
-      </div>
-    }
-  >
-    {Array.from(new Array(numPages), (_, index) => (
-      <div
-        key={`page_${index + 1}`}
-        className="flex justify-center mb-6"
-      >
-        <Page
-          pageNumber={index + 1}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
-          className="shadow-lg"
-        />
-      </div>
-    ))}
-    
-  </Document>
-</div>
 
     </div>
   </div>

@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { FileText, Plus, X } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  X,
+  ZoomIn,
+  ZoomOut,
+  Download,
+} from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import UserDashboardLayout from "../../layouts/UserDashboardLayout";
 import useAuth from "../../hooks/useAuth";
@@ -62,6 +69,7 @@ const Profile = () => {
   const [showResume, setShowResume] = useState(false);
 const [resumeUrl, setResumeUrl] = useState("");
 const [numPages, setNumPages] = useState(null);
+const [resumeScale, setResumeScale] = useState(1);
   const [addingResume, setAddingResume] = useState(false);
   const [busyResumeId, setBusyResumeId] = useState(null);
   const [resumeActionError, setResumeActionError] = useState("");
@@ -96,7 +104,7 @@ const [numPages, setNumPages] = useState(null);
       }
     };
     loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
   useEffect(() => {
     const loadResumes = async () => {
@@ -254,6 +262,7 @@ const [numPages, setNumPages] = useState(null);
   };
   const handleView = (resume) => {
   setResumeUrl(`${API_ORIGIN}${resume.resume_path}`);
+  setResumeScale(1);
   setShowResume(true);
 };
   const handleDownload = async (resume) => {
@@ -622,27 +631,77 @@ const [numPages, setNumPages] = useState(null);
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+     
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
+
         <h2 className="text-lg font-semibold text-heading">
           Resume
         </h2>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowResume(false);
-            setResumeUrl("");
-            setNumPages(null);
-          }}
-          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-        >
-          Close
-        </button>
+        <div className="flex items-center gap-2">
+
+         
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.max(0.5, prev - 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Zoom out"
+          >
+            <ZoomOut size={20} />
+          </button>
+
+          
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.min(2, prev + 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Zoom in"
+          >
+            <ZoomIn size={20} />
+          </button>
+
+         
+          <button
+            type="button"
+            onClick={() => {
+              const resume = resumes.find(
+                (r) => `${API_ORIGIN}${r.resume_path}` === resumeUrl
+              );
+
+              if (resume) {
+                handleDownload(resume);
+              }
+            }}
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Download resume"
+          >
+            <Download size={20} />
+          </button>
+
+        
+          <button
+            type="button"
+            onClick={() => {
+              setShowResume(false);
+              setResumeUrl("");
+              setNumPages(null);
+              setResumeScale(1);
+            }}
+            className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+          >
+            Close
+          </button>
+
+        </div>
       </div>
 
-      {/* PDF */}
+     
       <div className="flex-1 bg-gray-100 overflow-auto p-6">
+
         <Document
           file={resumeUrl}
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -657,20 +716,23 @@ const [numPages, setNumPages] = useState(null);
             </div>
           }
         >
-          {Array.from(new Array(numPages), (_, index) => (
-            <div
-              key={`page_${index + 1}`}
-              className="flex justify-center mb-6"
-            >
-              <Page
-                pageNumber={index + 1}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                className="shadow-lg"
-              />
-            </div>
-          ))}
+          {numPages &&
+            Array.from(new Array(numPages), (_, index) => (
+              <div
+                key={`page_${index + 1}`}
+                className="flex justify-center mb-6"
+              >
+                <Page
+                  pageNumber={index + 1}
+                  scale={resumeScale}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="shadow-lg"
+                />
+              </div>
+            ))}
         </Document>
+
       </div>
 
     </div>

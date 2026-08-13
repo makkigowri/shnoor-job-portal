@@ -6,7 +6,12 @@ import { searchJobs } from "../../services/jobService";
 import { getMyResumes } from "../../services/resumeService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
-import { LuArrowUpDown } from "react-icons/lu";
+import {
+  LuArrowUpDown,
+  LuZoomIn,
+  LuZoomOut,
+  LuDownload,
+} from "react-icons/lu";
 import { Document, Page, pdfjs } from "react-pdf";
 const API_ORIGIN = (
   import.meta.env.VITE_API_URL || "http://localhost:5001/api"
@@ -33,6 +38,8 @@ const [selectedResume, setSelectedResume] = useState("");
 const [showResumeViewer, setShowResumeViewer] = useState(false);
 const [resumeViewerUrl, setResumeViewerUrl] = useState("");
 const [numPages, setNumPages] = useState(null);
+const [resumeScale, setResumeScale] = useState(1);
+const [selectedViewerResume, setSelectedViewerResume] = useState(null);
 const [pendingJob, setPendingJob] = useState(null);
   const [sortBy, setSortBy] = useState("latest");
 const [showSortMenu, setShowSortMenu] = useState(false);
@@ -537,11 +544,13 @@ const sortedJobs = useMemo(() => {
 
              <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setResumeViewerUrl(`${API_ORIGIN}${resume.resume_path}`);
-                  setShowResumeViewer(true);
-                }}
+               onClick={(e) => {
+  e.stopPropagation();
+  setResumeViewerUrl(`${API_ORIGIN}${resume.resume_path}`);
+  setSelectedViewerResume(resume);
+  setResumeScale(1);
+  setShowResumeViewer(true);
+}}
                 className="text-primary font-medium hover:underline">
                 View
               </button>
@@ -552,27 +561,83 @@ const sortedJobs = useMemo(() => {
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
-      {/* Header */}
+     
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
+
         <h2 className="text-lg font-semibold text-heading">
           Resume
         </h2>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowResumeViewer(false);
-            setResumeViewerUrl("");
-            setNumPages(null);
-          }}
-          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-        >
-          Close
-        </button>
+        <div className="flex items-center gap-2">
+
+         
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.max(0.5, prev - 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Zoom out"
+          >
+            <LuZoomOut size={20} />
+          </button>
+
+         
+          <button
+            type="button"
+            onClick={() =>
+              setResumeScale((prev) => Math.min(2, prev + 0.1))
+            }
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Zoom in"
+          >
+            <LuZoomIn size={20} />
+          </button>
+
+         
+          <button
+            type="button"
+            onClick={() => {
+              if (!selectedViewerResume) return;
+
+              const link = document.createElement("a");
+              link.href = resumeViewerUrl;
+              link.download =
+                selectedViewerResume.resume_filename ||
+                selectedViewerResume.resume_name ||
+                "resume.pdf";
+
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+            }}
+            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
+            title="Download resume"
+          >
+            <LuDownload size={20} />
+          </button>
+
+          
+          <button
+            type="button"
+            onClick={() => {
+              setShowResumeViewer(false);
+              setResumeViewerUrl("");
+              setSelectedViewerResume(null);
+              setNumPages(null);
+              setResumeScale(1);
+            }}
+            className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+          >
+            Close
+          </button>
+
+        </div>
       </div>
 
-      {/* Resume PDF */}
+      
       <div className="flex-1 bg-gray-100 overflow-auto p-6">
+
         <Document
           file={resumeViewerUrl}
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -595,6 +660,7 @@ const sortedJobs = useMemo(() => {
               >
                 <Page
                   pageNumber={index + 1}
+                  scale={resumeScale}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   className="shadow-lg"
@@ -602,6 +668,7 @@ const sortedJobs = useMemo(() => {
               </div>
             ))}
         </Document>
+
       </div>
 
     </div>
