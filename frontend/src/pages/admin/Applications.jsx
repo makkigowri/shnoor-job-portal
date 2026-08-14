@@ -5,6 +5,7 @@ import Pagination from "../../components/admin/Pagination";
 import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import AdminFilterBar from "../../components/admin/AdminFilterBar";
 import ActionMenu from "../../components/admin/ActionMenu";
+import ResumeViewerModal from "../../components/common/ResumeViewerModal";
 import {
   fetchAdminApplications,
   fetchAdminApplicationById,
@@ -20,6 +21,7 @@ const AdminApplications = () => {
   const [error, setError] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [viewApplication, setViewApplication] = useState(null);
+  const [resumeViewerApplication, setResumeViewerApplication] = useState(null);
   const load = async (page = 1) => {
     setLoading(true);
     try {
@@ -62,7 +64,6 @@ const AdminApplications = () => {
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <AdminFilterBar
           searchValue={search}
@@ -111,14 +112,13 @@ const AdminApplications = () => {
                 <td className="px-6 py-3 text-gray-600">{application.recruiter_name}</td>
                 <td className="px-6 py-3">
                   {application.resume_path ? (
-                    <a
-                      href={`${API_ORIGIN}${application.resume_path}`}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => setResumeViewerApplication(application)}
                       className="text-[#7393D3] font-medium hover:underline"
                     >
                       View
-                    </a>
+                    </button>
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
@@ -171,6 +171,13 @@ const AdminApplications = () => {
             </div>
           </div>
         </div>
+      )}
+      {resumeViewerApplication && (
+        <ResumeViewerModal
+          url={`${API_ORIGIN}${resumeViewerApplication.resume_path}`}
+          filename={`${resumeViewerApplication.candidate_name || "resume"}.pdf`}
+          onClose={() => setResumeViewerApplication(null)}
+        />
       )}
       <ConfirmDialog
         open={Boolean(confirmAction)}

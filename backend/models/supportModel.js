@@ -225,6 +225,7 @@ const deleteTicket = async (ticketId) => {
     client.release();
   }
 };
+
 const saveResolutionFeedback = async (ticketId, userId, resolutionFeedback) => {
   const query = `
     UPDATE support_tickets
@@ -243,6 +244,7 @@ const saveResolutionFeedback = async (ticketId, userId, resolutionFeedback) => {
   ]);
   return rows[0];
 };
+
 module.exports = {
   createTicket,
   getActiveTicket,

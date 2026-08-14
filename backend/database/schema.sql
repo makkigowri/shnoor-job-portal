@@ -100,10 +100,10 @@ CREATE TABLE IF NOT EXISTS notifications (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title VARCHAR(200) NOT NULL,
   message TEXT NOT NULL,
-  type VARCHAR(20) NOT NULL DEFAULT 'info' CHECK (type IN ('success', 'info', 'warning', 'error')),
+  type VARCHAR(20) NOT NULL DEFAULT 'info' CHECK (type IN ('success', 'info', 'warning', 'error', 'announcement')),
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   related_job_id INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
@@ -213,9 +213,12 @@ CREATE TABLE IF NOT EXISTS admin_notifications (
   type VARCHAR(20) NOT NULL DEFAULT 'info' CHECK (type IN ('success', 'info', 'warning', 'error')),
   audience VARCHAR(20) NOT NULL DEFAULT 'all' CHECK (audience IN ('all', 'jobseeker', 'recruiter')),
   recipient_count INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notifications(created_at DESC);
+ALTER TABLE notifications
+  ADD COLUMN IF NOT EXISTS announcement_id INTEGER REFERENCES admin_notifications(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_notifications_announcement_id ON notifications(announcement_id);
 CREATE TABLE IF NOT EXISTS admin_settings (
   id SERIAL PRIMARY KEY,
   application_name VARCHAR(150) NOT NULL DEFAULT 'Shnoor Job Portal',

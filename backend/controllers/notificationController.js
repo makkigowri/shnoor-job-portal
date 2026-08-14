@@ -1,8 +1,8 @@
-const {getNotificationsByUser,getUnreadCount,markAsRead,markAllAsRead} = require("../models/notificationModel");
+const {getNotificationsByUser,getUnreadAnnouncementCount,markAsRead,markAllAsRead} = require("../models/notificationModel");
 const listMyNotifications = async (req, res, next) => {
   try {
     const notifications = await getNotificationsByUser(req.user.id);
-    const unreadCount = await getUnreadCount(req.user.id);
+    const unreadCount = await getUnreadAnnouncementCount(req.user.id);
     res.status(200).json({ success: true, notifications, unreadCount });
   } catch (error) {
     next(error);

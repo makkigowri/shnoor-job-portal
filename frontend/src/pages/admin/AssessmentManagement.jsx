@@ -91,9 +91,6 @@ const AdminAssessmentManagement = () => {
             <tr className="text-left text-gray-500 bg-gray-50">
               <th className="px-6 py-3 font-medium">Title</th>
               <th className="px-6 py-3 font-medium">Recruiter</th>
-              <th className="px-6 py-3 font-medium">Questions</th>
-              <th className="px-6 py-3 font-medium">Assigned</th>
-              <th className="px-6 py-3 font-medium">Submitted</th>
               <th className="px-6 py-3 font-medium">Status</th>
               <th className="px-6 py-3 font-medium">Created</th>
               <th className="px-6 py-3 font-medium">Actions</th>
@@ -101,18 +98,15 @@ const AdminAssessmentManagement = () => {
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">Loading assessments...</td></tr>
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Loading assessments...</td></tr>
             )}
             {!loading && data.assessments.length === 0 && (
-              <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">No assessments found</td></tr>
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">No assessments found</td></tr>
             )}
             {!loading && data.assessments.map((a) => (
               <tr key={a.id} className="border-t border-gray-100">
                 <td className="px-6 py-3 text-gray-800">{a.title}</td>
                 <td className="px-6 py-3 text-gray-600">{a.recruiter_name}</td>
-                <td className="px-6 py-3 text-gray-600">{a.question_count}</td>
-                <td className="px-6 py-3 text-gray-600">{a.assigned_count}</td>
-                <td className="px-6 py-3 text-gray-600">{a.submitted_count}</td>
                 <td className="px-6 py-3"><StatusBadge status={a.status} /></td>
                 <td className="px-6 py-3 text-gray-600">{formatDate(a.created_at)}</td>
                 <td className="px-6 py-3">

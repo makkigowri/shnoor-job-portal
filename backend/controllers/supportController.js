@@ -34,6 +34,7 @@ const emitSafely = (event, room, payload) => {
 const sendUserSupportMessage = async (req, res, next) => {
   try {
     const { message } = req.body;
+
     if (!message || !message.trim()) {
       return res.status(400).json({
         success: false,
@@ -255,6 +256,7 @@ const updateConversationStatus = async (req, res, next) => {
       normalizedStatus === STATUS_VALUES.RESOLVED
         ? await resolveSupportConversation(conversationId)
         : await updateTicketStatus(conversationId, normalizedStatus);
+
     emitSafely("support-status-updated", `ticket-${conversationId}`, {
       ticketId: Number(conversationId),
       status: conversation.status,
@@ -264,6 +266,7 @@ const updateConversationStatus = async (req, res, next) => {
         ticketId: Number(conversationId),
       });
     }
+
     return res.status(200).json({
       success: true,
       conversation,
@@ -325,7 +328,6 @@ const submitResolutionFeedback = async (req, res, next) => {
         message: "You do not have access to this conversation",
       });
     }
-
     const resolutionValue = isResolved ? "RESOLVED" : "NOT_RESOLVED";
     let conversation = await saveResolutionFeedback(
       conversationId,

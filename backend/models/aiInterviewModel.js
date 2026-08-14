@@ -234,7 +234,10 @@ const getInterviewDetailForRecruiter = async (interviewId, recruiterId) => {
   return interview;
 };
 module.exports = {
-  activateInterviewForApplication,getInterviewForCandidate,getInterviewByApplicationForCandidate,getInterviewsForCandidate,
+  activateInterviewForApplication,
+  getInterviewForCandidate,
+  getInterviewByApplicationForCandidate,
+  getInterviewsForCandidate,
   startInterview,
   incrementQuestionsAsked,
   addQuestion,

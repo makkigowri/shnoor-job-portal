@@ -7,7 +7,10 @@ import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
 import { getMyResumes } from "../../services/resumeService";
 import useAuth from "../../hooks/useAuth";
-const API_ORIGIN = "http://localhost:5001";
+import ResumeViewerModal from "../../components/common/ResumeViewerModal";
+const API_ORIGIN = (
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+).replace(/\/api\/?$/, "");
 const MATCH_BADGES = {
   highly_matched: { label: "Highly Matched", Icon: Star },
   recommended: { label: "Recommended", Icon: CheckCircle2 }
@@ -66,6 +69,9 @@ const Dashboard = () => {
   const [resumeList, setResumeList] = useState([]);
   const [selectedResume, setSelectedResume] = useState("");
   const [pendingJob, setPendingJob] = useState(null);
+  const [showResumeViewer, setShowResumeViewer] = useState(false);
+  const [resumeViewerUrl, setResumeViewerUrl] = useState("");
+  const [selectedViewerResume, setSelectedViewerResume] = useState(null);
   const loadDashboard = async () => {
     setLoading(true);
     setError("");
@@ -122,7 +128,6 @@ const Dashboard = () => {
       setActionError("Please select a resume.");
       return;
     }
-
     setActionError("");
     setApplyingJobId(pendingJob.id);
     try {
@@ -298,18 +303,36 @@ const Dashboard = () => {
                           <p className="text-sm text-gray-500">Resume PDF</p>
                         </div>
                       </div>
-                      <a
-                        href={`${API_ORIGIN}${resume.resume_path}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setResumeViewerUrl(`${API_ORIGIN}${resume.resume_path}`);
+                          setSelectedViewerResume(resume);
+                          setShowResumeViewer(true);
+                        }}
                         className="text-primary font-medium hover:underline"
                       >
                         View
-                      </a>
+                      </button>
                     </label>
                   ))}
                 </div>
+              )}
+              {showResumeViewer && (
+                <ResumeViewerModal
+                  url={resumeViewerUrl}
+                  filename={
+                    selectedViewerResume?.resume_filename ||
+                    selectedViewerResume?.resume_name ||
+                    "resume.pdf"
+                  }
+                  onClose={() => {
+                    setShowResumeViewer(false);
+                    setResumeViewerUrl("");
+                    setSelectedViewerResume(null);
+                  }}
+                />
               )}
             </div>
             <div className="flex justify-end gap-3 border-t px-6 py-4 bg-gray-50">

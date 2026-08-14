@@ -37,10 +37,7 @@ export default function Notifications() {
     activeNotifications,
     unreadCounts,
     loading,
-    error,
-    hasUnread,
-    markingAll,
-    markAllRead
+    error
   } = useNotificationInbox();
   const { page, setPage, totalPages, paginatedItems: pagedNotifications } = usePagination(
     activeNotifications,
@@ -51,18 +48,9 @@ export default function Notifications() {
   }, [activeCategory]);
   return (
     <RecruiterDashboardLayout>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-[#3E3A74]">Notifications</h1>
-          <p className="mt-2 text-gray-500">Stay updated with recruitment activities.</p>
-        </div>
-        <button
-          onClick={markAllRead}
-          disabled={markingAll || !hasUnread}
-          className="px-5 py-3 rounded-xl border border-gray-200 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {markingAll ? "Updating..." : "Mark All as Read"}
-        </button>
+      <div>
+        <h1 className="text-4xl font-bold text-[#3E3A74]">Notifications</h1>
+        <p className="mt-2 text-gray-500">Stay updated with recruitment activities.</p>
       </div>
       {error && (
         <div className="mt-6 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3">{error}</div>

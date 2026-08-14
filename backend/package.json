@@ -21,7 +21,11 @@
     "migrate:resume-files": "node scripts/runResumeFilesMigration.js",
     "backfill:resume-files": "node scripts/backfillResumeFiles.js",
     "migrate:user-resumes-text": "node scripts/runUserResumesResumeTextMigration.js",
-    "migrate:support-resolution-feedback": "node scripts/runSupportResolutionFeedbackMigration.js"
+    "migrate:support-resolution-feedback": "node scripts/runSupportResolutionFeedbackMigration.js",
+    "migrate:admin-notification-reads": "node scripts/runAdminNotificationReadsMigration.js",
+    "migrate:notification-announcement-type": "node scripts/runNotificationAnnouncementTypeMigration.js",
+    "migrate:notification-announcement-reference": "node scripts/runNotificationAnnouncementReferenceMigration.js",
+    "migrate:notification-timestamptz": "node scripts/runNotificationTimestamptzMigration.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

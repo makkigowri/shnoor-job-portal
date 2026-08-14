@@ -6,13 +6,8 @@ import { searchJobs } from "../../services/jobService";
 import { getMyResumes } from "../../services/resumeService";
 import { saveJob, removeSavedJob } from "../../services/savedJobService";
 import { applyToJob } from "../../services/applicationService";
-import {
-  LuArrowUpDown,
-  LuZoomIn,
-  LuZoomOut,
-  LuDownload,
-} from "react-icons/lu";
-import { Document, Page, pdfjs } from "react-pdf";
+import { LuArrowUpDown } from "react-icons/lu";
+import ResumeViewerModal from "../../components/common/ResumeViewerModal";
 const API_ORIGIN = (
   import.meta.env.VITE_API_URL || "http://localhost:5001/api"
 ).replace(/\/api\/?$/, "");
@@ -37,8 +32,6 @@ const [resumeList, setResumeList] = useState([]);
 const [selectedResume, setSelectedResume] = useState("");
 const [showResumeViewer, setShowResumeViewer] = useState(false);
 const [resumeViewerUrl, setResumeViewerUrl] = useState("");
-const [numPages, setNumPages] = useState(null);
-const [resumeScale, setResumeScale] = useState(1);
 const [selectedViewerResume, setSelectedViewerResume] = useState(null);
 const [pendingJob, setPendingJob] = useState(null);
   const [sortBy, setSortBy] = useState("latest");
@@ -548,7 +541,6 @@ const sortedJobs = useMemo(() => {
   e.stopPropagation();
   setResumeViewerUrl(`${API_ORIGIN}${resume.resume_path}`);
   setSelectedViewerResume(resume);
-  setResumeScale(1);
   setShowResumeViewer(true);
 }}
                 className="text-primary font-medium hover:underline">
@@ -558,122 +550,20 @@ const sortedJobs = useMemo(() => {
               </label>
             ))}
             {showResumeViewer && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-    <div className="w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-
-     
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
-
-        <h2 className="text-lg font-semibold text-heading">
-          Resume
-        </h2>
-
-        <div className="flex items-center gap-2">
-
-         
-          <button
-            type="button"
-            onClick={() =>
-              setResumeScale((prev) => Math.max(0.5, prev - 0.1))
-            }
-            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
-            title="Zoom out"
-          >
-            <LuZoomOut size={20} />
-          </button>
-
-         
-          <button
-            type="button"
-            onClick={() =>
-              setResumeScale((prev) => Math.min(2, prev + 0.1))
-            }
-            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
-            title="Zoom in"
-          >
-            <LuZoomIn size={20} />
-          </button>
-
-         
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedViewerResume) return;
-
-              const link = document.createElement("a");
-              link.href = resumeViewerUrl;
-              link.download =
-                selectedViewerResume.resume_filename ||
-                selectedViewerResume.resume_name ||
-                "resume.pdf";
-
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-            }}
-            className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition"
-            title="Download resume"
-          >
-            <LuDownload size={20} />
-          </button>
-
-          
-          <button
-            type="button"
-            onClick={() => {
-              setShowResumeViewer(false);
-              setResumeViewerUrl("");
-              setSelectedViewerResume(null);
-              setNumPages(null);
-              setResumeScale(1);
-            }}
-            className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-          >
-            Close
-          </button>
-
-        </div>
-      </div>
-
-      
-      <div className="flex-1 bg-gray-100 overflow-auto p-6">
-
-        <Document
-          file={resumeViewerUrl}
-          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-          loading={
-            <div className="flex items-center justify-center h-full text-gray-500">
-              Loading resume...
-            </div>
-          }
-          error={
-            <div className="flex items-center justify-center h-full text-red-500">
-              Unable to load resume.
-            </div>
-          }
-        >
-          {numPages &&
-            Array.from(new Array(numPages), (_, index) => (
-              <div
-                key={`page_${index + 1}`}
-                className="flex justify-center mb-6"
-              >
-                <Page
-                  pageNumber={index + 1}
-                  scale={resumeScale}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="shadow-lg"
-                />
-              </div>
-            ))}
-        </Document>
-
-      </div>
-
-    </div>
-  </div>
-)}
+              <ResumeViewerModal
+                url={resumeViewerUrl}
+                filename={
+                  selectedViewerResume?.resume_filename ||
+                  selectedViewerResume?.resume_name ||
+                  "resume.pdf"
+                }
+                onClose={() => {
+                  setShowResumeViewer(false);
+                  setResumeViewerUrl("");
+                  setSelectedViewerResume(null);
+                }}
+              />
+            )}
           </div>
         )}
       </div>

@@ -16,6 +16,13 @@ const getUnreadCount = async (userId) => {
   const result = await pool.query(query, [userId]);
   return result.rows[0].count;
 };
+const getUnreadAnnouncementCount = async (userId) => {
+  const query = `
+    SELECT COUNT(*)::int AS count FROM notifications
+    WHERE user_id = $1 AND is_read = FALSE AND type = 'announcement'`;
+  const result = await pool.query(query, [userId]);
+  return result.rows[0].count;
+};
 const markAsRead = async (userId, notificationId) => {
   const query = ` UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2 RETURNING * `;
   const result = await pool.query(query, [notificationId, userId]);
@@ -27,4 +34,4 @@ const markAllAsRead = async (userId) => {
   const result = await pool.query(query, [userId]);
   return result.rows.length;
 };
-module.exports = {createNotification,getNotificationsByUser,getUnreadCount,markAsRead,markAllAsRead};
+module.exports = {createNotification,getNotificationsByUser,getUnreadCount,getUnreadAnnouncementCount,markAsRead,markAllAsRead};

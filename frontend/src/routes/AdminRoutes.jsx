@@ -8,6 +8,7 @@ const AdminUsers = lazy(() => import("../pages/admin/Users"));
 const AdminRecruiters = lazy(() => import("../pages/admin/Recruiters"));
 const AdminJobs = lazy(() => import("../pages/admin/Jobs"));
 const AdminApplications = lazy(() => import("../pages/admin/Applications"));
+const AdminAnnouncements = lazy(() => import("../pages/admin/Announcements"));
 const AdminNotifications = lazy(() => import("../pages/admin/Notifications"));
 const AdminSettings = lazy(() => import("../pages/admin/Settings"));
 const AdminAssessmentManagement = lazy(() => import("../pages/admin/AssessmentManagement"));
@@ -62,6 +63,14 @@ const AdminRoutes = () => {
           element={
             <AdminProtectedRoute>
               <AdminApplications />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="announcements"
+          element={
+            <AdminProtectedRoute>
+              <AdminAnnouncements />
             </AdminProtectedRoute>
           }
         />

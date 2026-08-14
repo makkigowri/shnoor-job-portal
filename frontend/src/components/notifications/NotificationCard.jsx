@@ -10,13 +10,19 @@ const formatTime = (value) => {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} Days Ago`;
-  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).format(date);
 };
+const badgeLabel = (type) => (type === "announcement" ? "INFO" : (type || "info").toUpperCase());
 const NotificationCard = ({ item, theme }) => {
   const isRead = item.is_read;
   return (
     <div
-      className={`bg-white border ${theme.cardRounded} shadow-sm p-6 transition ${
+      className={`relative overflow-hidden bg-white border ${theme.cardRounded} shadow-sm p-6 pl-7 transition ${
         isRead ? theme.readBorder : `${theme.unreadBorder} ${theme.unreadBg}`
       }`}
     >
@@ -24,7 +30,7 @@ const NotificationCard = ({ item, theme }) => {
         <div>
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.badgeColor(item.type)}`}>
-              {(item.type || "info").toUpperCase()}
+              {badgeLabel(item.type)}
             </span>
             {!isRead && <span className={`w-2 h-2 rounded-full inline-block ${theme.unreadDot}`} />}
           </div>

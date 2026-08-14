@@ -7,6 +7,7 @@ const menu = [
   { title: "Jobs", path: "/admin/jobs" },
   { title: "Applications", path: "/admin/applications" },
   { title: "Assessments", path: "/admin/assessments" },
+  { title: "Announcements", path: "/admin/announcements" },
   { title: "Notifications", path: "/admin/notifications" },
   { title: "Support Chat", path: "/admin/support" },
   { title: "Settings", path: "/admin/settings" }

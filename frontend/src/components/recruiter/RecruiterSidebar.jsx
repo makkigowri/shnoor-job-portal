@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import { useUnreadNotifications } from "../../hooks/useUnreadNotifications";
 const menu = [
   { title: "Dashboard", path: "/recruiter/dashboard" },
   { title: "Company Profile", path: "/recruiter/company-profile" },
@@ -12,6 +13,7 @@ const menu = [
 export default function RecruiterSidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const unreadCount = useUnreadNotifications();
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -50,14 +52,19 @@ export default function RecruiterSidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `block rounded-xl px-5 py-3 font-medium transition-all duration-300 ${
+              `flex items-center justify-between rounded-xl px-5 py-3 font-medium transition-all duration-300 ${
                 isActive
                   ? "bg-white text-[#3E3A74] shadow-md"
                   : "text-white hover:bg-white/10 hover:translate-x-1"
               }`
             }
           >
-            {item.title}
+            <span>{item.title}</span>
+            {item.title === "Notifications" && unreadCount > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-[#7393D3] text-white text-xs font-semibold">
+                {unreadCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

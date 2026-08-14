@@ -22,7 +22,6 @@ const searchRoutes = require("./routes/searchRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 const supportRoutes = require("./routes/supportRoutes");
 const offerLetterRoutes = require("./routes/offerLetterRoutes");
-const contactRequestRoutes = require("./routes/contactRequestRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const { sendEmail } = require("./services/emailService");
 const { getResumeFile } = require("./models/resumeFileModel");
@@ -35,14 +34,6 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// The frontend's "View Resume" links (user profile, recruiter applicants,
-// admin applications, dashboard, search jobs) all open
-// `${backendOrigin}/uploads/<filename>` directly in the browser rather than
-// calling an /api route. Resumes are persisted in Postgres (see
-// models/resumeFileModel.js) so they survive the Render instance
-// sleeping/restarting; this route serves them from there first, and only
-// falls back to the local disk copy (profile photos, company logos, or a
-// resume uploaded moments ago in this same still-awake instance).
 app.get("/uploads/:filename", async (req, res, next) => {
   try {
     const file = await getResumeFile(req.params.filename);
@@ -79,7 +70,6 @@ app.use("/api/search", searchRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/offer-letter", offerLetterRoutes);
-app.use("/api/contact-requests", contactRequestRoutes);
 app.use(notFound);
 app.use(errorHandler);
 module.exports = app;

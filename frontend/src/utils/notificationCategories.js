@@ -1,9 +1,12 @@
-export const NOTIFICATION_CATEGORIES = ["Applications", "Shortlisted", "Other"];
+export const NOTIFICATION_CATEGORIES = ["Applications", "Shortlisted", "Info", "Other"];
 const CATEGORY_KEYWORDS = [
   { category: "Shortlisted", keywords: ["shortlist", "shortlisted"] },
   { category: "Applications", keywords: ["application", "applied", "resume"] }
 ];
 export const categorizeNotification = (notification) => {
+  // Admin Announcements are identified by their reliable `type` field, not
+  // by matching message text, and always belong under Info — never Other.
+  if (notification?.type === "announcement") return "Info";
   const haystack = `${notification?.title || ""} ${notification?.message || ""}`.toLowerCase();
   const match = CATEGORY_KEYWORDS.find(({ keywords }) => keywords.some((keyword) => haystack.includes(keyword)));
   return match ? match.category : "Other";

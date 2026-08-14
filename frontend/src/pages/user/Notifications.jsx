@@ -37,10 +37,7 @@ const Notifications = () => {
     activeNotifications,
     unreadCounts,
     loading,
-    error,
-    hasUnread,
-    markingAll,
-    markAllRead
+    error
   } = useNotificationInbox();
   const { page, setPage, totalPages, paginatedItems: pagedNotifications } = usePagination(
     activeNotifications,
@@ -52,19 +49,9 @@ const Notifications = () => {
   return (
     <UserDashboardLayout>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-heading">Notifications</h1>
-            <p className="text-body mt-2">Stay updated with your applications and profile activities.</p>
-          </div>
-          <button
-            type="button"
-            onClick={markAllRead}
-            disabled={markingAll || !hasUnread}
-            className="border border-border px-5 py-2 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {markingAll ? "Updating..." : "Mark All as Read"}
-          </button>
+        <div>
+          <h1 className="text-3xl font-bold text-heading">Notifications</h1>
+          <p className="text-body mt-2">Stay updated with your applications and profile activities.</p>
         </div>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3">{error}</div>
